@@ -1,0 +1,169 @@
+#!/bin/sh
+# mincs : Pure shell script mini container command
+# This requires util-linux newer than 2.24 (unshare "-f"
+# option and mount correctly support /proc/mounts)
+
+# Exit if any errors
+set -e
+
+rwbind() { # dir
+  mount --bind $1 $RD$1
+}
+
+robind() { # dir
+  mount --bind -o ro $1 $RD$1
+}
+
+# If PID=1, this is in the new world
+if [ $$ -eq 1 ]; then
+  # Ensure the TMPDIR is given
+  test -d "$TMPDIR"
+  test -d "$ROOTDIR" || ROOTDIR=/
+
+  # Working sub-directories
+  RD=$TMPDIR/root
+  UD=$TMPDIR/storage
+  WD=$TMPDIR/work
+  mkdir -p $RD $UD $WD
+
+  # Make private mount namespace
+  mount --make-rprivate /
+
+  # Do not update /etc/mtab since the mount is private
+  export LIBMOUNT_MTAB=/proc/mounts
+
+  # Prepare overlayed root directory
+  # This is for upstreamed overlayfs
+  mount -t overlay -o upperdir=$UD,lowerdir=$ROOTDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
+    # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
+    mount -t overlayfs -o upperdir=$UD,lowerdir=$ROOTDIR overlayfs $RD
+
+  # Hide /etc/mtab in this namespace
+  if [ ! -L $RD/etc/mtab ]; then
+    rm $RD/etc/mtab
+    ln -s /proc/mounts $RD/etc/mtab
+  fi
+
+  # Prepare /dev special files
+  mount -t tmpfs tmpfs $RD/dev
+  mkdir $RD/dev/pts; rwbind /dev/pts
+  touch $RD/dev/console; rwbind /dev/console
+  touch $RD/dev/null; rwbind /dev/null
+  touch $RD/dev/zero; robind /dev/zero
+  test -d /dev/mqueue && mkdir $RD/dev/mqueue && rwbind /dev/mqueue
+  # TODO: Add other devices here
+
+  # Do not bind procfs, since it shows outside pids
+  mount -t proc proc $RD/proc
+  robind /proc/sys
+  robind /proc/sysrq-trigger
+  robind /proc/irq
+  robind /proc/bus
+  robind /sys
+
+  if [ "$RWBIND" ]; then
+    for i in $RWBIND; do
+      test -d $i && mkdir -p $i
+      test -f $i && touch $i
+      rwbind $i
+    done
+  fi
+
+  # To unmount all unused mountpoints, use pivot_root to change root
+  cd $RD
+  mkdir -p .orig
+  pivot_root . .orig
+  umount -R .orig/ >/dev/null 2>&1 || echo -n
+
+  # The original root can not unmount because it referred by overlayfs.
+  # So, we pivot to the root again, and chroot to overlay directory.
+  cd /.orig/
+  pivot_root . mnt/
+
+  exec chroot mnt/ $@
+fi
+
+usage() { # [error messages]
+  test $# -ne 0 && echo "$*"
+  echo "$0 - Run given command in a temporary namespace"
+  echo "Usage: $0 [options] <command> [argument...]"
+  echo " options:"
+  echo "    -h or --help        Show this help"
+  echo "    -k or --keep        Keep the temporary directory"
+  echo "    -t or --tempdir <DIR>  Set DIR for temporary directory (imply -k)"
+  echo "    -r or --rootdir <DIR>  Set DIR for original root directory"
+  echo "    -X or --X11         Export local X11 unix socket"
+  echo "    -n or --net         Use network namespace"
+  exit $#
+}
+
+KEEPDIR=0
+TMPDIR=
+NETNS=0
+export ROOTDIR=/
+# Parse options
+while [ "$1" ]; do
+case "$1" in
+  --keep|-k) # Keep the temporary directory
+    KEEPDIR=1
+    shift 1
+    ;;
+  --tempdir|-t) # Give a temporary directory (imply -k)
+    KEEPDIR=1
+    export TMPDIR=$2
+    test -d "$TMPDIR" || usage "Error: $2 is not a directory"
+    shift 2
+    ;;
+  --rootdir|-r) # Give a rootdir instead of /
+    export ROOTDIR=$2
+    test -d "$ROOTDIR" || usage "Error: $2 is not a directory"
+    shift 2
+    ;;
+  --X11|-X) # Export X11 connection
+    [ -z "$DISPLAY" ] && usage "Error: \$DISPLAY is empty"
+    export RWBIND="/tmp/.X11-unix"
+    shift 1
+    ;;
+  --net|-n) # Use NetNS
+    export NETNS=1
+    shift 1
+    ;;
+  --help|-h) # Help Message
+    usage
+    ;;
+  [!-]*) # User given command
+    break
+    ;;
+  *)
+    usage "Parse error: $1 is not supported."
+esac
+done
+
+# Setup temporary directory
+if [ -z "$TMPDIR" ]; then
+  export TMPDIR=`mktemp -d /tmp/minc$$-XXXX`
+fi
+if [ $KEEPDIR -eq 0 ]; then
+  TRAPCMD="rm -rf $TMPDIR"
+else
+  TRAPCMD="echo Keep $TMPDIR"
+fi
+trap "$TRAPCMD" EXIT
+
+# Setup Network Namespace
+if [ $NETNS -ne 0 ];then
+  NSNAME="minc$$"
+  ip netns add $NSNAME
+  TRAPCMD="$TRAPCMD;ip netns del $NSNAME"
+  trap "$TRAPCMD" EXIT
+  export NETNSIF=vminc$$
+  ip link add name $NETNSIF type veth peer name veth$$
+  ip link set $NETNSIF netns $NSNAME
+  IPNETNS="ip netns exec $NSNAME "
+else
+  IPNETNS=
+fi
+
+# Enter new namespace and exec command
+$IPNETNS unshare -iumpf $0 $@
+
