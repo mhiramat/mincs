@@ -95,12 +95,14 @@ usage() { # [error messages]
   echo "    -r or --rootdir <DIR>  Set DIR for original root directory"
   echo "    -X or --X11         Export local X11 unix socket"
   echo "    -n or --net         Use network namespace"
+  echo "    -c or --cpu <mask>  Set CPU mask"
   exit $#
 }
 
 KEEPDIR=0
 TMPDIR=
 NETNS=0
+CPUMASK=0
 export ROOTDIR=/
 # Parse options
 while [ "$1" ]; do
@@ -128,6 +130,10 @@ case "$1" in
   --net|-n) # Use NetNS
     export NETNS=1
     shift 1
+    ;;
+  --cpu|-c) # Use CPU mask
+    CPUMASK=$2
+    shift 2
     ;;
   --help|-h) # Help Message
     usage
@@ -163,6 +169,11 @@ if [ $NETNS -ne 0 ];then
   IPNETNS="ip netns exec $NSNAME "
 else
   IPNETNS=
+fi
+
+# Set CPU mask
+if [ $CPUMASK -ne 0 ]; then
+  taskset -ap $CPUMASK $$ > /dev/null
 fi
 
 # Enter new namespace and exec command

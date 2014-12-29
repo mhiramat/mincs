@@ -22,10 +22,10 @@ have that name, I changed the name to mincs.
 * -k or --keep
        Keep the temporary directory
 
-* -t or --tempdir <DIR>
+* -t or --tempdir *DIR*
        Set DIR for temporary directory (imply -k)
 
-* -r or --rootdir <DIR>
+* -r or --rootdir *DIR*
        Set DIR for original root directory
 
 * -X or --X11
@@ -33,4 +33,7 @@ have that name, I changed the name to mincs.
 
 * -n or --net
        Use network namespace
+
+* -c or --cpu *BITMASK*
+       Set runnable CPU bitmask
 
