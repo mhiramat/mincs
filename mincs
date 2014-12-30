@@ -1,5 +1,9 @@
 #!/bin/sh
 # mincs : Pure shell script mini container command
+#
+# Copyright (C) 2014 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+#
 # This requires util-linux newer than 2.24 (unshare "-f"
 # option and mount correctly support /proc/mounts)
 

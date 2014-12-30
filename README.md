@@ -37,3 +37,6 @@ have that name, I changed the name to mincs.
 * -c or --cpu *BITMASK*
        Set runnable CPU bitmask
 
+## License
+
+This program is released under the MIT License, see LICENSE.
