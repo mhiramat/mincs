@@ -1,7 +1,7 @@
 #!/bin/sh
 # mincs : Pure shell script mini container command
 #
-# Copyright (C) 2014 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# Copyright (C) 2014,2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
 #
 # This requires util-linux newer than 2.24 (unshare "-f"
@@ -44,7 +44,7 @@ if [ $$ -eq 1 ]; then
 
   # Hide /etc/mtab in this namespace
   if [ ! -L $RD/etc/mtab ]; then
-    rm $RD/etc/mtab
+    rm -f $RD/etc/mtab
     ln -s /proc/mounts $RD/etc/mtab
   fi
 
