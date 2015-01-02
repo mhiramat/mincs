@@ -20,6 +20,8 @@ robind() { # dir
 
 # If PID=1, this is in the new world
 if [ $$ -eq 1 ]; then
+  [ $DEBUG -ne 0 ] && set -x
+
   # Ensure the TMPDIR is given
   test -d "$TMPDIR"
   test -d "$ROOTDIR" || ROOTDIR=/
@@ -100,6 +102,7 @@ usage() { # [error messages]
   echo "    -X or --X11         Export local X11 unix socket"
   echo "    -n or --net         Use network namespace"
   echo "    -c or --cpu <mask>  Set CPU mask"
+  echo "    --debug             Debug mode"
   exit $#
 }
 
@@ -107,6 +110,7 @@ KEEPDIR=0
 TMPDIR=
 NETNS=0
 CPUMASK=0
+export DEBUG=0
 export ROOTDIR=/
 # Parse options
 while [ "$1" ]; do
@@ -141,6 +145,11 @@ case "$1" in
     ;;
   --help|-h) # Help Message
     usage
+    ;;
+  --debug) # Debug mode
+    set -x
+    export DEBUG=1
+    shift 1
     ;;
   [!-]*) # User given command
     break
