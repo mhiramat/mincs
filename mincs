@@ -80,7 +80,7 @@ if [ $$ -eq 1 ]; then
   cd $RD
   mkdir -p .orig
   pivot_root . .orig
-  cut -f 2 -d " " < /proc/mounts | grep "/\.orig/" | sort -r | xargs umount
+  cut -f 2 -d " " < /proc/mounts | grep "^/\.orig/" | sort -r | xargs umount
 
   # The original root can not unmount because it referred by overlayfs.
   # So, we pivot to the root again, and chroot to overlay directory.
