@@ -1,0 +1,95 @@
+#!/bin/sh
+# minc-core : Pure shell script mini container core script
+#
+# Copyright (C) 2014,2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+
+# Exit if any errors
+set -e
+test "$DEBUG" && set -x
+
+# Ensure parameters are set
+test -d "$TMPDIR"
+test -d "$ROOTDIR" || ROOTDIR=/
+
+rwbind() { # dir
+  mount --bind $1 $RD$1
+}
+
+robind() { # dir
+  mount --bind -o ro $1 $RD$1
+}
+
+# If PID=1, this is in the new world
+if [ $$ -eq 1 ]; then
+  # Working sub-directories
+  RD=$TMPDIR/root
+  UD=$TMPDIR/storage
+  WD=$TMPDIR/work
+  mkdir -p $RD $UD $WD
+
+  # Make private mount namespace
+  mount --make-rprivate /
+
+  # Do not update /etc/mtab since the mount is private
+  export LIBMOUNT_MTAB=/proc/mounts
+
+  # Prepare overlayed root directory
+  # This is for upstreamed overlayfs
+  mount -t overlay -o upperdir=$UD,lowerdir=$ROOTDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
+    # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
+    mount -t overlayfs -o upperdir=$UD,lowerdir=$ROOTDIR overlayfs $RD
+
+  # Hide /etc/mtab in this namespace
+  if [ ! -L $RD/etc/mtab ]; then
+    rm -f $RD/etc/mtab
+    ln -s /proc/mounts $RD/etc/mtab
+  fi
+
+  # Prepare /dev special files
+  mount -t tmpfs tmpfs $RD/dev
+  mkdir $RD/dev/pts; rwbind /dev/pts
+  touch $RD/dev/ptmx; rwbind /dev/ptmx
+  touch $RD/dev/console; rwbind /dev/console
+  touch $RD/dev/null; rwbind /dev/null
+  touch $RD/dev/zero; robind /dev/zero
+  test -d /dev/mqueue && mkdir $RD/dev/mqueue && rwbind /dev/mqueue
+  # TODO: Add other devices here
+
+  # Do not bind procfs, since it shows outside pids
+  mount -t proc proc $RD/proc
+  robind /proc/sys
+  robind /proc/sysrq-trigger
+  robind /proc/irq
+  robind /proc/bus
+  robind /sys
+
+  if [ "$RWBIND" ]; then
+    for i in $RWBIND; do
+      test -d $i && mkdir -p $i
+      test -f $i && touch $i
+      rwbind $i
+    done
+  fi
+
+  # To unmount all unused mountpoints, use pivot_root to change root
+  cd $RD
+  mkdir -p .orig
+  pivot_root . .orig
+  cut -f 2 -d " " < /proc/mounts | grep "/\.orig/" | sort -r | xargs umount
+
+  # The original root can not unmount because it referred by overlayfs.
+  # So, we pivot to the root again, and chroot to overlay directory.
+  cd /.orig/
+  pivot_root . mnt/
+
+  exec chroot mnt/ $@
+fi
+
+# Setup CPU and network limitations
+IPNETNS=
+test "$NETNS" && IPNETNS="ip netns exec $NETNS "
+test "$CPUMASK" && taskset -ap $CPUMASK $$ > /dev/null
+
+# Enter new namespace and exec command
+$IPNETNS unshare -iumpf $0 $@
