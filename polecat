@@ -40,14 +40,28 @@ test -d "$1" || usage "$1 is not a directory"
 ROOTFS=$1
 shift 1
 
-TMP=`mktemp -d polecat-XXXXXXXX`
-trap "rm -rf $TMP" EXIT
+TMPDIR=`mktemp -d polecat-XXXXXXXX`
+trap "rm -rf $TMPDIR" EXIT
 
-mkdir -p $ROOTFS/usr/libexec
-install -m 755 $MINCEXEC $ROOTFS/usr/libexec/
+# Working sub-directories
+RD=$TMPDIR/root
+UD=$TMPDIR/storage
+WD=$TMPDIR/work
+mkdir -p $RD $UD $WD
+# This is for upstreamed overlayfs
+mount -t overlay -o upperdir=$UD,lowerdir=$ROOTFS,workdir=$WD overlayfs $RD 2>/dev/null || \
+  # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
+  mount -t overlayfs -o upperdir=$UD,lowerdir=$ROOTFS overlayfs $RD
+trap "umount $RD; rm -rf $TMPDIR" EXIT
 
-mksquashfs $ROOTFS $TMP/rootfs.sfs
-SIZE=`stat --format=%s $TMP/rootfs.sfs`
+mkdir -p $RD/usr/libexec
+install -m 755 $MINCEXEC $RD/usr/libexec/
+
+# Make a squashfs image
+SFS=$TMPDIR/rootfs.sfs
+mksquashfs $RD $SFS
+
+SIZE=`stat --format=%s $SFS`
 cat > $TMP/polecat.sh << EOF
 #!/bin/sh
 set -e
@@ -66,7 +80,8 @@ trap "umount \$ROOTDIR; rm -rf \$PLCDIR" EXIT
 sh \$ROOTDIR/usr/libexec/minc-exec $@
 exit \$?
 EOF
-cat $TMP/polecat.sh $TMP/rootfs.sfs >> $OUTFILE
+
+cat $TMP/polecat.sh $SFS >> $OUTFILE
 chmod a+x $OUTFILE
 
 exit 0
