@@ -1,5 +1,5 @@
 #!/bin/sh
-# mincs : Pure shell script mini container command
+# minc : Pure shell script mini container command
 #
 # Copyright (C) 2014,2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
@@ -7,88 +7,11 @@
 # This requires util-linux newer than 2.24 (unshare "-f"
 # option and mount correctly support /proc/mounts)
 
+LIBEXEC=`dirname $0`/libexec
+MINCEXEC=$LIBEXEC/minc-exec
+
 # Exit if any errors
 set -e
-
-rwbind() { # dir
-  mount --bind $1 $RD$1
-}
-
-robind() { # dir
-  mount --bind -o ro $1 $RD$1
-}
-
-# If PID=1, this is in the new world
-if [ $$ -eq 1 ]; then
-  [ $DEBUG -ne 0 ] && set -x
-
-  # Ensure the TMPDIR is given
-  test -d "$TMPDIR"
-  test -d "$ROOTDIR" || ROOTDIR=/
-
-  # Working sub-directories
-  RD=$TMPDIR/root
-  UD=$TMPDIR/storage
-  WD=$TMPDIR/work
-  mkdir -p $RD $UD $WD
-
-  # Make private mount namespace
-  mount --make-rprivate /
-
-  # Do not update /etc/mtab since the mount is private
-  export LIBMOUNT_MTAB=/proc/mounts
-
-  # Prepare overlayed root directory
-  # This is for upstreamed overlayfs
-  mount -t overlay -o upperdir=$UD,lowerdir=$ROOTDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
-    # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
-    mount -t overlayfs -o upperdir=$UD,lowerdir=$ROOTDIR overlayfs $RD
-
-  # Hide /etc/mtab in this namespace
-  if [ ! -L $RD/etc/mtab ]; then
-    rm -f $RD/etc/mtab
-    ln -s /proc/mounts $RD/etc/mtab
-  fi
-
-  # Prepare /dev special files
-  mount -t tmpfs tmpfs $RD/dev
-  mkdir $RD/dev/pts; rwbind /dev/pts
-  touch $RD/dev/ptmx; rwbind /dev/ptmx
-  touch $RD/dev/console; rwbind /dev/console
-  touch $RD/dev/null; rwbind /dev/null
-  touch $RD/dev/zero; robind /dev/zero
-  test -d /dev/mqueue && mkdir $RD/dev/mqueue && rwbind /dev/mqueue
-  # TODO: Add other devices here
-
-  # Do not bind procfs, since it shows outside pids
-  mount -t proc proc $RD/proc
-  robind /proc/sys
-  robind /proc/sysrq-trigger
-  robind /proc/irq
-  robind /proc/bus
-  robind /sys
-
-  if [ "$RWBIND" ]; then
-    for i in $RWBIND; do
-      test -d $i && mkdir -p $i
-      test -f $i && touch $i
-      rwbind $i
-    done
-  fi
-
-  # To unmount all unused mountpoints, use pivot_root to change root
-  cd $RD
-  mkdir -p .orig
-  pivot_root . .orig
-  cut -f 2 -d " " < /proc/mounts | grep "^/\.orig/" | sort -r | xargs umount
-
-  # The original root can not unmount because it referred by overlayfs.
-  # So, we pivot to the root again, and chroot to overlay directory.
-  cd /.orig/
-  pivot_root . mnt/
-
-  exec chroot mnt/ $@
-fi
 
 usage() { # [error messages]
   test $# -ne 0 && echo "$*"
@@ -108,9 +31,9 @@ usage() { # [error messages]
 
 KEEPDIR=0
 TMPDIR=
-NETNS=0
+NETNS=
 CPUMASK=0
-export DEBUG=0
+export DEBUG=
 export ROOTDIR=/
 # Parse options
 while [ "$1" ]; do
@@ -136,7 +59,7 @@ case "$1" in
     shift 1
     ;;
   --net|-n) # Use NetNS
-    export NETNS=1
+    NETNS="minc$$"
     shift 1
     ;;
   --cpu|-c) # Use CPU mask
@@ -171,24 +94,13 @@ fi
 trap "$TRAPCMD" EXIT
 
 # Setup Network Namespace
-if [ $NETNS -ne 0 ];then
-  NSNAME="minc$$"
-  ip netns add $NSNAME
-  TRAPCMD="$TRAPCMD;ip netns del $NSNAME"
+if [ "$NETNS" ]; then
+  ip netns add $NETNS
+  TRAPCMD="$TRAPCMD;ip netns del $NETNS"
   trap "$TRAPCMD" EXIT
   export NETNSIF=vminc$$
   ip link add name $NETNSIF type veth peer name veth$$
-  ip link set $NETNSIF netns $NSNAME
-  IPNETNS="ip netns exec $NSNAME "
-else
-  IPNETNS=
+  ip link set $NETNSIF netns $NETNS
 fi
 
-# Set CPU mask
-if [ $CPUMASK -ne 0 ]; then
-  taskset -ap $CPUMASK $$ > /dev/null
-fi
-
-# Enter new namespace and exec command
-$IPNETNS unshare -iumpf $0 $@
-
+$MINCEXEC $@
