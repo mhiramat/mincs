@@ -20,6 +20,7 @@ shift 1
 set -e
 
 TMP=`mktemp -d polecat-XXXXXXXX`
+trap "rm -rf $TMP" EXIT
 
 mkdir -p $ROOTFS/usr/libexec
 install -m 755 $MINCEXEC $ROOTFS/usr/libexec/
@@ -45,5 +46,5 @@ sh \$ROOTDIR/usr/libexec/minc-exec $@
 exit \$?
 EOF
 cat $TMP/polecat.sh $TMP/rootfs.sfs >> polecat-image.sh
-rm -rf $TMP
 
+exit 0
