@@ -16,6 +16,7 @@ have that name, I changed the name to mincs.
 - Util-linux ( version > 2.24 )
 - IProute2
 - Overlayfs
+- Squashfs-tools (for polecat)
 
 ## mincs usage
 
@@ -47,6 +48,20 @@ have that name, I changed the name to mincs.
 ## polecat usage
 
 ` polecat <rootdir> <command> `
+
+### Examples
+
+To build an executable debian stable container, run a debootstrap on
+a directory and run polecat.
+
+```sh
+ mkdir debroot
+ debootstrap stable debroot
+ polecat debroot /bin/bash
+```
+
+You'll see the `polecat-image.sh` in current directory, that is
+a self-executable binary.
 
 ## License
 
