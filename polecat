@@ -1,5 +1,5 @@
 #!/bin/sh
-# polecat: Portable Containering Application Script
+# polecat: Portable Containered Application build shell script
 #
 # Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
