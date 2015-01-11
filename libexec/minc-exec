@@ -72,18 +72,23 @@ if [ $$ -eq 1 ]; then
     done
   fi
 
-  # To unmount all unused mountpoints, use pivot_root to change root
-  cd $RD
-  mkdir -p .orig
-  pivot_root . .orig
-  cut -f 2 -d " " < /proc/mounts | grep "/\.orig/" | sort -r | xargs umount
-
-  # The original root can not unmount because it referred by overlayfs.
-  # So, we pivot to the root again, and chroot to overlay directory.
-  cd /.orig/
-  pivot_root . mnt/
-
-  exec chroot mnt/ $@
+  if [ "$SIMPLEUMOUNT" ]; then
+    # Simply umount unused mount points
+    cut -f 2 -d " " < /proc/mounts | grep -e "^/sys" -e "^/dev/" -e "^/run" | sort -r | xargs umount
+    umount /proc
+  else
+    # To unmount all unused mountpoints, use pivot_root to change root
+    cd $RD
+    mkdir -p .orig
+    pivot_root . .orig
+    cut -f 2 -d " " < /proc/mounts | grep "/\.orig/" | sort -r | xargs umount
+    # The original root can not unmount because it referred by overlayfs.
+    # So, we pivot to the root again, and chroot to overlay directory.
+    cd /.orig/
+    pivot_root . mnt/
+    RD=mnt/
+  fi
+  exec chroot $RD $@
 fi
 
 # Setup CPU and network limitations
