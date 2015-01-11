@@ -46,7 +46,7 @@ have that name, I changed the name to mincs.
 
 ## polecat usage
 
-` polecat <rootdir> <command>
+` polecat <rootdir> <command> `
 
 ## License
 
