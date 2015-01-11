@@ -1,0 +1,49 @@
+#!/bin/sh
+# polecat: Portable Containering Application Script
+#
+# Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+
+LIBEXEC=`dirname $0`/libexec
+MINCEXEC=$LIBEXEC/minc-exec
+
+usage() {
+  echo "Usage: $0 <rootdir> <command>"
+  exit 0
+}
+
+test -d "$1" || usage
+
+ROOTFS=$1
+shift 1
+
+set -e
+
+TMP=`mktemp -d polecat-XXXXXXXX`
+
+mkdir -p $ROOTFS/usr/libexec
+install -m 755 $MINCEXEC $ROOTFS/usr/libexec/
+
+mksquashfs $ROOTFS $TMP/rootfs.sfs
+SIZE=`stat --format=%s $TMP/rootfs.sfs`
+cat > $TMP/polecat.sh << EOF
+#!/bin/sh
+set -e
+SELF=\$0
+SIZE=$SIZE
+TOTAL=\`stat --format=%s \$SELF\`
+OFFS=\$((TOTAL - SIZE))
+export PLCDIR=\`mktemp -d polecat-run-XXXXXXXX\`
+trap "rm -rf \$PLCDIR" EXIT
+export ROOTDIR=\$PLCDIR/rootfs
+export TMPDIR=\$PLCDIR/tmp
+export SIMPLEUMOUNT=1
+mkdir \$ROOTDIR \$TMPDIR
+mount -t squashfs -o ro,loop,offset=\$OFFS \$SELF \$ROOTDIR
+trap "umount \$ROOTDIR; rm -rf \$PLCDIR" EXIT
+sh \$ROOTDIR/usr/libexec/minc-exec $@
+exit \$?
+EOF
+cat $TMP/polecat.sh $TMP/rootfs.sfs >> polecat-image.sh
+rm -rf $TMP
+
