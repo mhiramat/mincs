@@ -4,13 +4,20 @@ MINCS (Minimum Container Shellscript) is a shell script for light-weight
 containers. "mincs" starts with "chns" but since there are some programs
 have that name, I changed the name to mincs.
 
+* *mincs* is a shell script (frontend) of mini-container script, which
+ works as the chroot, but it also changes namespace.
+
+* *polecat* is a shell script to build a self-executable containered
+ application.
+
 ## Pre-requisites
 
 - Posix shell (dash, bash, etc)
 - Util-linux ( version > 2.24 )
 - IProute2
+- Overlayfs
 
-## Usage
+## mincs usage
 
 ` mincs [options] [command [arguments]] `
 
@@ -36,6 +43,10 @@ have that name, I changed the name to mincs.
 
 * -c or --cpu *BITMASK*
        Set runnable CPU bitmask
+
+## polecat usage
+
+` polecat <rootdir> <command>
 
 ## License
 
