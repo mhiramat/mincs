@@ -67,5 +67,6 @@ sh \$ROOTDIR/usr/libexec/minc-exec $@
 exit \$?
 EOF
 cat $TMP/polecat.sh $TMP/rootfs.sfs >> $OUTFILE
+chmod a+x $OUTFILE
 
 exit 0
