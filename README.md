@@ -47,7 +47,15 @@ have that name, I changed the name to mincs.
 
 ## polecat usage
 
-` polecat <rootdir> <command> `
+` polecat [options] <rootdir> <command> `
+
+### Options
+
+* -h or --help
+       Show help message
+
+* -o or --output *FILE*
+       Output to FILE instead of *polecat-out.sh*
 
 ### Examples
 
@@ -60,8 +68,10 @@ a directory and run polecat.
  polecat debroot /bin/bash
 ```
 
-You'll see the `polecat-image.sh` in current directory, that is
-a self-executable binary.
+You'll see the `polecat-out.sh` in current directory, that is
+a self-executable binary. So, you can just run it.
+
+` ./polecat-out.sh`
 
 ## License
 
