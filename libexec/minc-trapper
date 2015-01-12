@@ -1,0 +1,113 @@
+#!/bin/sh
+# minc-trapper : Mini-container dependency trapper 
+#
+# Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+#
+# This requires strace to trace open files
+
+LIBEXEC=`dirname $0`
+MINCEXEC=$LIBEXEC/minc-exec
+
+usage() { # [error messages]
+  test $# -ne 0 && echo "Error: $@"
+  echo "minc-trapper: Mini container dependency trapper"
+  echo "Usage: $0 [-r rootdir] <minc-tempdir> <command>"
+  exit $#
+}
+
+ROOTDIR=/
+while [ "$1" ]; do
+case $1 in
+-h|--help)
+  usage
+  ;;
+-r|--rootdir)
+  ROOTDIR=$2
+  test -d $ROOTDIR || usage "$ROOTDIR is not a directory"
+  shift 2
+  ;;
+*)
+  break;
+  ;;
+esac
+done
+
+TMPDIR=$1
+TARGET=$TMPDIR/storage
+shift 1
+test -d "$TMPDIR" || usage "$TMPDIR is not a directory"
+test -d "$TARGET" || usage "$TMPDIR is not a minc tempdir"
+
+# Run once to trace open files
+TRACEOUT=`mktemp /tmp/traceout-XXXXXXXX`
+trap "rm -f $TRACEOUT" EXIT
+
+export STRACE="strace -q -e trace=open -o $TRACEOUT"
+export SIMPLEUMOUNT=1
+export ROOTDIR
+export TMPDIR
+$MINCEXEC $@
+
+getreqlibs(){ # binary
+  objdump -p $i 2>/dev/null | awk '/NEEDED/{print $2}' | xargs
+}
+
+libpath() { # libname
+  chroot $ROOTDIR ldconfig -p | grep -m 1 $1 | cut -f 2 -d \>
+}
+
+fileexist() { # path
+  test -e $1 || test -L $1
+}
+
+isabspath() { # file
+  case $1 in /*) return 0;; *) return 1;; esac
+}
+
+mincinst() { # libpath
+  fileexist $TARGET/$1 && return 1
+  fileexist $ROOTDIR/$1 || return 1
+  echo "Install $1"
+  dir=`dirname $1`
+  mkdir -p $TARGET/$dir
+  cp -fP $ROOTDIR/$1 $TARGET/$dir
+  # symlink must be followed
+  orig=`readlink $ROOTDIR/$1`
+  isabspath $orig || orig=$dir/$orig
+  test "$orig" && mincinst $orig
+  return 0
+}
+
+# Install all accessed files
+for i in `grep ^open $TRACEOUT | cut -f 2 -d \" | xargs`; do
+  mincinst $i
+done
+
+# Make a dependency list in existing binaries.
+LIBS=
+for i in `find $TARGET -type f`; do
+  LIBS="$LIBS "`getreqlibs $i`
+done
+
+# Loop until all dependency is solved.
+while test "$LIBS"; do
+_LIBS=
+for i in $LIBS; do
+  # Copy required libraries.
+  p=`libpath $i`
+  test "$p" || continue
+  mincinst $p || continue
+  _LIBS="$_LIBS "`getreqlibs $p`
+done
+LIBS=$_LIBS 
+done
+
+# Copy ELF loader
+mincinst /lib64/ld-linux-x86-64.so.2
+
+# Prepare system dirs
+echo "Add primitive directories"
+cd $TARGET/
+mkdir -p dev proc sys tmp var/run
+
