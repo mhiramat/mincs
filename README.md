@@ -1,10 +1,10 @@
 # MINCS
 
-MINCS (Minimum Container Shellscript) is a shell script for light-weight
-containers. "mincs" starts with "chns" but since there are some programs
-have that name, I changed the name to mincs.
+MINCS (Minimum Container Shellscripts) is a collection of shell scripts
+for light-weight containers. "minc" starts with "chns" but since there
+are some programs have that name, I changed the name to minc.
 
-* *mincs* is a shell script (frontend) of mini-container script, which
+* *minc* is a shell script (frontend) of mini-container script, which
  works as the chroot, but it also changes namespace.
 
 * *polecat* is a shell script to build a self-executable containered
@@ -18,9 +18,9 @@ have that name, I changed the name to mincs.
 - Overlayfs
 - Squashfs-tools (for polecat)
 
-## mincs usage
+## minc usage
 
-` mincs [options] [command [arguments]] `
+` minc [options] [command [arguments]] `
 
 ### Options
 
