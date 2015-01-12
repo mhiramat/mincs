@@ -88,7 +88,7 @@ if [ $$ -eq 1 ]; then
     pivot_root . mnt/
     RD=mnt/
   fi
-  test $DEBUG -ge 2 && STRACE=strace
+  test "$DEBUG" && test $DEBUG -ge 2 && STRACE=strace
   exec $STRACE chroot $RD $@
 fi
 
