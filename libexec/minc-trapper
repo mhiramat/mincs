@@ -43,7 +43,7 @@ test -d "$TARGET" || usage "$TMPDIR is not a minc tempdir"
 TRACEOUT=`mktemp /tmp/traceout-XXXXXXXX`
 trap "rm -f $TRACEOUT" EXIT
 
-export STRACE="strace -q -e trace=open -o $TRACEOUT"
+export STRACE="strace -q -e trace=open,execve,access -o $TRACEOUT"
 export SIMPLEUMOUNT=1
 export ROOTDIR
 export TMPDIR
