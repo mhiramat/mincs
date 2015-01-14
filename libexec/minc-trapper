@@ -69,10 +69,10 @@ isabspath() { # file
 
 mincinst() { # libpath
   fileexist $TARGET/$1 && return 1
-  fileexist $ROOTDIR/$1 || return 1
-  echo "Install $1"
   dir=`dirname $1`
   mkdir -p $TARGET/$dir
+  fileexist $ROOTDIR/$1 || return 1
+  echo "Install $1"
   cp -fP $ROOTDIR/$1 $TARGET/$dir
   # symlink must be followed
   orig=`readlink $ROOTDIR/$1`
