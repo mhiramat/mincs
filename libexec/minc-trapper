@@ -16,6 +16,8 @@ usage() { # [error messages]
   exit $#
 }
 
+test $# -lt 2 && usage "$0 requires at least 2 arguments."
+
 ROOTDIR=/
 while [ "$1" ]; do
 case $1 in
