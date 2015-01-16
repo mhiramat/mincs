@@ -43,14 +43,14 @@ case "$1" in
     shift 1
     ;;
   --tempdir|-t) # Give a temporary directory (imply -k)
-    KEEPDIR=1
+    test -d "$2" || usage "Error: $2 is not a directory"
     export TMPDIR=$2
-    test -d "$TMPDIR" || usage "Error: $2 is not a directory"
+    KEEPDIR=1
     shift 2
     ;;
   --rootdir|-r) # Give a rootdir instead of /
+    test -d "$2" || usage "Error: $2 is not a directory"
     export ROOTDIR=$2
-    test -d "$ROOTDIR" || usage "Error: $2 is not a directory"
     shift 2
     ;;
   --X11|-X) # Export X11 connection
@@ -79,6 +79,7 @@ case "$1" in
     ;;
   *)
     usage "Parse error: $1 is not supported."
+    ;;
 esac
 done
 
