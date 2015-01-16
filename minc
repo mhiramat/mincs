@@ -59,7 +59,7 @@ case "$1" in
     shift 1
     ;;
   --net|-n) # Use NetNS
-    NETNS="minc$$"
+    export NETNS="minc$$"
     shift 1
     ;;
   --cpu|-c) # Use CPU mask
