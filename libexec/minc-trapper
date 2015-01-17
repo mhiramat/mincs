@@ -60,7 +60,7 @@ libpath() { # libname
 }
 
 fileexist() { # path
-  test -e $1 || test -L $1
+  test -f $1 || test -L $1
 }
 
 isabspath() { # file
