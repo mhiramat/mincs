@@ -111,5 +111,5 @@ mincinst /lib64/ld-linux-x86-64.so.2
 # Prepare system dirs
 echo "Add primitive directories"
 cd $TARGET/
-mkdir -p dev proc sys tmp var/run
+mkdir -p tmp var/run
 

@@ -40,6 +40,8 @@ if [ $$ -eq 1 ]; then
     # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
     mount -t overlayfs -o upperdir=$UD,lowerdir=$MINC_ROOTDIR overlayfs $RD
 
+  mkdir -p $RD/etc $RD/dev $RD/sys $RD/proc
+
   # Hide /etc/mtab in this namespace
   if [ ! -L $RD/etc/mtab ]; then
     rm -f $RD/etc/mtab
