@@ -30,11 +30,11 @@ usage() { # [error messages]
 }
 
 KEEPDIR=0
-TMPDIR=
-NETNS=
-CPUMASK=0
-export DEBUG=
-export ROOTDIR=/
+MINC_TMPDIR=
+MINC_NETNS=
+MINC_CPUMASK=0
+export MINC_DEBUG=
+export MINC_ROOTDIR=/
 # Parse options
 while [ "$1" ]; do
 case "$1" in
@@ -44,26 +44,26 @@ case "$1" in
     ;;
   --tempdir|-t) # Give a temporary directory (imply -k)
     test -d "$2" || usage "Error: $2 is not a directory"
-    export TMPDIR=$2
+    export MINC_TMPDIR=$2
     KEEPDIR=1
     shift 2
     ;;
   --rootdir|-r) # Give a rootdir instead of /
     test -d "$2" || usage "Error: $2 is not a directory"
-    export ROOTDIR=$2
+    export MINC_ROOTDIR=$2
     shift 2
     ;;
   --X11|-X) # Export X11 connection
     [ -z "$DISPLAY" ] && usage "Error: \$DISPLAY is empty"
-    export RWBIND="/tmp/.X11-unix"
+    export MINC_RWBIND="/tmp/.X11-unix"
     shift 1
     ;;
   --net|-n) # Use NetNS
-    export NETNS="minc$$"
+    export MINC_NETNS="minc$$"
     shift 1
     ;;
   --cpu|-c) # Use CPU mask
-    CPUMASK=$2
+    MINC_CPUMASK=$2
     shift 2
     ;;
   --help|-h) # Help Message
@@ -71,7 +71,7 @@ case "$1" in
     ;;
   --debug) # Debug mode
     set -x
-    export DEBUG=1
+    export MINC_DEBUG=1
     shift 1
     ;;
   [!-]*) # User given command
@@ -84,24 +84,24 @@ esac
 done
 
 # Setup temporary directory
-if [ -z "$TMPDIR" ]; then
-  export TMPDIR=`mktemp -d /tmp/minc$$-XXXX`
+if [ -z "$MINC_TMPDIR" ]; then
+  export MINC_TMPDIR=`mktemp -d /tmp/minc$$-XXXX`
 fi
 if [ $KEEPDIR -eq 0 ]; then
-  TRAPCMD="rm -rf $TMPDIR"
+  TRAPCMD="rm -rf $MINC_TMPDIR"
 else
-  TRAPCMD="echo Keep $TMPDIR"
+  TRAPCMD="echo Keep $MINC_TMPDIR"
 fi
 trap "$TRAPCMD" EXIT
 
 # Setup Network Namespace
-if [ "$NETNS" ]; then
-  ip netns add $NETNS
-  TRAPCMD="$TRAPCMD;ip netns del $NETNS"
+if [ "$MINC_NETNS" ]; then
+  ip netns add $MINC_NETNS
+  TRAPCMD="$TRAPCMD;ip netns del $MINC_NETNS"
   trap "$TRAPCMD" EXIT
-  export NETNSIF=vminc$$
-  ip link add name $NETNSIF type veth peer name veth$$
-  ip link set $NETNSIF netns $NETNS
+  export MINC_NETNSIF=vminc$$
+  ip link add name $MINC_NETNSIF type veth peer name veth$$
+  ip link set $MINC_NETNSIF netns $MINC_NETNS
 fi
 
 $MINCEXEC $@

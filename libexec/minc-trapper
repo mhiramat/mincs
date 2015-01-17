@@ -18,15 +18,15 @@ usage() { # [error messages]
 
 test $# -lt 2 && usage "$0 requires at least 2 arguments."
 
-ROOTDIR=/
+MINC_ROOTDIR=/
 while [ "$1" ]; do
 case $1 in
 -h|--help)
   usage
   ;;
 -r|--rootdir)
-  ROOTDIR=$2
-  test -d $ROOTDIR || usage "$ROOTDIR is not a directory"
+  MINC_ROOTDIR=$2
+  test -d $MINC_ROOTDIR || usage "$MINC_ROOTDIR is not a directory"
   shift 2
   ;;
 *)
@@ -35,20 +35,20 @@ case $1 in
 esac
 done
 
-TMPDIR=$1
-TARGET=$TMPDIR/storage
+MINC_TMPDIR=$1
+TARGET=$MINC_TMPDIR/storage
 shift 1
-test -d "$TMPDIR" || usage "$TMPDIR is not a directory"
-test -d "$TARGET" || usage "$TMPDIR is not a minc tempdir"
+test -d "$MINC_TMPDIR" || usage "$MINC_TMPDIR is not a directory"
+test -d "$TARGET" || usage "$MINC_TMPDIR is not a minc tempdir"
 
 # Run once to trace open files
 TRACEOUT=`mktemp /tmp/traceout-XXXXXXXX`
 trap "rm -f $TRACEOUT" EXIT
 
 export STRACE="strace -q -e trace=open,execve,access -o $TRACEOUT"
-export SIMPLEUMOUNT=1
-export ROOTDIR
-export TMPDIR
+export MINC_OPT_SIMPLE=1
+export MINC_ROOTDIR
+export MINC_TMPDIR
 $MINCEXEC $@
 
 getreqlibs(){ # binary
@@ -56,7 +56,7 @@ getreqlibs(){ # binary
 }
 
 libpath() { # libname
-  chroot $ROOTDIR ldconfig -p | grep -m 1 $1 | cut -f 2 -d \>
+  chroot $MINC_ROOTDIR ldconfig -p | grep -m 1 $1 | cut -f 2 -d \>
 }
 
 fileexist() { # path
@@ -71,11 +71,11 @@ mincinst() { # libpath
   fileexist $TARGET/$1 && return 1
   dir=`dirname $1`
   mkdir -p $TARGET/$dir
-  fileexist $ROOTDIR/$1 || return 1
+  fileexist $MINC_ROOTDIR/$1 || return 1
   echo "Install $1"
-  cp -fP $ROOTDIR/$1 $TARGET/$dir
+  cp -fP $MINC_ROOTDIR/$1 $TARGET/$dir
   # symlink must be followed
-  orig=`readlink $ROOTDIR/$1`
+  orig=`readlink $MINC_ROOTDIR/$1`
   isabspath $orig || orig=$dir/$orig
   test "$orig" && mincinst $orig
   return 0

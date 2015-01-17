@@ -6,11 +6,11 @@
 
 # Exit if any errors
 set -e
-test "$DEBUG" && set -x
+test "$MINC_DEBUG" && set -x
 
 # Ensure parameters are set
-test -d "$TMPDIR"
-test -d "$ROOTDIR" || ROOTDIR=/
+test -d "$MINC_TMPDIR"
+test -d "$MINC_ROOTDIR" || MINC_ROOTDIR=/
 
 rwbind() { # dir
   mount --bind $1 $RD$1
@@ -23,9 +23,9 @@ robind() { # dir
 # If PID=1, this is in the new world
 if [ $$ -eq 1 ]; then
   # Working sub-directories
-  RD=$TMPDIR/root
-  UD=$TMPDIR/storage
-  WD=$TMPDIR/work
+  RD=$MINC_TMPDIR/root
+  UD=$MINC_TMPDIR/storage
+  WD=$MINC_TMPDIR/work
   mkdir -p $RD $UD $WD
 
   # Make private mount namespace
@@ -36,9 +36,9 @@ if [ $$ -eq 1 ]; then
 
   # Prepare overlayed root directory
   # This is for upstreamed overlayfs
-  mount -t overlay -o upperdir=$UD,lowerdir=$ROOTDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
+  mount -t overlay -o upperdir=$UD,lowerdir=$MINC_ROOTDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
     # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
-    mount -t overlayfs -o upperdir=$UD,lowerdir=$ROOTDIR overlayfs $RD
+    mount -t overlayfs -o upperdir=$UD,lowerdir=$MINC_ROOTDIR overlayfs $RD
 
   # Hide /etc/mtab in this namespace
   if [ ! -L $RD/etc/mtab ]; then
@@ -64,15 +64,15 @@ if [ $$ -eq 1 ]; then
   robind /proc/bus
   robind /sys
 
-  if [ "$RWBIND" ]; then
-    for i in $RWBIND; do
+  if [ "$MINC_RWBIND" ]; then
+    for i in $MINC_RWBIND; do
       test -d $i && mkdir -p $i
       test -f $i && touch $i
       rwbind $i
     done
   fi
 
-  if [ "$SIMPLEUMOUNT" ]; then
+  if [ "$MINC_OPT_SIMPLE" ]; then
     # Simply umount unused mount points
     cut -f 2 -d " " < /proc/mounts | grep -e "^/sys" -e "^/dev/" -e "^/run" | sort -r | xargs umount
     umount /proc
@@ -88,14 +88,14 @@ if [ $$ -eq 1 ]; then
     pivot_root . mnt/
     RD=mnt/
   fi
-  test "$DEBUG" && test $DEBUG -ge 2 && STRACE=strace
+  test "$MINC_DEBUG" && test $MINC_DEBUG -ge 2 && STRACE=strace
   exec $STRACE chroot $RD $@
 fi
 
 # Setup CPU and network limitations
-IPNETNS=
-test "$NETNS" && IPNETNS="ip netns exec $NETNS "
-test "$CPUMASK" && taskset -ap $CPUMASK $$ > /dev/null
+IPMINC_NETNS=
+test "$MINC_NETNS" && IPMINC_NETNS="ip netns exec $MINC_NETNS "
+test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
 
 # Enter new namespace and exec command
-$IPNETNS unshare -iumpf $0 $@
+$IPMINC_NETNS unshare -iumpf $0 $@

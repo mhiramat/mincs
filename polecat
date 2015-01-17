@@ -40,25 +40,25 @@ test -d "$1" || usage "$1 is not a directory"
 ROOTFS=$1
 shift 1
 
-TMPDIR=`mktemp -d polecat-XXXXXXXX`
-trap "rm -rf $TMPDIR" EXIT
+MINC_TMPDIR=`mktemp -d polecat-XXXXXXXX`
+trap "rm -rf $MINC_TMPDIR" EXIT
 
 # Working sub-directories
-RD=$TMPDIR/root
-UD=$TMPDIR/storage
-WD=$TMPDIR/work
+RD=$MINC_TMPDIR/root
+UD=$MINC_TMPDIR/storage
+WD=$MINC_TMPDIR/work
 mkdir -p $RD $UD $WD
 # This is for upstreamed overlayfs
 mount -t overlay -o upperdir=$UD,lowerdir=$ROOTFS,workdir=$WD overlayfs $RD 2>/dev/null || \
   # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
   mount -t overlayfs -o upperdir=$UD,lowerdir=$ROOTFS overlayfs $RD
-trap "umount $RD; rm -rf $TMPDIR" EXIT
+trap "umount $RD; rm -rf $MINC_TMPDIR" EXIT
 
 mkdir -p $RD/usr/libexec
 install -m 755 $MINCEXEC $RD/usr/libexec/
 
 # Make a squashfs image
-SFS=$TMPDIR/rootfs.sfs
+SFS=$MINC_TMPDIR/rootfs.sfs
 mksquashfs $RD $SFS
 
 SIZE=`stat --format=%s $SFS`
@@ -71,13 +71,13 @@ TOTAL=\`stat --format=%s \$SELF\`
 OFFS=\$((TOTAL - SIZE))
 export PLCDIR=\`mktemp -d polecat-run-XXXXXXXX\`
 trap "rm -rf \$PLCDIR" EXIT
-export ROOTDIR=\$PLCDIR/rootfs
-export TMPDIR=\$PLCDIR/tmp
-export SIMPLEUMOUNT=1
-mkdir \$ROOTDIR \$TMPDIR
-mount -t squashfs -o ro,loop,offset=\$OFFS \$SELF \$ROOTDIR
-trap "umount \$ROOTDIR; rm -rf \$PLCDIR" EXIT
-sh \$ROOTDIR/usr/libexec/minc-exec $@
+export MINC_ROOTDIR=\$PLCDIR/rootfs
+export MINC_TMPDIR=\$PLCDIR/tmp
+export MINC_OPT_SIMPLE=1
+mkdir \$MINC_ROOTDIR \$MINC_TMPDIR
+mount -t squashfs -o ro,loop,offset=\$OFFS \$SELF \$MINC_ROOTDIR
+trap "umount \$MINC_ROOTDIR; rm -rf \$PLCDIR" EXIT
+sh \$MINC_ROOTDIR/usr/libexec/minc-exec $@
 exit \$?
 EOF
 
