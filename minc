@@ -108,5 +108,6 @@ if [ "$MINC_NETNS" ]; then
   ip link add name $MINC_NETNSIF type veth peer name veth$$
   ip link set $MINC_NETNSIF netns $MINC_NETNS
 fi
+trap '' INT
 
 $MINCEXEC $@

@@ -100,6 +100,7 @@ mount -t overlay -o upperdir=$UD,lowerdir=$MINC_ROOTDIR,workdir=$WD overlayfs $R
   mount -t overlayfs -o upperdir=$UD,lowerdir=$MINC_ROOTDIR overlayfs $RD
 
 trap "umount $RD" EXIT
+trap '' INT
 
 # Enter new namespace and exec command
 $IPMINC_NETNS unshare -iumpf $0 $@

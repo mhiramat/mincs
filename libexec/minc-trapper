@@ -44,12 +44,15 @@ test -d "$TARGET" || usage "$MINC_TMPDIR is not a minc tempdir"
 # Run once to trace open files
 TRACEOUT=`mktemp /tmp/traceout-XXXXXXXX`
 trap "rm -f $TRACEOUT" EXIT
+trap '' INT
 
 export STRACE="strace -q -e trace=open,execve,access -o $TRACEOUT"
 export MINC_OPT_SIMPLE=1
 export MINC_ROOTDIR
 export MINC_TMPDIR
 $MINCEXEC $@
+
+trap - INT
 
 getreqlibs(){ # binary
   objdump -p $i 2>/dev/null | awk '/NEEDED/{print $2}' | xargs
