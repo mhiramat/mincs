@@ -6,6 +6,7 @@
 
 LIBEXEC=`dirname $0`/libexec
 MINCEXEC=$LIBEXEC/minc-exec
+TRAPPER=$LIBEXEC/minc-trapper
 OUTFILE=polecat-out.sh
 
 # Exit if any errors
@@ -17,7 +18,8 @@ usage() { # [error messages]
   echo "Usage: $0 [options] <rootdir> <command>"
   echo " options:"
   echo "    -h or --help           Show this help"
-  echo "    -o or --output <FILE>  Output to FILE ($OUTFILE)"
+  echo "    -o or --output <FILE>  Output to FILE (default: $OUTFILE)"
+  echo "    -s or --script <FILE>  Use FILE as build-script"
   exit $#
 }
 
@@ -30,6 +32,14 @@ case $1 in
   OUTFILE=$2
   shift 2
   ;;
+-s|--script)
+  SCRIPT=$2
+  shift 2
+  ;;
+--debug)
+  set -x
+  export DEBUG=1
+  ;;
 *)
   break;
   ;;
@@ -40,6 +50,7 @@ test -d "$1" || usage "$1 is not a directory"
 ROOTFS=$1
 shift 1
 
+# Preparing working dir
 MINC_TMPDIR=`mktemp -d polecat-XXXXXXXX`
 trap "rm -rf $MINC_TMPDIR" EXIT
 
@@ -48,14 +59,56 @@ RD=$MINC_TMPDIR/root
 UD=$MINC_TMPDIR/storage
 WD=$MINC_TMPDIR/work
 mkdir -p $RD $UD $WD
+
+union_mount() {
 # This is for upstreamed overlayfs
 mount -t overlay -o upperdir=$UD,lowerdir=$ROOTFS,workdir=$WD overlayfs $RD 2>/dev/null || \
   # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
   mount -t overlayfs -o upperdir=$UD,lowerdir=$ROOTFS overlayfs $RD
+}
+
+union_mount
 trap "umount $RD; rm -rf $MINC_TMPDIR" EXIT
 
-mkdir -p $RD/usr/libexec
-install -m 755 $MINCEXEC $RD/usr/libexec/
+mkdir -p $RD/opt/libexec
+install -m 755 $MINCEXEC $RD/opt/libexec/
+
+# Scripting mode
+if [ -f "$SCRIPT" ]; then
+  MKDIRS=
+  RMDIRS=
+  COMMAND=
+  . $SCRIPT || usage "Importing error: $SCRIPT"
+  cp $SCRIPT $RD/opt/libexec/
+  # Build install script
+  echo "#!/bin/sh" > $RD/install.sh
+  echo ". /opt/libexec/"`basename $SCRIPT` >> $RD/install.sh
+  echo "install_command" >> $RD/install.sh
+  # Build test-run script
+  sed -e s/^install_command/test_command/ $RD/install.sh > $RD/test.sh
+  chmod a+x $RD/*.sh
+  umount $RD
+  trap "rm -rf $MINC_TMPDIR" EXIT
+
+  # Install phase
+  export MINC_TMPDIR
+  export MINC_ROOTDIR=$ROOTFS
+  export MINC_OPT_SIMPLE=1
+  $MINCEXEC /install.sh
+
+  # Testing phase
+  $TRAPPER $MINC_TMPDIR /test.sh
+
+  # Note that this could cause directory traversal. Do not shoot your foot.
+  [ "$MKDIRS" ] && for i in $MKDIRS; do mkdir -p $UD/$i; done
+  [ "$RMDIRS" ] && for i in $RMDIRS; do rm -rf $UD/$i; done
+  rm -f $UD/install.sh $UD/test.sh
+
+  # Now we can directly use upper directory as root directory.
+  RD=$UD
+else
+  COMMAND="$@"
+fi
 
 # Make a squashfs image
 SFS=$MINC_TMPDIR/rootfs.sfs
@@ -78,7 +131,7 @@ mkdir \$MINC_ROOTDIR \$MINC_TMPDIR
 mount -t squashfs -o ro,loop,offset=\$OFFS \$SELF \$MINC_ROOTDIR
 trap "umount \$MINC_ROOTDIR; rm -rf \$PLCDIR" EXIT
 trap '' INT
-sh \$MINC_ROOTDIR/usr/libexec/minc-exec $@
+sh \$MINC_ROOTDIR/opt/libexec/minc-exec $COMMAND
 exit \$?
 EOF
 
