@@ -68,7 +68,7 @@ case "$1" in
     shift 2
     ;;
   --simple) # Simple chroot model (do not pivot_root and umount)
-    MINC_OPT_SIMPLE=1
+    export MINC_OPT_SIMPLE=1
     shift 1
     ;;
   --help|-h) # Help Message
