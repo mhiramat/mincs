@@ -89,6 +89,7 @@ if [ -f "$SCRIPT" ]; then
   chmod a+x $RD/*.sh
   umount $RD
   trap "rm -rf $MINC_TMPDIR" EXIT
+  trap "" INT
 
   # Install phase
   export MINC_TMPDIR
@@ -98,6 +99,7 @@ if [ -f "$SCRIPT" ]; then
 
   # Testing phase
   $TRAPPER $MINC_TMPDIR /test.sh
+  trap - INT
 
   # Note that this could cause directory traversal. Do not shoot your foot.
   [ "$MKDIRS" ] && for i in $MKDIRS; do mkdir -p $UD/$i; done
