@@ -38,7 +38,7 @@ case $1 in
   ;;
 --debug)
   set -x
-  export DEBUG=1
+  export MINC_DEBUG=1
   ;;
 *)
   break;
