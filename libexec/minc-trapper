@@ -46,7 +46,7 @@ TRACEOUT=`mktemp /tmp/traceout-XXXXXXXX`
 trap "rm -f $TRACEOUT" EXIT
 trap '' INT
 
-export STRACE="strace -q -e trace=open,execve,access -o $TRACEOUT"
+export STRACE="strace -f -q -e trace=open,execve,access -o $TRACEOUT"
 export MINC_OPT_SIMPLE=1
 export MINC_ROOTDIR
 export MINC_TMPDIR
