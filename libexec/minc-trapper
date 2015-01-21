@@ -85,7 +85,7 @@ mincinst() { # libpath
 }
 
 # Install all accessed files
-for i in `grep ^open $TRACEOUT | cut -f 2 -d \" | xargs`; do
+for i in `grep \" $TRACEOUT | cut -f 2 -d \" | xargs`; do
   mincinst $i
 done
 
