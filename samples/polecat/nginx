@@ -13,9 +13,3 @@ install_command() {
   cat /etc/nginx/nginx.conf.orig >> /etc/nginx/nginx.conf
 }
 
-# command to trace access files
-test_command() {
-  $COMMAND &
-  sleep 2
-}
-

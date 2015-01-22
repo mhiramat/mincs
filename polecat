@@ -98,7 +98,7 @@ if [ -f "$SCRIPT" ]; then
   $MINCEXEC /install.sh
 
   # Testing phase
-  $TRAPPER -r $ROOTFS $MINC_TMPDIR /test.sh
+  $TRAPPER -r $ROOTFS $MINC_TMPDIR $COMMAND
   trap - INT
 
   # Note that this could cause directory traversal. Do not shoot your foot.
