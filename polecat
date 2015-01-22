@@ -137,7 +137,7 @@ sh \$MINC_ROOTDIR/opt/libexec/minc-exec $COMMAND
 exit \$?
 EOF
 
-cat $TMP/polecat.sh $SFS >> $OUTFILE
+cat $TMP/polecat.sh $SFS > $OUTFILE
 chmod a+x $OUTFILE
 
 exit 0
