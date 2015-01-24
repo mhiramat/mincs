@@ -81,9 +81,12 @@ if [ -f "$SCRIPT" ]; then
   . $SCRIPT || usage "Importing error: $SCRIPT"
   cp $SCRIPT $RD/opt/libexec/
   # Build install script
-  echo "#!/bin/sh" > $RD/install.sh
-  echo ". /opt/libexec/"`basename $SCRIPT` >> $RD/install.sh
-  echo "install_command" >> $RD/install.sh
+  cat > $RD/install.sh << EOF
+#!/bin/sh
+set -e
+. /opt/libexec/`basename $SCRIPT`
+install_command
+EOF
   # Build test-run script
   sed -e s/^install_command/test_command/ $RD/install.sh > $RD/test.sh
   chmod a+x $RD/*.sh
