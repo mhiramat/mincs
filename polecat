@@ -87,8 +87,6 @@ set -e
 . /opt/libexec/`basename $SCRIPT`
 install_command
 EOF
-  # Build test-run script
-  sed -e s/^install_command/test_command/ $RD/install.sh > $RD/test.sh
   chmod a+x $RD/*.sh
   umount $RD
   trap "rm -rf $MINC_TMPDIR" EXIT
@@ -110,7 +108,7 @@ EOF
   echo "--- Preparing files ---"
   [ "$MKDIRS" ] && for i in $MKDIRS; do mkdir -p $UD/$i; done
   [ "$RMDIRS" ] && for i in $RMDIRS; do rm -rf $UD/$i; done
-  rm -f $UD/install.sh $UD/test.sh
+  rm -f $UD/install.sh
 
   # Now we can directly use upper directory as root directory.
   RD=$UD
