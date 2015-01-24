@@ -95,16 +95,19 @@ EOF
   trap "" INT
 
   # Install phase
+  echo "--- Installation stage ---"
   export MINC_TMPDIR
   export MINC_ROOTDIR=$ROOTFS
   export MINC_OPT_SIMPLE=1
   $MINCEXEC /install.sh
 
   # Testing phase
+  echo "--- Testing stage ---"
   $TRAPPER -r $ROOTFS $MINC_TMPDIR $COMMAND
   trap - INT
 
   # Note that this could cause directory traversal. Do not shoot your foot.
+  echo "--- Preparing files ---"
   [ "$MKDIRS" ] && for i in $MKDIRS; do mkdir -p $UD/$i; done
   [ "$RMDIRS" ] && for i in $RMDIRS; do rm -rf $UD/$i; done
   rm -f $UD/install.sh $UD/test.sh
