@@ -6,6 +6,7 @@
 
 LIBEXEC=`dirname $0`/libexec
 MINCEXEC=$LIBEXEC/minc-exec
+MINCCOAT=$LIBEXEC/minc-coat
 TRAPPER=$LIBEXEC/minc-trapper
 OUTFILE=polecat-out.sh
 
@@ -51,26 +52,18 @@ ROOTFS=$1
 shift 1
 
 # Preparing working dir
-MINC_TMPDIR=`mktemp -d polecat-XXXXXXXX`
+export MINC_TMPDIR=`mktemp -d polecat-XXXXXXXX`
 trap "rm -rf $MINC_TMPDIR" EXIT
 
 # Working sub-directories
+export MINC_BASEDIR=$ROOTFS
+$MINCCOAT
 RD=$MINC_TMPDIR/root
-UD=$MINC_TMPDIR/storage
-WD=$MINC_TMPDIR/work
-mkdir -p $RD $UD $WD
-
-union_mount() {
-# This is for upstreamed overlayfs
-mount -t overlay -o upperdir=$UD,lowerdir=$ROOTFS,workdir=$WD overlayfs $RD 2>/dev/null || \
-  # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
-  mount -t overlayfs -o upperdir=$UD,lowerdir=$ROOTFS overlayfs $RD
-}
-
-union_mount
 trap "umount $RD; rm -rf $MINC_TMPDIR" EXIT
 
+# At first, install minc libs
 mkdir -p $RD/opt/libexec
+install -m 755 $MINCCOAT $RD/opt/libexec/
 install -m 755 $MINCEXEC $RD/opt/libexec/
 
 # Scripting mode
@@ -88,14 +81,11 @@ set -e
 install_command
 EOF
   chmod a+x $RD/*.sh
-  umount $RD
-  trap "rm -rf $MINC_TMPDIR" EXIT
   trap "" INT
 
   # Install phase
   echo "--- Installation stage ---"
   export MINC_TMPDIR
-  export MINC_ROOTDIR=$ROOTFS
   export MINC_OPT_SIMPLE=1
   $MINCEXEC /install.sh
 
@@ -106,6 +96,7 @@ EOF
 
   # Note that this could cause directory traversal. Do not shoot your foot.
   echo "--- Preparing files ---"
+  UD=$MINC_TMPDIR/storage
   [ "$MKDIRS" ] && for i in $MKDIRS; do mkdir -p $UD/$i; done
   [ "$RMDIRS" ] && for i in $RMDIRS; do rm -rf $UD/$i; done
   rm -f $UD/install.sh
@@ -128,16 +119,18 @@ SELF=\$0
 SIZE=$SIZE
 TOTAL=\`stat --format=%s \$SELF\`
 OFFS=\$((TOTAL - SIZE))
-export PLCDIR=\`mktemp -d polecat-run-XXXXXXXX\`
-trap "rm -rf \$PLCDIR" EXIT
-export MINC_ROOTDIR=\$PLCDIR/rootfs
+PLCDIR=\`mktemp -d polecat-run-XXXXXXXX\`
+TRAPCMD="rm -rf \$PLCDIR"; trap "\$TRAPCMD" EXIT
+export MINC_BASEDIR=\$PLCDIR/rootfs
 export MINC_TMPDIR=\$PLCDIR/tmp
 export MINC_OPT_SIMPLE=1
-mkdir \$MINC_ROOTDIR \$MINC_TMPDIR
-mount -t squashfs -o ro,loop,offset=\$OFFS \$SELF \$MINC_ROOTDIR
-trap "umount \$MINC_ROOTDIR; rm -rf \$PLCDIR" EXIT
+mkdir \$MINC_BASEDIR \$MINC_TMPDIR
+mount -t squashfs -o ro,loop,offset=\$OFFS \$SELF \$MINC_BASEDIR
+TRAPCMD="umount \$MINC_BASEDIR;\$TRAPCMD"; trap "\$TRAPCMD" EXIT
+sh \$MINC_BASEDIR/opt/libexec/minc-coat
+TRAPCMD="umount \$MINC_TMPDIR/root;\$TRAPCMD"; trap "\$TRAPCMD" EXIT
 trap '' INT
-sh \$MINC_ROOTDIR/opt/libexec/minc-exec $COMMAND
+sh \$MINC_BASEDIR/opt/libexec/minc-exec $COMMAND
 exit \$?
 EOF
 

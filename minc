@@ -9,6 +9,7 @@
 
 LIBEXEC=`dirname $0`/libexec
 MINCEXEC=$LIBEXEC/minc-exec
+MINCCOAT=$LIBEXEC/minc-coat
 
 # Exit if any errors
 set -e
@@ -35,7 +36,7 @@ MINC_TMPDIR=
 MINC_NETNS=
 MINC_CPUMASK=0
 export MINC_DEBUG=
-export MINC_ROOTDIR=/
+export MINC_BASEDIR=/
 # Parse options
 while [ "$1" ]; do
 case "$1" in
@@ -51,7 +52,7 @@ case "$1" in
     ;;
   --rootdir|-r) # Give a rootdir instead of /
     test -d "$2" || usage "Error: $2 is not a directory"
-    export MINC_ROOTDIR=$2
+    export MINC_BASEDIR=$2
     shift 2
     ;;
   --X11|-X) # Export X11 connection
@@ -102,12 +103,17 @@ trap "$TRAPCMD" EXIT
 # Setup Network Namespace
 if [ "$MINC_NETNS" ]; then
   ip netns add $MINC_NETNS
-  TRAPCMD="$TRAPCMD;ip netns del $MINC_NETNS"
+  TRAPCMD="ip netns del $MINC_NETNS;$TRAPCMD"
   trap "$TRAPCMD" EXIT
   export MINC_NETNSIF=vminc$$
   ip link add name $MINC_NETNSIF type veth peer name veth$$
   ip link set $MINC_NETNSIF netns $MINC_NETNS
 fi
+
+# Setup overlaid rootfs
+$MINCCOAT
+TRAPCMD="umount $MINC_TMPDIR/root;$TRAPCMD"
+trap "$TRAPCMD" EXIT
 trap '' INT
 
 $MINCEXEC $@

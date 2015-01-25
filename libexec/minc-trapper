@@ -8,6 +8,7 @@
 
 LIBEXEC=`dirname $0`
 MINCEXEC=$LIBEXEC/minc-exec
+MINCCOAT=$LIBEXEC/minc-coat
 
 usage() { # [error messages]
   test $# -ne 0 && echo "Error: $@"
@@ -18,15 +19,15 @@ usage() { # [error messages]
 
 test $# -lt 2 && usage "$0 requires at least 2 arguments."
 
-MINC_ROOTDIR=/
+MINC_BASEDIR=/
 while [ "$1" ]; do
 case $1 in
 -h|--help)
   usage
   ;;
 -r|--rootdir)
-  MINC_ROOTDIR=$2
-  test -d $MINC_ROOTDIR || usage "$MINC_ROOTDIR is not a directory"
+  MINC_BASEDIR=$2
+  test -d $MINC_BASEDIR || usage "$MINC_BASEDIR is not a directory"
   shift 2
   ;;
 *)
@@ -43,14 +44,19 @@ test -d "$TARGET" || usage "$MINC_TMPDIR is not a minc tempdir"
 
 # Run once to trace open files
 TRACEOUT=`mktemp /tmp/traceout-XXXXXXXX`
-trap "rm -f $TRACEOUT" EXIT
+TRAPCMD="rm -f $TRACEOUT";trap "$TRAPCMD" EXIT
 trap '' INT
+
+export MINC_BASEDIR
+export MINC_TMPDIR
+$MINCCOAT
+TRAPCMD="umount $MINC_TMPDIR/root;$TRAPCMD";trap "$TRAPCMD" EXIT
 
 export STRACE="strace -f -q -e trace=open,execve,access -o $TRACEOUT"
 export MINC_OPT_SIMPLE=1
-export MINC_ROOTDIR
-export MINC_TMPDIR
 $MINCEXEC $@
+umount $MINC_TMPDIR/root
+TRAPCMD="rm -f $TRACEOUT";trap "$TRAPCMD" EXIT
 
 trap - INT
 
@@ -59,7 +65,7 @@ getreqlibs(){ # binary
 }
 
 libpath() { # libname
-  chroot $MINC_ROOTDIR ldconfig -p | grep -m 1 $1 | cut -f 2 -d \>
+  chroot $MINC_BASEDIR ldconfig -p | grep -m 1 $1 | cut -f 2 -d \>
 }
 
 fileexist() { # path
@@ -74,11 +80,11 @@ mincinst() { # libpath
   fileexist $TARGET/$1 && return 1
   dir=`dirname $1`
   mkdir -p $TARGET/$dir
-  fileexist $MINC_ROOTDIR/$1 || return 1
+  fileexist $MINC_BASEDIR/$1 || return 1
   echo "Install $1"
-  cp -fP $MINC_ROOTDIR/$1 $TARGET/$dir
+  cp -fP $MINC_BASEDIR/$1 $TARGET/$dir
   # symlink must be followed
-  orig=`readlink $MINC_ROOTDIR/$1`
+  orig=`readlink $MINC_BASEDIR/$1`
   isabspath $orig || orig=$dir/$orig
   test "$orig" && mincinst $orig
   return 0
