@@ -34,12 +34,12 @@ usage() { # [error messages]
 
 KEEPDIR=0
 MINC_TMPDIR=
-MINC_NETNS=
-MINC_CPUMASK=0
+export MINC_CPUMASK=
+export MINC_NETNS=
 export MINC_DEBUG=
 export MINC_BASEDIR=/
 # Parse options
-while [ "$1" ]; do
+while [ "$#" -ne 0 ]; do
 case "$1" in
   --keep|-k) # Keep the temporary directory
     KEEPDIR=1
