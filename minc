@@ -112,9 +112,8 @@ if [ "$MINC_NETNS" ]; then
 fi
 
 # Setup overlaid rootfs
-$MINCCOAT
-TRAPCMD="umount $MINC_TMPDIR/root;$TRAPCMD"
-trap "$TRAPCMD" EXIT
+UM=`$MINCCOAT`
+TRAPCMD="$UM;$TRAPCMD"; trap "$TRAPCMD" EXIT
 trap '' INT
 
 $MINCEXEC $@

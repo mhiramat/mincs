@@ -52,13 +52,13 @@ trap '' INT
 
 export MINC_BASEDIR
 export MINC_TMPDIR
-$MINCCOAT
-TRAPCMD="umount $MINC_TMPDIR/root;$TRAPCMD";trap "$TRAPCMD" EXIT
+UM=`$MINCCOAT`
+TRAPCMD="$UM;$TRAPCMD";trap "$TRAPCMD" EXIT
 
 export STRACE="strace -f -q -e trace=open,execve,access -o $TRACEOUT"
 export MINC_OPT_SIMPLE=1
 $MINCEXEC $@
-umount $MINC_TMPDIR/root
+eval $UM
 TRAPCMD="rm -f $TRACEOUT";trap "$TRAPCMD" EXIT
 
 trap - INT

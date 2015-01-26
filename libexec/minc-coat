@@ -25,4 +25,4 @@ mkdir -p $RD $UD $WD
 mount -t overlay -o upperdir=$UD,lowerdir=$MINC_BASEDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
   # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
   mount -t overlayfs -o upperdir=$UD,lowerdir=$MINC_BASEDIR overlayfs $RD
-
+echo "umount $RD"

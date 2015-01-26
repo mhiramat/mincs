@@ -58,9 +58,9 @@ trap "rm -rf $MINC_TMPDIR" EXIT
 
 # Working sub-directories
 export MINC_BASEDIR=$ROOTFS
-$MINCCOAT
+UM=$MINCCOAT
 RD=$MINC_TMPDIR/root
-trap "umount $RD; rm -rf $MINC_TMPDIR" EXIT
+trap "$UM; rm -rf $MINC_TMPDIR" EXIT
 
 # At first, install minc libs
 mkdir -p $RD/opt/libexec
@@ -128,8 +128,8 @@ export MINC_OPT_SIMPLE=1
 mkdir \$MINC_BASEDIR \$MINC_TMPDIR
 mount -t squashfs -o ro,loop,offset=\$OFFS \$SELF \$MINC_BASEDIR
 TRAPCMD="umount \$MINC_BASEDIR;\$TRAPCMD"; trap "\$TRAPCMD" EXIT
-sh \$MINC_BASEDIR/opt/libexec/minc-coat
-TRAPCMD="umount \$MINC_TMPDIR/root;\$TRAPCMD"; trap "\$TRAPCMD" EXIT
+UM=\`sh \$MINC_BASEDIR/opt/libexec/minc-coat\`
+TRAPCMD="umount \$UM;\$TRAPCMD"; trap "\$TRAPCMD" EXIT
 trap '' INT
 sh \$MINC_BASEDIR/opt/libexec/minc-exec $COMMAND
 exit \$?
