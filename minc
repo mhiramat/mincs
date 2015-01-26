@@ -13,6 +13,7 @@ MINCCOAT=$LIBEXEC/minc-coat
 
 # Exit if any errors
 set -e
+set -u
 
 usage() { # [error messages]
   test $# -ne 0 && echo "$*"

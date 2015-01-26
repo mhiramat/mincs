@@ -6,6 +6,7 @@
 
 # Exit if any errors
 set -e
+set -u
 test "$MINC_DEBUG" && set -x
 
 # Ensure parameters are set

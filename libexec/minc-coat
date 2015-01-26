@@ -5,6 +5,7 @@
 # This program is released under the MIT License, see LICENSE.
 
 set -e
+set -u
 
 # Check parameters
 test -d $MINC_TMPDIR

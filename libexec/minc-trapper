@@ -10,6 +10,9 @@ LIBEXEC=`dirname $0`
 MINCEXEC=$LIBEXEC/minc-exec
 MINCCOAT=$LIBEXEC/minc-coat
 
+set -e
+set -u
+
 usage() { # [error messages]
   test $# -ne 0 && echo "Error: $@"
   echo "minc-trapper: Mini container dependency trapper"
