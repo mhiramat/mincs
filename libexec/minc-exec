@@ -80,8 +80,7 @@ if [ $$ -eq 1 ]; then
     pivot_root . mnt/
     RD=mnt/
   fi
-  test "$MINC_DEBUG" && test $MINC_DEBUG -ge 2 && STRACE=strace
-  exec $STRACE chroot $RD $@
+  exec $MINC_DEBUG_PREFIX chroot $RD $@
 fi
 
 # Setup CPU and network limitations

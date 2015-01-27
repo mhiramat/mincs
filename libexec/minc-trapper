@@ -55,7 +55,7 @@ export MINC_TMPDIR
 UM=`$MINCCOAT`
 TRAPCMD="$UM;$TRAPCMD";trap "$TRAPCMD" EXIT
 
-export STRACE="strace -f -q -e trace=open,execve,access -o $TRACEOUT"
+export MINC_DEBUG_PREFIX="strace -f -q -e trace=open,execve,access -o $TRACEOUT"
 export MINC_OPT_SIMPLE=1
 $MINCEXEC $@
 eval $UM
