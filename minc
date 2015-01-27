@@ -34,6 +34,8 @@ usage() { # [error messages]
 
 KEEPDIR=0
 MINC_TMPDIR=
+export MINC_RWBIND=
+export MINC_OPT_SIMPLE=
 export MINC_CPUMASK=
 export MINC_NETNS=
 export MINC_DEBUG=
