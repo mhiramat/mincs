@@ -6,10 +6,10 @@
 
 # Exit if any errors
 set -e
-set -u
 test "$MINC_DEBUG" && set -x
 
 # Ensure parameters are set
+test -d "$MINC_TMPDIR"
 test -d "$MINC_TMPDIR/root"
 
 rwbind() { # dir
