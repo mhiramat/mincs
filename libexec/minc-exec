@@ -40,8 +40,10 @@ if [ $$ -eq 1 ]; then
 
   # Prepare /dev special files
   mount -t tmpfs tmpfs $RD/dev
-  mkdir $RD/dev/pts; rwbind /dev/pts
-  touch $RD/dev/ptmx; rwbind /dev/ptmx
+  # Prepare pts
+  mkdir $RD/dev/pts
+  mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
+  ln -s /dev/pts/ptmx $RD/dev/ptmx
   touch $RD/dev/console; rwbind /dev/console
   touch $RD/dev/null; rwbind /dev/null
   touch $RD/dev/zero; robind /dev/zero
