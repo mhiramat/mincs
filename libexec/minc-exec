@@ -20,6 +20,10 @@ robind() { # dir
   mount --bind -o ro $1 $RD$1
 }
 
+grepumount() { # patterns
+  cut -f 2 -d " " < /proc/mounts | grep $@ | sort -r | xargs umount 2>/dev/null || echo -n ""
+}
+
 # If PID=1, this is in the new world
 if [ $$ -eq 1 ]; then
   RD=$MINC_TMPDIR/root
@@ -68,14 +72,13 @@ if [ $$ -eq 1 ]; then
 
   if [ "$MINC_OPT_SIMPLE" ]; then
     # Simply umount unused mount points
-    cut -f 2 -d " " < /proc/mounts | grep -e "^/sys" -e "^/dev/" -e "^/run" | sort -r | xargs umount
-    umount /proc
+    grepumount -e "^/sys" -e "^/dev" -e "^/run"
   else
     # To unmount all unused mountpoints, use pivot_root to change root
     cd $RD
     mkdir -p .orig
     pivot_root . .orig
-    cut -f 2 -d " " < /proc/mounts | grep "/\.orig/" | sort -r | xargs umount
+    grepumount -e "^/\.orig/"
     # The original root can not unmount because it referred by overlayfs.
     # So, we pivot to the root again, and chroot to overlay directory.
     cd /.orig/
