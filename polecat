@@ -88,6 +88,7 @@ EOF
   echo "--- Installation stage ---"
   export MINC_TMPDIR
   export MINC_OPT_SIMPLE=1
+  export MINC_OPT_PTY=1
   $MINCEXEC /install.sh
 
   # Testing phase

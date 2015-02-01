@@ -85,6 +85,10 @@ if [ $$ -eq 1 ]; then
     pivot_root . mnt/
     RD=mnt/
   fi
+  if [ "$MINC_OPT_PTY" ]; then
+    # HACK: Open an pty for containers
+    cat < $RD/dev/pts/ptmx > $RD/dev/null &
+  fi
   exec $MINC_DEBUG_PREFIX chroot $RD $@
 fi
 

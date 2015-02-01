@@ -27,6 +27,7 @@ usage() { # [error messages]
   echo "    -X or --X11         Export local X11 unix socket"
   echo "    -n or --net         Use network namespace"
   echo "    -c or --cpu <mask>  Set CPU mask"
+  echo "    -p or --pty         Assign new pty for the container"
   echo "    --simple            Simple chroot model (do not pivot_root)"
   echo "    --debug             Debug mode"
   exit $#
@@ -37,6 +38,7 @@ MINC_TMPDIR=
 export MINC_DEBUG_PREFIX=
 export MINC_RWBIND=
 export MINC_OPT_SIMPLE=
+export MINC_OPT_PTY=
 export MINC_CPUMASK=
 export MINC_NETNS=
 export MINC_DEBUG=
@@ -74,6 +76,10 @@ case "$1" in
     ;;
   --simple) # Simple chroot model (do not pivot_root and umount)
     export MINC_OPT_SIMPLE=1
+    shift 1
+    ;;
+  --pty|-p)
+    export MINC_OPT_PTY=1
     shift 1
     ;;
   --help|-h) # Help Message
