@@ -84,11 +84,11 @@ if [ $$ -eq 1 ]; then
 fi
 
 # Setup CPU and network limitations
-IPMINC_NETNS=
-test "$MINC_NETNS" && IPMINC_NETNS="ip netns exec $MINC_NETNS "
+IP_NETNS=
+test "$MINC_NETNS" && IP_NETNS="ip netns exec $MINC_NETNS "
 test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
 
 trap '' INT
 
 # Enter new namespace and exec command
-$IPMINC_NETNS unshare -iumpf $0 $@
+$IP_NETNS unshare -iumpf $0 $@
