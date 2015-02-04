@@ -58,7 +58,7 @@ trap "rm -rf $MINC_TMPDIR" EXIT
 
 # Working sub-directories
 export MINC_BASEDIR=$ROOTFS
-UM=$MINCCOAT
+UM=`$MINCCOAT`
 RD=$MINC_TMPDIR/root
 trap "$UM; rm -rf $MINC_TMPDIR" EXIT
 
