@@ -7,22 +7,23 @@
 set -e
 set -u
 
+# usage: minc-coat TMPDIR BASEDIR
+TMPDIR=$1
+BASEDIR=$2
+
 # Check parameters
-test -d $MINC_TMPDIR
-test -d $MINC_BASEDIR
+test -d $TMPDIR
+test -d $BASEDIR
 
-mkdir -p $MINC_TMPDIR/storage
-mkdir -p $MINC_TMPDIR/root
-
-RD=$MINC_TMPDIR/root
-UD=$MINC_TMPDIR/storage
-WD=$MINC_TMPDIR/work
+RD=$TMPDIR/root
+UD=$TMPDIR/storage
+WD=$TMPDIR/work
 # Make working sub-directories
 mkdir -p $RD $UD $WD
 
 # Prepare overlayed root directory
 # This is for upstreamed overlayfs
-mount -t overlay -o upperdir=$UD,lowerdir=$MINC_BASEDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
+mount -t overlay -o upperdir=$UD,lowerdir=$BASEDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
   # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
-  mount -t overlayfs -o upperdir=$UD,lowerdir=$MINC_BASEDIR overlayfs $RD
+  mount -t overlayfs -o upperdir=$UD,lowerdir=$BASEDIR overlayfs $RD
 echo "umount $RD"

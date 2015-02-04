@@ -52,7 +52,7 @@ trap '' INT
 
 export MINC_BASEDIR
 export MINC_TMPDIR
-UM=`$MINCCOAT`
+UM=`$MINCCOAT $MINC_TMPDIR $MINC_BASEDIR`
 TRAPCMD="$UM;$TRAPCMD";trap "$TRAPCMD" EXIT
 
 export MINC_DEBUG_PREFIX="strace -f -q -e trace=open,execve,access -o $TRACEOUT"
