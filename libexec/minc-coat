@@ -21,6 +21,7 @@ WD=$TMPDIR/work
 # Make working sub-directories
 mkdir -p $RD $UD $WD
 
+mountpoint $RD > /dev/null || \
 # Prepare overlayed root directory
 # This is for upstreamed overlayfs
 mount -t overlay -o upperdir=$UD,lowerdir=$BASEDIR,workdir=$WD overlayfs $RD 2>/dev/null || \

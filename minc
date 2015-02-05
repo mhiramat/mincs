@@ -10,6 +10,7 @@
 LIBEXEC=`dirname $0`/libexec
 MINCEXEC=$LIBEXEC/minc-exec
 MINCCOAT=$LIBEXEC/minc-coat
+MINCFARM=$LIBEXEC/minc-farm
 
 # Exit if any errors
 set -e
@@ -23,7 +24,9 @@ usage() { # [error messages]
   echo "    -h or --help        Show this help"
   echo "    -k or --keep        Keep the temporary directory"
   echo "    -t or --tempdir <DIR>  Set DIR for temporary directory (imply -k)"
+  echo "                    <UUID> Reuse UUID named container"
   echo "    -r or --rootdir <DIR>  Set DIR for original root directory"
+  echo "                    <UUID> Use UUID named container image"
   echo "    -X or --X11         Export local X11 unix socket"
   echo "    -n or --net         Use network namespace"
   echo "    -c or --cpu <mask>  Set CPU mask"
@@ -34,6 +37,7 @@ usage() { # [error messages]
 }
 
 KEEPDIR=0
+USE_FARM=
 MINC_TMPDIR=
 export MINC_DEBUG_PREFIX=
 export MINC_RWBIND=
@@ -56,9 +60,12 @@ case "$1" in
     KEEPDIR=1
     shift 2
     ;;
-  --rootdir|-r) # Give a rootdir instead of /
-    test -d "$2" || usage "Error: $2 is not a directory"
+  --rootdir|-r) # Give a rootdir or image instead of /
     export MINC_BASEDIR=$2
+    if [ ! -d "$2" ]; then
+      $MINCFARM pull $2
+      USE_FARM=1
+    fi
     shift 2
     ;;
   --X11|-X) # Export X11 connection
@@ -99,16 +106,26 @@ case "$1" in
 esac
 done
 
-# Setup temporary directory
-if [ -z "$MINC_TMPDIR" ]; then
-  export MINC_TMPDIR=`mktemp -d /tmp/minc$$-XXXX`
-fi
-if [ $KEEPDIR -eq 0 ]; then
-  TRAPCMD="rm -rf $MINC_TMPDIR"
+if [ -z "$USE_FARM" ]; then
+  # Setup temporary directory
+  if [ -z "$MINC_TMPDIR" ]; then
+    export MINC_TMPDIR=`mktemp -d /tmp/minc$$-XXXX`
+  fi
+  if [ $KEEPDIR -eq 0 ]; then
+    TRAPCMD="rm -rf $MINC_TMPDIR"
+  else
+    TRAPCMD="echo Keep $MINC_TMPDIR"
+  fi
+  trap "$TRAPCMD" EXIT
+  # Setup overlaid rootfs
+  UM=`$MINCCOAT $MINC_TMPDIR $MINC_BASEDIR`
+  TRAPCMD="$UM;$TRAPCMD"; trap "$TRAPCMD" EXIT
 else
-  TRAPCMD="echo Keep $MINC_TMPDIR"
+  # Use minc-farm to setup new container
+  UUID=`$MINCFARM fork $MINC_BASEDIR`
+  export MINC_TMPDIR=`$MINCFARM dir $UUID`
+  TRAPCMD="$MINCFARM unbind $UUID"; trap "$TRAPCMD" EXIT
 fi
-trap "$TRAPCMD" EXIT
 
 # Setup Network Namespace
 if [ "$MINC_NETNS" ]; then
@@ -120,9 +137,5 @@ if [ "$MINC_NETNS" ]; then
   ip link set $MINC_NETNSIF netns $MINC_NETNS
 fi
 
-# Setup overlaid rootfs
-UM=`$MINCCOAT $MINC_TMPDIR $MINC_BASEDIR`
-TRAPCMD="$UM;$TRAPCMD"; trap "$TRAPCMD" EXIT
 trap '' INT
-
 $MINCEXEC $@

@@ -1,0 +1,156 @@
+#!/bin/sh
+#  minc-farm : MINC file archives management module
+#
+# Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+
+set -e
+[ "$MINC_DEBUG" ] && set -x
+
+LIBEXEC=`dirname $0`
+MINCCOAT=$LIBEXEC/minc-coat
+
+# Set up parameters
+MINCS_DIR=/var/lib/mincs
+CONFIG=/etc/mincs.conf
+if [ -f $CONFIG ]; then
+  . $CONFIG
+fi
+MINCS_CONTAINERS=$MINCS_DIR/containers
+MINCS_IMAGES=$MINCS_DIR/images
+mkdir -p $MINCS_CONTAINERS $MINCS_IMAGES
+
+# UUID/storage  <- contents of this layer
+# UUID/baseid   <- the uuid on which this layer depends
+# UUID/root   <- mount point of fabricated rootfs
+# UUID/umount   <- umount command
+
+fabricate() { # upper-image base-uuid
+  BASEDIR=$MINCS_IMAGES/$2
+  test -d $BASEDIR
+  if [ -f $BASEDIR/baseid ]; then
+    fabricate $BASEDIR `cat $BASEDIR/baseid`
+  fi
+  $MINCCOAT $1 $BASEDIR/root > $1/umount
+}
+
+# Import to image directory
+import() { # rootdir
+  test -d "$1"
+  UUID=`tar -c $1 | sha256sum | cut -f 1 -d " "`
+  BASEDIR=$MINCS_IMAGES/$UUID
+  if [ -d $BASEDIR ] ;then
+    echo "$1 ($UUID) is already imported." 1>&2
+    exit 0;
+  fi
+  mkdir -p $BASEDIR
+  cp -ab $1 $BASEDIR/root
+  (cd $BASEDIR; ln -s root storage)
+  echo $UUID
+}
+
+# Delivering new container directory
+deliver() { # base-uuid
+  test "$1"
+  BASEID=$1
+  UUID=`head -c 16K /dev/urandom | sha256sum | cut -f 1 -d " " `
+  TMPDIR=$MINCS_CONTAINERS/$UUID
+  mkdir -p $TMPDIR/root
+  echo $BASEID > $TMPDIR/baseid
+  fabricate $TMPDIR $BASEID
+  echo $UUID
+}
+
+unbind() { # uuid
+  test "$1"
+  UUID=$1
+  TMPDIR=$MINCS_CONTAINERS/$UUID
+  `cat $TMPDIR/umount`
+}
+
+# Remove a container
+remove() { # uuid
+  test "$1"
+  TMPDIR=$MINCS_CONTAINERS/$1
+  test -d $TMPDIR
+  if [ -f $TMPDIR/umount_cmd ]; then
+    `cat $TMPDIR/umount_cmd`
+  fi
+  rm -rf $TMPDIR
+}
+
+# Commit a container as an image
+commit() { # uuid
+  test "$1"
+  test -d $MINCS_CONTAINERS/$1/root
+  UUID=`import $MINCS_CONTAINERS/$1/root`
+  cp $1/baseid $MINCS_IMAGES/$UUID/
+}
+
+pull_image() { # UUID
+  test "$1"
+  BASEDIR=$MINCS_IMAGES/$1
+  test -d $BASEDIR
+  if [ -f $BASEDIR/baseid ]; then
+    fabricate $BASEDIR `cat $BASEDIR/baseid`
+  fi
+}
+
+list_containers() {
+  ls $MINCS_CONTAINERS/
+}
+
+list_images() {
+  ls $MINCS_IMAGES/
+}
+
+c2uuid() { # container-id
+  list_containers | grep -m 1 $1
+}
+
+i2uuid() { # image-id
+  list_images | grep -m 1 $1
+}
+
+test $# -eq 0 && usage
+cmd=$1
+shift 1
+case $cmd in
+  lc|list)
+  list_containers
+  ;;
+  li|images)
+  list_images
+  ;;
+  import) # DIR
+  import $1
+  ;;
+  commit) # COID
+  UUID=`c2uuid $1`
+  commit $UUID
+  ;;
+  fork) # IMID
+  UUID=`i2uuid $1`
+  deliver $UUID
+  ;;
+  unbind) # COID
+  UUID=`c2uuid $1`
+  unbind $UUID
+  ;;
+  rm|remove) # COID
+  UUID=`c2uuid $1`
+  remove $UUID
+  ;;
+  pull) # IMID
+  UUID=`i2uuid $1`
+  pull_image $UUID
+  echo $UUID
+  ;;
+  dir) # COID
+  UUID=`c2uuid $1`
+  echo $MINCS_CONTAINERS/$UUID
+  ;;
+  *)
+  exit 0
+esac
+
