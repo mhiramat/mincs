@@ -129,6 +129,10 @@ case $cmd in
   UUID=`i2uuid $1`
   deliver $UUID
   ;;
+  bind) # COID
+  UUID=`c2uuid $1`
+  fabricate $MINCS_CONTAINERS/$UUID
+  ;;
   unbind) # COID
   UUID=`c2uuid $1`
   unbind $UUID
@@ -144,6 +148,7 @@ case $cmd in
   ;;
   dir) # COID
   UUID=`c2uuid $1`
+  test -d $MINCS_CONTAINERS/$UUID
   echo $MINCS_CONTAINERS/$UUID
   ;;
   *)
