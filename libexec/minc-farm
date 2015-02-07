@@ -25,13 +25,12 @@ mkdir -p $MINCS_CONTAINERS $MINCS_IMAGES
 # UUID/root   <- mount point of fabricated rootfs
 # UUID/umount   <- umount command
 
-fabricate() { # upper-image base-uuid
-  BASEDIR=$MINCS_IMAGES/$2
-  test -d $BASEDIR
-  if [ -f $BASEDIR/baseid ]; then
-    fabricate $BASEDIR `cat $BASEDIR/baseid`
+fabricate() { # image/container-dir
+  test -d $1
+  if [ -f $1/baseid ]; then
+    fabricate $MINCS_IMAGES/`cat $1/baseid`
+    $MINCCOAT $1 $MINCS_IMAGES/`cat $1/baseid`/root > $1/umount
   fi
-  $MINCCOAT $1 $BASEDIR/root > $1/umount
 }
 
 # Import to image directory
@@ -57,7 +56,7 @@ deliver() { # base-uuid
   TMPDIR=$MINCS_CONTAINERS/$UUID
   mkdir -p $TMPDIR/root
   echo $BASEID > $TMPDIR/baseid
-  fabricate $TMPDIR $BASEID
+  fabricate $TMPDIR
   echo $UUID
 }
 
@@ -90,10 +89,7 @@ commit() { # uuid
 pull_image() { # UUID
   test "$1"
   BASEDIR=$MINCS_IMAGES/$1
-  test -d $BASEDIR
-  if [ -f $BASEDIR/baseid ]; then
-    fabricate $BASEDIR `cat $BASEDIR/baseid`
-  fi
+  fabricate $BASEDIR
 }
 
 list_containers() {
