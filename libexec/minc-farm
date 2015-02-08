@@ -72,8 +72,8 @@ remove() { # uuid
   test "$1"
   TMPDIR=$MINCS_CONTAINERS/$1
   test -d $TMPDIR
-  if [ -f $TMPDIR/umount_cmd ]; then
-    `cat $TMPDIR/umount_cmd`
+  if [ -f $TMPDIR/umount ]; then
+    `cat $TMPDIR/umount`
   fi
   rm -rf $TMPDIR
 }
@@ -137,7 +137,7 @@ case $cmd in
   UUID=`c2uuid $1`
   unbind $UUID
   ;;
-  rm|remove) # COID
+  rm) # COID
   UUID=`c2uuid $1`
   remove $UUID
   ;;
