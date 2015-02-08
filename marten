@@ -1,0 +1,46 @@
+#!/bin/sh
+#  marten : Manager of image archives and temporary-containers 
+
+set -e -u
+MINC=`dirname $0`/minc
+LIBEXEC=`dirname $0`/libexec
+MINCFARM=$LIBEXEC/minc-farm
+
+usage() { # [error messages]
+  test $# -ne 0 && echo "$*"
+  echo "$0 - Manager of image archives and temporary-containers"
+  echo "Usage: $0 [action] <command> [argument...]"
+  echo " commands:"
+  echo "    lc or list          List containers"
+  echo "    li or images        List images"
+  echo "    rm UUID             Remove specified container"
+  echo "    import DIR          Import DIR as an image"
+  echo "    commit UUID         Commit specified container to image"
+  echo " options:"
+  echo "    -h or --help        Show this help"
+
+  exit $#
+}
+
+
+test $# -eq 0 && usage
+cmd=$1
+shift 1
+case $cmd in
+  lc|list|li|images)
+  $MINCFARM $cmd
+  ;;
+  import)
+  test -d $1 || usage "$1 is not a directory"
+  $MINCFARM import $1
+  ;;
+  commit)
+  $MINCFARM commit $1
+  ;;
+  rm|remove)
+  $MINCFARM remove $1
+  ;;
+  *)
+  usage
+esac
+
