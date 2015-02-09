@@ -83,7 +83,8 @@ commit() { # uuid
   test "$1"
   test -d $MINCS_CONTAINERS/$1/root
   UUID=`import $MINCS_CONTAINERS/$1/root`
-  cp $1/baseid $MINCS_IMAGES/$UUID/
+  (cd $MINCS_IMAGES/$UUID; rm storage; mv root storage; mkdir root)
+  cp $MINCS_CONTAINERS/$1/baseid $MINCS_IMAGES/$UUID/
 }
 
 pull_image() { # UUID
