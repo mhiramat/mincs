@@ -74,6 +74,15 @@ are some programs have that name, I changed the name to minc.
 * -h or --help
        Show help message
 
+### Mixed example of minc and marten
+
+```sh
+ # debootstrap stable debroot
+ # marten import debroot
+c45554627579e3f7aed7ae83a976ed37b5f5cc76be1b37088f4870f5b212ae35
+ # minc -r c455 /bin/bash
+```
+
 ## polecat usage
 
 ` polecat [options] <rootdir> <command> `
@@ -92,9 +101,9 @@ To build an executable debian stable container, run a debootstrap on
 a directory and run polecat.
 
 ```sh
- mkdir debroot
- debootstrap stable debroot
- polecat debroot /bin/bash
+ # mkdir debroot
+ # debootstrap stable debroot
+ # polecat debroot /bin/bash
 ```
 
 You'll see the `polecat-out.sh` in current directory, that is
