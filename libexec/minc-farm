@@ -29,7 +29,7 @@ fabricate() { # image/container-dir
   test -d $1
   if [ -f $1/baseid ]; then
     fabricate $MINCS_IMAGES/`cat $1/baseid`
-    $MINCCOAT $1 $MINCS_IMAGES/`cat $1/baseid`/root > $1/umount
+    $MINCCOAT bind $1 $MINCS_IMAGES/`cat $1/baseid`/root
   fi
 }
 
@@ -64,7 +64,7 @@ unbind() { # uuid
   test "$1"
   UUID=$1
   TMPDIR=$MINCS_CONTAINERS/$UUID
-  `cat $TMPDIR/umount`
+  $MINCCOAT unbind $TMPDIR
 }
 
 # Remove a container

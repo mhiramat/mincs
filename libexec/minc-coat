@@ -7,10 +7,13 @@
 set -e
 set -u
 
-# usage: minc-coat TMPDIR BASEDIR
-TMPDIR=$1
-BASEDIR=$2
+# usage: minc-coat bind TMPDIR BASEDIR
+#        minc-coat unbind TMPDIR
+CMD=$1
+TMPDIR=$2
 
+if [ $CMD = bind ]; then
+BASEDIR=$3
 # Check parameters
 test -d $TMPDIR
 test -d $BASEDIR
@@ -27,4 +30,8 @@ mountpoint $RD > /dev/null || \
 mount -t overlay -o upperdir=$UD,lowerdir=$BASEDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
   # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
   mount -t overlayfs -o upperdir=$UD,lowerdir=$BASEDIR overlayfs $RD
-echo "umount $RD"
+
+elif [ $CMD = unbind ]
+test -d $TMPDIR/root
+mountpoint $TMPDIR/root > /dev/null && umount $TMPDIR/root
+fi

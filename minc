@@ -120,8 +120,8 @@ if [ -z "$USE_FARM" ]; then
   fi
   trap "$TRAPCMD" EXIT
   # Setup overlaid rootfs
-  UM=`$MINCCOAT $MINC_TMPDIR $MINC_BASEDIR`
-  TRAPCMD="$UM;$TRAPCMD"; trap "$TRAPCMD" EXIT
+  $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
+  TRAPCMD="$MINCCOAT unbind $MINC_TMPDIR;$TRAPCMD"; trap "$TRAPCMD" EXIT
 elif [ "$USE_FARM" = "image" ]; then
   # Use minc-farm to setup new container
   UUID=`$MINCFARM fork $MINC_BASEDIR`
