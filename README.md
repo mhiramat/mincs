@@ -10,9 +10,12 @@ are some programs have that name, I changed the name to minc.
 * *polecat* is a shell script to build a self-executable containered
  application.
 
+* *marten* is a shell script to manage uuid-based containers and images.
+
 ## Pre-requisites
 
 - Posix shell (dash, bash, etc)
+- coreutils
 - Util-linux ( version > 2.24 )
 - IProute2
 - Overlayfs
@@ -44,6 +47,32 @@ are some programs have that name, I changed the name to minc.
 
 * -c or --cpu *BITMASK*
        Set runnable CPU bitmask
+
+## marten usage
+
+` marten <command> [arguments...]`
+
+### Command
+
+* lc or list
+	List containers
+
+* li or images
+	List images
+
+* rm *UUID*
+	Remove specified container
+
+* import *DIR*
+	Import DIR as an image
+
+* commit *UUID*
+	Commit specified container to image
+
+### Opitons
+
+* -h or --help
+       Show help message
 
 ## polecat usage
 
