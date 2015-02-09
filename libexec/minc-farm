@@ -102,12 +102,12 @@ list_images() {
 
 c2uuid() { # container-id
   test "$1"
-  list_containers | grep -m 1 $1
+  list_containers | grep -m 1 ^"$1"
 }
 
 i2uuid() { # image-id
   test "$1"
-  list_images | grep -m 1 $1
+  list_images | grep -m 1 ^"$1"
 }
 
 test $# -eq 0 && usage
