@@ -14,6 +14,7 @@ usage() { # [error messages]
   echo "    lc or list          List containers"
   echo "    li or images        List images"
   echo "    rm UUID             Remove specified container"
+  echo "    rmi UUID            Remove specified image"
   echo "    import DIR          Import DIR as an image"
   echo "    commit UUID         Commit specified container to image"
   echo " options:"
@@ -39,6 +40,9 @@ case $cmd in
   ;;
   rm)
   $MINCFARM rm $1
+  ;;
+  rmi)
+  $MINCFARM rmi $1
   ;;
   *)
   usage

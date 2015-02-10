@@ -33,5 +33,5 @@ mount -t overlay -o upperdir=$UD,lowerdir=$BASEDIR,workdir=$WD overlayfs $RD 2>/
 
 elif [ $CMD = unbind ]; then
   test -d $TMPDIR/root
-  mountpoint $TMPDIR/root > /dev/null && umount $TMPDIR/root
+  mountpoint $TMPDIR/root > /dev/null && umount $TMPDIR/root || echo -n ""
 fi

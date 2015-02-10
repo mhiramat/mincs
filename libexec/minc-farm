@@ -20,6 +20,11 @@ MINCS_CONTAINERS=$MINCS_DIR/containers
 MINCS_IMAGES=$MINCS_DIR/images
 mkdir -p $MINCS_CONTAINERS $MINCS_IMAGES
 
+error() {
+  echo "Error: $*"
+  exit 1
+}
+
 # UUID/storage  <- contents of this layer
 # UUID/baseid   <- the uuid on which this layer depends
 # UUID/root   <- mount point of fabricated rootfs
@@ -76,6 +81,27 @@ remove() { # uuid
     `cat $TMPDIR/umount`
   fi
   rm -rf $TMPDIR
+}
+
+find_depends() { # dir uuid
+  for i in $1/* ; do
+    if [ ! -f $i/baseid ] ; then continue; fi
+    if [ "$2" = `cat $i/baseid` ] ; then basename $i; fi
+  done
+}
+
+# Remove an image
+remove_image() { # uuid
+  test "$1"
+  test -d "$MINCS_IMAGES/$1"
+  DEP_IMGS=`find_depends $MINCS_IMAGES $1`
+  DEP_CNTS=`find_depends $MINCS_CONTAINERS $1`
+  # TBD: remove depends too if forced
+  [ "$DEP_CNTS" ]  && error "following containers depends on $1\n $DEP_CNTS"
+  [ "$DEP_IMGS" ]  && error "following images depends on $1\n $DEP_IMGS"
+  # This must fail if someone use it
+  $MINCCOAT unbind $MINCS_IMAGES/$1 || error "$1 is currently using"
+  rm -rf $MINCS_IMAGES/$1
 }
 
 # Commit a container as an image
@@ -144,6 +170,10 @@ case $cmd in
   rm) # COID
   UUID=`c2uuid $1`
   remove $UUID
+  ;;
+  rmi) # IMID
+  UUID=`i2uuid $1`
+  remove_image $UUID
   ;;
   pull) # IMID
   UUID=`i2uuid $1`
