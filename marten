@@ -37,8 +37,8 @@ case $cmd in
   commit)
   $MINCFARM commit $1
   ;;
-  rm|remove)
-  $MINCFARM remove $1
+  rm)
+  $MINCFARM rm $1
   ;;
   *)
   usage
