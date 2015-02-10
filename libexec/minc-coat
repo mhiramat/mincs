@@ -31,7 +31,7 @@ mount -t overlay -o upperdir=$UD,lowerdir=$BASEDIR,workdir=$WD overlayfs $RD 2>/
   # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
   mount -t overlayfs -o upperdir=$UD,lowerdir=$BASEDIR overlayfs $RD
 
-elif [ $CMD = unbind ]
-test -d $TMPDIR/root
-mountpoint $TMPDIR/root > /dev/null && umount $TMPDIR/root
+elif [ $CMD = unbind ]; then
+  test -d $TMPDIR/root
+  mountpoint $TMPDIR/root > /dev/null && umount $TMPDIR/root
 fi
