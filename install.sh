@@ -1,5 +1,5 @@
 #!/bin/sh
-PREFIX=/usr/local
+[ -z "$PREFIX" ] && PREFIX=/usr/local
 LIBEXEC=$PREFIX/libexec
 BIN=$PREFIX/bin
 
