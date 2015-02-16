@@ -12,12 +12,8 @@ test "$MINC_DEBUG" && set -x
 test -d "$MINC_TMPDIR"
 test -d "$MINC_TMPDIR/root"
 
-rwbind() { # dir
+bindmount() { # dir
   mount --bind $1 $RD$1
-}
-
-robind() { # dir
-  mount --bind -o ro $1 $RD$1
 }
 
 grepumount() { # patterns
@@ -48,25 +44,26 @@ if [ $$ -eq 1 ]; then
   mkdir $RD/dev/pts
   mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
   ln -s /dev/pts/ptmx $RD/dev/ptmx
-  touch $RD/dev/console; rwbind /dev/console
-  touch $RD/dev/null; rwbind /dev/null
-  touch $RD/dev/zero; robind /dev/zero
-  test -d /dev/mqueue && mkdir $RD/dev/mqueue && rwbind /dev/mqueue
+  touch $RD/dev/console; bindmount /dev/console
+  touch $RD/dev/null; bindmount /dev/null
+  touch $RD/dev/zero; bindmount /dev/zero
+  test -d /dev/mqueue && mkdir $RD/dev/mqueue && bindmount /dev/mqueue
   # TODO: Add other devices here
 
   # Do not bind procfs, since it shows outside pids
-  mount -t proc proc $RD/proc
-  robind /proc/sys
-  robind /proc/sysrq-trigger
-  robind /proc/irq
-  robind /proc/bus
-  robind /sys
+  mount -t proc -o ro,nosuid,nodev,noexec proc /proc
+  mount -t proc -o rw,nosuid,nodev,noexec,relatime proc $RD/proc
+  bindmount /proc/sys
+  bindmount /proc/sysrq-trigger
+  bindmount /proc/irq
+  bindmount /proc/bus
+  bindmount /sys
 
   if [ "$MINC_RWBIND" ]; then
     for i in $MINC_RWBIND; do
       test -d $i && mkdir -p $i
       test -f $i && touch $i
-      rwbind $i
+      bindmount $i
     done
   fi
 
