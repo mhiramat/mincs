@@ -101,7 +101,6 @@ To build an executable debian stable container, run a debootstrap on
 a directory and run polecat.
 
 ```sh
- # mkdir debroot
  # debootstrap stable debroot
  # polecat debroot /bin/bash
 ```
