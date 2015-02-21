@@ -1,6 +1,6 @@
 #!/bin/sh
 [ -z "$PREFIX" ] && PREFIX=/usr/local
-LIBEXEC=$PREFIX/libexec
+[ -z "$LIBEXEC" ] && LIBEXEC=$PREFIX/libexec
 BIN=$PREFIX/bin
 
 BINS="minc marten polecat"
@@ -12,6 +12,8 @@ modify_install() { # bin target
   chmod 755 $2
   chown root:root $2
 }
+
+mkdir -p $BIN $LIBEXEC
 
 for i in $BINS; do
   modify_install $i $BIN/$i
