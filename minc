@@ -111,7 +111,7 @@ done
 if [ -z "$USE_FARM" ]; then
   # Setup temporary directory
   if [ -z "$MINC_TMPDIR" ]; then
-    export MINC_TMPDIR=`mktemp -d /tmp/minc$$-XXXX`
+    export MINC_TMPDIR=`mktemp -d /tmp/minc$$-XXXXXX`
   fi
   if [ $KEEPDIR -eq 0 ]; then
     TRAPCMD="rm -rf $MINC_TMPDIR"
