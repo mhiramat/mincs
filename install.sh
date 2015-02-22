@@ -10,7 +10,6 @@ modify_install() { # bin target
   echo "Install $1 into $2"
   cat $1 | sed -e 's%^LIBEXEC=.*$%LIBEXEC='$LIBEXEC%g > $2
   chmod 755 $2
-  chown root:root $2
 }
 
 mkdir -p $BIN $LIBEXEC
