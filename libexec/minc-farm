@@ -61,7 +61,6 @@ deliver() { # base-uuid
   TMPDIR=$MINCS_CONTAINERS/$UUID
   mkdir -p $TMPDIR/root
   echo $BASEID > $TMPDIR/baseid
-  fabricate $TMPDIR
   echo $UUID
 }
 
@@ -127,6 +126,12 @@ list_images() {
   ls $MINCS_IMAGES/
 }
 
+check_dir() { # dirname UUID
+  test "$2"
+  test -d $1/$2
+  echo $1/$2
+}
+
 c2uuid() { # container-id
   test "$1"
   list_containers | grep -m 1 ^"$1"
@@ -181,9 +186,15 @@ case $cmd in
   echo $UUID
   ;;
   dir) # COID
-  UUID=`c2uuid $1`
-  test -d $MINCS_CONTAINERS/$UUID
-  echo $MINCS_CONTAINERS/$UUID
+  check_dir $MINCS_CONTAINERS `c2uuid $1`
+  ;;
+  imagedir) # IMID
+  check_dir $MINCS_IMAGES `i2uuid $1`
+  ;;
+  baseid) # COID
+  UUID=`c2uuid`
+  DIR=`check_dir $MINCS_CONTAINERS $UUID`
+  cat $DIR/baseid
   ;;
   *)
   exit 0

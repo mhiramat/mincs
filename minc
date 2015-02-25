@@ -108,6 +108,7 @@ case "$1" in
 esac
 done
 
+TRAPCMD=
 if [ -z "$USE_FARM" ]; then
   # Setup temporary directory
   if [ -z "$MINC_TMPDIR" ]; then
@@ -119,19 +120,16 @@ if [ -z "$USE_FARM" ]; then
     TRAPCMD="echo Keep $MINC_TMPDIR"
   fi
   trap "$TRAPCMD" EXIT
-  # Setup overlaid rootfs
-  $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
-  TRAPCMD="$MINCCOAT unbind $MINC_TMPDIR;$TRAPCMD"; trap "$TRAPCMD" EXIT
 elif [ "$USE_FARM" = "image" ]; then
   # Use minc-farm to setup new container
   UUID=`$MINCFARM fork $MINC_BASEDIR`
+  export MINC_BASEDIR=`$MINCFARM imagedir $MINC_BASEDIR`
   export MINC_TMPDIR=`$MINCFARM dir $UUID`
-  TRAPCMD="$MINCFARM unbind $UUID"; trap "$TRAPCMD" EXIT
 else
   # Use minc-farm container
-  UUID=`$MINCFARM bind $MINC_TMPDIR`
-  export MINC_TMPDIR=`$MINCFARM dir $UUID`
-  TRAPCMD="$MINCFARM unbind $UUID"; trap "$TRAPCMD" EXIT
+  UUID=`$MINCFARM baseid $MINC_TMPDIR`
+  export MINC_BASEDIR=`$MINCFARM imagedir $UUID`
+  export MINC_TMPDIR=`$MINCFARM dir $MINC_TMPDIR`
 fi
 
 # Setup Network Namespace
