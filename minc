@@ -32,6 +32,7 @@ usage() { # [error messages]
   echo "    -c or --cpu <mask>  Set CPU mask"
   echo "    -p or --pty         Assign new pty for the container"
   echo "    --simple            Simple chroot model (do not pivot_root)"
+  echo "    --usedev		Use devtmpfs for /dev (for loopback etc.)"
   echo "    --debug             Debug mode"
   exit $#
 }
@@ -47,6 +48,7 @@ export MINC_CPUMASK=
 export MINC_NETNS=
 export MINC_DEBUG=
 export MINC_BASEDIR=/
+export MINC_USE_DEV=
 # Parse options
 while [ "$#" -ne 0 ]; do
 case "$1" in
@@ -89,6 +91,10 @@ case "$1" in
     ;;
   --pty|-p)
     export MINC_OPT_PTY=1
+    shift 1
+    ;;
+  --usedev)
+    export MINC_USE_DEV=1
     shift 1
     ;;
   --help|-h) # Help Message

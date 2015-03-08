@@ -43,16 +43,21 @@ if [ $$ -eq 1 ]; then
   fi
 
   # Prepare /dev special files
-  mount -t tmpfs tmpfs $RD/dev
-  # Prepare pts
-  mkdir $RD/dev/pts
-  mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
-  ln -s /dev/pts/ptmx $RD/dev/ptmx
-  touch $RD/dev/console; bindmount /dev/console
-  touch $RD/dev/null; bindmount /dev/null
-  touch $RD/dev/zero; bindmount /dev/zero
-  test -d /dev/mqueue && mkdir $RD/dev/mqueue && bindmount /dev/mqueue
-  # TODO: Add other devices here
+  if [ "$MINC_USE_DEV" ]; then
+    mount -t devtmpfs devtmpfs $RD/dev
+  else
+    # Use fake devfs
+    mount -t tmpfs tmpfs $RD/dev
+    # Prepare pts
+    mkdir $RD/dev/pts
+    mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
+    ln -s /dev/pts/ptmx $RD/dev/ptmx
+    touch $RD/dev/console; bindmount /dev/console
+    touch $RD/dev/null; bindmount /dev/null
+    touch $RD/dev/zero; bindmount /dev/zero
+    test -d /dev/mqueue && mkdir $RD/dev/mqueue && bindmount /dev/mqueue
+    # TODO: Add other devices here
+  fi
 
   # Do not bind procfs, since it shows outside pids
   mount -t proc -o ro,nosuid,nodev,noexec proc /proc
