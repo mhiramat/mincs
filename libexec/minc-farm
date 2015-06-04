@@ -192,7 +192,7 @@ case $cmd in
   check_dir $MINCS_IMAGES `i2uuid $1`
   ;;
   baseid) # COID
-  UUID=`c2uuid`
+  UUID=`c2uuid $1`
   DIR=`check_dir $MINCS_CONTAINERS $UUID`
   cat $DIR/baseid
   ;;
