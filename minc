@@ -129,12 +129,12 @@ if [ -z "$USE_FARM" ]; then
 elif [ "$USE_FARM" = "image" ]; then
   # Use minc-farm to setup new container
   UUID=`$MINCFARM fork $MINC_BASEDIR`
-  export MINC_BASEDIR=`$MINCFARM imagedir $MINC_BASEDIR`
+  export MINC_BASEDIR=`$MINCFARM imagedir $MINC_BASEDIR`/root
   export MINC_TMPDIR=`$MINCFARM dir $UUID`
 else
   # Use minc-farm container
   UUID=`$MINCFARM baseid $MINC_TMPDIR`
-  export MINC_BASEDIR=`$MINCFARM imagedir $UUID`
+  export MINC_BASEDIR=`$MINCFARM imagedir $UUID`/root
   export MINC_TMPDIR=`$MINCFARM dir $MINC_TMPDIR`
 fi
 
