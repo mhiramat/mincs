@@ -6,6 +6,7 @@
 
 set -e
 set -u
+test "$MINC_DEBUG" && set -x
 
 # usage: minc-coat bind TMPDIR BASEDIR
 #        minc-coat unbind TMPDIR
