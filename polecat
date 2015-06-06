@@ -132,13 +132,21 @@ TOTAL=\`stat --format=%s \$SELF\`
 OFFS=\$((TOTAL - SIZE))
 PLCDIR=\`mktemp -d polecat-run-XXXXXXXX\`
 TRAPCMD="rm -rf \$PLCDIR"; trap "\$TRAPCMD" EXIT
+export MINC_DEBUG_PREFIX=
+export MINC_RWBIND=
+export MINC_OPT_SIMPLE=
+export MINC_OPT_PTY=""
+export MINC_CPUMASK=
+export MINC_NETNS=
+[ "\$MINC_DEBUG" ] || export MINC_DEBUG=
+export MINC_USE_DEV=
 export MINC_BASEDIR=\$PLCDIR/rootfs
 export MINC_TMPDIR=\$PLCDIR/tmp
 export MINC_OPT_SIMPLE=1
 mkdir \$MINC_BASEDIR \$MINC_TMPDIR
 mount -t squashfs -o ro,loop,offset=\$OFFS \$SELF \$MINC_BASEDIR
 TRAPCMD="umount \$MINC_BASEDIR;\$TRAPCMD"; trap "\$TRAPCMD" EXIT
-sh \$MINC_BASEDIR/opt/libexec/minc-coat bind \$MINC_TMPDIR \$MINC_BASEDIR\
+sh \$MINC_BASEDIR/opt/libexec/minc-coat bind \$MINC_TMPDIR \$MINC_BASEDIR
 TRAPCMD="sh \$MINC_BASEDIR/opt/libexec/minc-coat unbind \$MINC_TMPDIR;\$TRAPCMD"; trap "\$TRAPCMD" EXIT
 trap '' INT
 sh \$MINC_BASEDIR/opt/libexec/minc-exec $COMMAND
