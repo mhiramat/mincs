@@ -123,7 +123,7 @@ SFS=$MINC_TMPDIR/rootfs.sfs
 mksquashfs $RD $SFS
 
 SIZE=`stat --format=%s $SFS`
-cat > $TMP/polecat.sh << EOF
+cat > $MINC_TMPDIR/polecat.sh << EOF
 #!/bin/sh
 set -e
 SELF=\$0
@@ -153,7 +153,7 @@ sh \$MINC_BASEDIR/opt/libexec/minc-exec $COMMAND
 exit \$?
 EOF
 
-cat $TMP/polecat.sh $SFS > $OUTFILE
+cat $MINC_TMPDIR/polecat.sh $SFS > $OUTFILE
 chmod a+x $OUTFILE
 
 exit 0
