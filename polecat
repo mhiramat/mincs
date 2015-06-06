@@ -25,6 +25,15 @@ usage() { # [error messages]
   exit $#
 }
 
+export MINC_DEBUG_PREFIX=
+export MINC_RWBIND=
+export MINC_OPT_SIMPLE=
+export MINC_OPT_PTY=""
+export MINC_CPUMASK=
+export MINC_NETNS=
+export MINC_DEBUG=
+export MINC_BASEDIR=/
+export MINC_USE_DEV=
 while [ "$1" ]; do
 case $1 in
 -h|--help)
