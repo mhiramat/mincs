@@ -11,6 +11,7 @@ MINCEXEC=$LIBEXEC/minc-exec
 MINCCOAT=$LIBEXEC/minc-coat
 
 set -e
+test "$MINC_DEBUG" && set -x
 set -u
 
 usage() { # [error messages]
