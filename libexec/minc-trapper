@@ -76,18 +76,18 @@ fileexist() { # path
 }
 
 isabspath() { # file
-  case $1 in /*) return 0;; *) return 1;; esac
+  case "$1" in /*) return 0;; *) return 1;; esac
 }
 
 mincinst() { # libpath
-  fileexist $TARGET/$1 && return 1
+  fileexist $TARGET/$1 && return 0
   dir=`dirname $1`
   mkdir -p $TARGET/$dir
-  fileexist $MINC_BASEDIR/$1 || return 1
+  fileexist $MINC_TMPDIR/root/$1 || return 0
   echo "Install $1"
-  cp -fP $MINC_BASEDIR/$1 $TARGET/$dir
+  cp -fP $MINC_TMPDIR/root/$1 $TARGET/$dir
   # symlink must be followed
-  orig=`readlink $MINC_BASEDIR/$1`
+  orig=`readlink $MINC_TMPDIR/root/$1` || return 0
   isabspath $orig || orig=$dir/$orig
   test "$orig" && mincinst $orig
   return 0
