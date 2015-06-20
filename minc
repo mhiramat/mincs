@@ -31,6 +31,7 @@ usage() { # [error messages]
   echo "    -n or --net         Use network namespace"
   echo "    -c or --cpu <mask>  Set CPU mask"
   echo "    -p or --pty         Assign new pty for the container"
+  echo "    --name <NAME>       Set <NAME> as container's name (hostname)"
   echo "    --simple            Simple chroot model (do not pivot_root)"
   echo "    --usedev		Use devtmpfs for /dev (for loopback etc.)"
   echo "    --debug             Debug mode"
@@ -49,6 +50,7 @@ export MINC_NETNS=
 export MINC_DEBUG=
 export MINC_BASEDIR=/
 export MINC_USE_DEV=
+export MINC_UTSNAME=
 # Parse options
 while [ "$#" -ne 0 ]; do
 case "$1" in
@@ -92,6 +94,10 @@ case "$1" in
   --pty|-p)
     export MINC_OPT_PTY=1
     shift 1
+    ;;
+  --name)
+    export MINC_UTSNAME=$2
+    shift 2
     ;;
   --usedev)
     export MINC_USE_DEV=1

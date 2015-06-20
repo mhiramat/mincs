@@ -32,9 +32,16 @@ if [ $$ -eq 1 ]; then
 
   # Setup overlay rootfs
   $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
-  RD=$MINC_TMPDIR/root
 
+  RD=$MINC_TMPDIR/root
   mkdir -p $RD/etc $RD/dev $RD/sys $RD/proc
+
+  if [ "$MINC_UTSNAME" ]; then
+    hostname $MINC_UTSNAME
+    echo $MINC_UTSNAME > $MINC_TMPDIR/utsname
+  elif [ -f $MINC_TMPDIR/utsname ]; then
+    hostname `cat $MINC_TMPDIR/utsname`
+  fi
 
   # Hide /etc/mtab in this namespace
   if [ ! -L $RD/etc/mtab ]; then
