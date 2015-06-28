@@ -24,6 +24,8 @@ grepumount() { # patterns
 
 # If PID=1, this is in the new world
 if [ $$ -eq 1 ]; then
+  MINC_PID=`ps --ppid $MINC_PARENT -o pid=`
+
   # Make private mount namespace
   mount --make-rprivate /
 
@@ -42,6 +44,7 @@ if [ $$ -eq 1 ]; then
   elif [ -f $MINC_TMPDIR/utsname ]; then
     hostname `cat $MINC_TMPDIR/utsname`
   fi
+  echo $MINC_PID > $MINC_TMPDIR/pid
 
   # Hide /etc/mtab in this namespace
   if [ ! -L $RD/etc/mtab ]; then
@@ -113,6 +116,8 @@ test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
 trap '' INT
 cp /proc/$$/stat $MINC_TMPDIR/
 trap "rm -f $MINC_TMPDIR/stat" EXIT
+
+export MINC_PARENT=$$
 
 # Enter new namespace and exec command
 $IP_NETNS unshare -iumpf $0 $@
