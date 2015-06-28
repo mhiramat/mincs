@@ -32,6 +32,7 @@ usage() { # [error messages]
   echo "    -c or --cpu <mask>  Set CPU mask"
   echo "    -p or --pty         Assign new pty for the container"
   echo "    --name <NAME>       Set <NAME> as container's name (hostname)"
+  echo "    --user <USER>[:GROUP]  specify user and group (ID or name) to use"
   echo "    --simple            Simple chroot model (do not pivot_root)"
   echo "    --usedev		Use devtmpfs for /dev (for loopback etc.)"
   echo "    --debug             Debug mode"
@@ -97,6 +98,10 @@ case "$1" in
     ;;
   --name)
     export MINC_UTSNAME=$2
+    shift 2
+    ;;
+  --user)
+    export MINC_USERSPEC=$2
     shift 2
     ;;
   --usedev)

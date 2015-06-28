@@ -105,7 +105,8 @@ if [ $$ -eq 1 ]; then
     # HACK: Open an pty for containers
     cat < $RD/dev/pts/ptmx > $RD/dev/null &
   fi
-  exec $MINC_DEBUG_PREFIX chroot $RD $@
+  test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
+  exec $MINC_DEBUG_PREFIX chroot $OPT $RD $@
 fi
 
 # Setup CPU and network limitations
