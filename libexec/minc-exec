@@ -24,6 +24,7 @@ grepumount() { # patterns
 
 # If PID=1, this is in the new world
 if [ $$ -eq 1 ]; then
+  MINC_PARENT=`ps --ppid $MINC_GRANDPARENT -o pid=`
   MINC_PID=`ps --ppid $MINC_PARENT -o pid=`
 
   # Make private mount namespace
@@ -118,7 +119,7 @@ trap '' INT
 cp /proc/$$/stat $MINC_TMPDIR/
 trap "rm -f $MINC_TMPDIR/stat" EXIT
 
-export MINC_PARENT=$$
+export MINC_GRANDPARENT=$$
 
 # Enter new namespace and exec command
 $IP_NETNS unshare -iumpf $0 $@
