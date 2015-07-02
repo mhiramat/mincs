@@ -24,8 +24,8 @@ grepumount() { # patterns
 
 # If PID=1, this is in the new world
 if [ $$ -eq 1 ]; then
-  MINC_PARENT=`ps --ppid $MINC_GRANDPARENT -o pid=`
-  MINC_PID=`ps --ppid $MINC_PARENT -o pid=`
+  # At this point, we still have original namespace procfs
+  MINC_PID=`cut -f 4 -d" " /proc/self/stat`
 
   # Make private mount namespace
   mount --make-rprivate /
