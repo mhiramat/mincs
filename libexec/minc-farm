@@ -30,12 +30,15 @@ error() {
 # UUID/root   <- mount point of fabricated rootfs
 # UUID/umount   <- umount command
 
-fabricate() { # image/container-dir
-  test -d $1
-  if [ -f $1/baseid ]; then
-    fabricate $MINCS_IMAGES/`cat $1/baseid`
-    $MINCCOAT bind $1 $MINCS_IMAGES/`cat $1/baseid`/root
+fabricate() { # image-id
+  test "$1"
+  test -d $MINCS_IMAGES/$1/root
+  echo -n $MINCS_IMAGES/$1/root
+  if [ -f $MINCS_IMAGES/$1/baseid ]; then
+    BASEID=`cat $MINCS_IMAGES/$1/baseid`
+    echo -n ":"`fabricate $BASEID`
   fi
+  echo
 }
 
 # Import to image directory
@@ -115,7 +118,7 @@ commit() { # uuid
 pull_image() { # UUID
   test "$1"
   BASEDIR=$MINCS_IMAGES/$1
-  fabricate $BASEDIR
+  test -d $BASEDIR
 }
 
 list_containers() {
@@ -165,7 +168,10 @@ case $cmd in
   ;;
   bind) # COID
   UUID=`c2uuid $1`
-  fabricate $MINCS_CONTAINERS/$UUID
+  DIR=`check_dir $MINCS_CONTAINERS $UUID`
+  BASEID=`cat $DIR/baseid`
+  LOWERS=`fabricate $BASEID`
+  $MINCCOAT bind $DIR/root $LOWERS
   echo $UUID
   ;;
   unbind) # COID
@@ -188,8 +194,8 @@ case $cmd in
   dir) # COID
   check_dir $MINCS_CONTAINERS `c2uuid $1`
   ;;
-  imagedir) # IMID
-  check_dir $MINCS_IMAGES `i2uuid $1`
+  imagestack) # IMID
+  fabricate `i2uuid $1`
   ;;
   baseid) # COID
   UUID=`c2uuid $1`
