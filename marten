@@ -23,13 +23,26 @@ usage() { # [error messages]
   exit $#
 }
 
+do_list() { # command [opts..]
+  cmd=$1
+  shift 1
+  export MARTEN_LONG_ID=
+  while [ $# -ne 0 ]; do
+    case $1 in
+      --long|-l)
+      export MARTEN_LONG_ID=1
+      ;;
+    esac
+  done
+  $MINCFARM $cmd
+}
 
 test $# -eq 0 && usage
 cmd=$1
 shift 1
 case $cmd in
   lc|list|li|images)
-  $MINCFARM $cmd
+  do_list $cmd $*
   ;;
   import)
   test -d $1 || usage "$1 is not a directory"

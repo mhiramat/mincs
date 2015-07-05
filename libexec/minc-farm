@@ -122,7 +122,17 @@ pull_image() { # UUID
 }
 
 list_containers() {
-  ls $MINCS_CONTAINERS/
+  echo "ID		PID	NAME"
+  cd $MINCS_CONTAINERS
+  for i in * ; do
+    test $i = '*' && break
+    ID=`echo $i | cut -b 1-12`
+    NAME="<noname>"
+    PID=""
+    test -f $i/utsname && NAME=`cat $i/utsname`
+    test -f $i/pid && PID=`cat $i/pid`
+    echo "$ID	$PID	$NAME"
+  done
 }
 
 list_images() {
@@ -137,7 +147,7 @@ check_dir() { # dirname UUID
 
 c2uuid() { # container-id
   test "$1"
-  list_containers | grep -m 1 ^"$1"
+  ls $MINCS_CONTAINERS/ | grep -m 1 ^"$1"
 }
 
 i2uuid() { # image-id
