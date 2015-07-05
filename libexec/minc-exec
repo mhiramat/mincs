@@ -116,10 +116,7 @@ test "$MINC_NETNS" && IP_NETNS="ip netns exec $MINC_NETNS "
 test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
 
 trap '' INT
-cp /proc/$$/stat $MINC_TMPDIR/
-trap "rm -f $MINC_TMPDIR/stat" EXIT
-
-export MINC_GRANDPARENT=$$
+trap "rm -f $MINC_TMPDIR/pid" EXIT
 
 # Enter new namespace and exec command
 $IP_NETNS unshare -iumpf $0 $@
