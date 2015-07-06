@@ -17,6 +17,7 @@ if [ $CMD = bind ]; then
 BASEDIR=$3
 # Check parameters
 test -d $TMPDIR
+test "$BASEDIR"
 
 RD=$TMPDIR/root
 UD=$TMPDIR/storage

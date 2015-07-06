@@ -11,8 +11,8 @@ set -e
 test "$MINC_DEBUG" && set -x
 
 # Ensure parameters are set
-test -d "$MINC_BASEDIR"
-test -d "$MINC_TMPDIR"
+test "$MINC_BASEDIR"
+test "$MINC_TMPDIR"
 
 bindmount() { # dir
   mount --bind $1 $RD$1
