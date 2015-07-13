@@ -56,63 +56,58 @@ export MINC_UTSNAME=
 export MINC_DIRECT=
 # Parse options
 while [ "$#" -ne 0 ]; do
-case "$1" in
+cmd=$1
+shift 1
+case "$cmd" in
   --keep|-k) # Keep the temporary directory
     KEEPDIR=1
-    shift 1
     ;;
   --tempdir|-t) # Give a temporary directory (imply -k)
-    export MINC_TMPDIR=$2
+    export MINC_TMPDIR=$1
     KEEPDIR=1
-    if [ ! -d "$2" ]; then
+    if [ ! -d "$MINC_TMPDIR" ]; then
       USE_FARM=container
     fi
-    shift 2
+    shift 1
     ;;
   --rootdir|-r) # Give a rootdir or image instead of /
-    export MINC_BASEDIR=$2
-    if [ ! -d "$2" ]; then
-      $MINCFARM pull $2	# ensure the given id image exists
+    export MINC_BASEDIR=$1
+    if [ ! -d "$MINC_BASEDIR" ]; then
+      $MINCFARM pull $MINC_BASEDIR	# ensure the given id image exists
       USE_FARM=image
     fi
-    shift 2
+    shift 1
     ;;
   --direct|-D)
     export MINC_DIRECT=1
-    shift 1
     ;;
   --X11|-X) # Export X11 connection
     [ -z "$DISPLAY" ] && usage "Error: \$DISPLAY is empty"
     export MINC_RWBIND="/tmp/.X11-unix"
-    shift 1
     ;;
   --net|-n) # Use NetNS
     export MINC_NETNS="minc$$"
-    shift 1
     ;;
   --cpu|-c) # Use CPU mask
-    MINC_CPUMASK=$2
-    shift 2
+    MINC_CPUMASK=$1
+    shift 1
     ;;
   --simple) # Simple chroot model (do not pivot_root and umount)
     export MINC_OPT_SIMPLE=1
-    shift 1
     ;;
   --pty|-p)
     export MINC_OPT_PTY=1
-    shift 1
     ;;
   --name)
-    export MINC_UTSNAME=$2
-    shift 2
+    export MINC_UTSNAME=$1
+    shift 1
     ;;
   --user)
-    export MINC_USERSPEC=$2
-    shift 2
+    export MINC_USERSPEC=$1
+    shift 1
     ;;
   --usedev)
     export MINC_USE_DEV=1
-    shift 1
     ;;
   --help|-h) # Help Message
     usage
@@ -120,13 +115,12 @@ case "$1" in
   --debug) # Debug mode
     set -x
     export MINC_DEBUG=1
-    shift 1
     ;;
   [!-]*) # User given command
     break
     ;;
   *)
-    usage "Parse error: $1 is not supported."
+    usage "Parse error: $cmd is not supported."
     ;;
 esac
 done
