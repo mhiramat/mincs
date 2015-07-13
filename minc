@@ -25,6 +25,7 @@ usage() { # [error messages]
   echo "    -k or --keep        Keep the temporary directory"
   echo "    -t or --tempdir <DIR>  Set DIR for temporary directory (imply -k)"
   echo "                    <UUID> Reuse UUID named container"
+  echo "    -D or --direct      Don't use temporary directory"
   echo "    -r or --rootdir <DIR>  Set DIR for original root directory"
   echo "                    <UUID> Use UUID named container image"
   echo "    -X or --X11         Export local X11 unix socket"
@@ -52,6 +53,7 @@ export MINC_DEBUG=
 export MINC_BASEDIR=/
 export MINC_USE_DEV=
 export MINC_UTSNAME=
+export MINC_DIRECT=
 # Parse options
 while [ "$#" -ne 0 ]; do
 case "$1" in
@@ -74,6 +76,10 @@ case "$1" in
       USE_FARM=image
     fi
     shift 2
+    ;;
+  --direct|-D)
+    export MINC_DIRECT=1
+    shift 1
     ;;
   --X11|-X) # Export X11 connection
     [ -z "$DISPLAY" ] && usage "Error: \$DISPLAY is empty"
