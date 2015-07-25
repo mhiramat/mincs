@@ -4,7 +4,6 @@
 # Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
 
-set -e
 [ "$MINC_DEBUG" ] && set -x
 
 LIBEXEC=`dirname $0`
@@ -44,7 +43,11 @@ fabricate() { # image-id
 # Import to image directory
 import() { # rootdir
   test -d "$1"
-  UUID=`tar -c $1 | sha256sum | cut -f 1 -d " "`
+  if [ "$MINC_IMPORT_UUID" ] ;then
+    UUID=$MINC_IMPORT_UUID
+  else
+    UUID=`tar -c $1 | sha256sum | cut -f 1 -d " "`
+  fi
   BASEDIR=$MINCS_IMAGES/$UUID
   if [ -d $BASEDIR ] ;then
     echo "$1 ($UUID) is already imported." 1>&2
@@ -53,6 +56,8 @@ import() { # rootdir
   mkdir -p $BASEDIR
   cp -ab $1 $BASEDIR/root
   (cd $BASEDIR; ln -s root storage)
+  test "$MINC_BASE_UUID" && echo $MINC_BASE_UUID > $BASEDIR/baseid
+  test "$MINC_IMPORT_NAME" && echo $MINC_IMPORT_NAME > $BASEDIR/name
   echo $UUID
 }
 

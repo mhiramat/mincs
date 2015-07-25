@@ -15,7 +15,7 @@ usage() { # [error messages]
   echo "    li or images        List images"
   echo "    rm UUID             Remove specified container"
   echo "    rmi UUID            Remove specified image"
-  echo "    import DIR          Import DIR as an image"
+  echo "    import DIR|IMAGE    Import DIR or Dokcer IMAGE as an image"
   echo "    commit UUID         Commit specified container to image"
   echo " options:"
   echo "    -h or --help        Show this help"
@@ -37,6 +37,41 @@ do_list() { # command [opts..]
   $MINCFARM $cmd
 }
 
+import_docker() {
+  FILE=$1
+  OPT=
+  case $FILE in
+  *tar.gz) OPT="-z" ;;
+  *tar.bz) OPT="-j" ;;
+  esac
+  NAME=`tar $OPT -xf $FILE repositories -O | jq -r "keys[0]" `
+  IMAGE=`tar $OPT -xf $FILE repositories -O | jq -r ".[] | .[]" `
+  if [ -z "$NAME" -o -z "$IMAGE" ]; then
+    usage "$FILE is not a docker image"
+  fi
+  echo "Importing image: $NAME"
+
+  IDS=
+  ID=$IMAGE
+  while [ "$ID" -a "$ID" != "null" ]; do
+    IDS="$ID $IDS"
+    ID=`tar $OPT -xf $FILE $ID/json -O | jq -r ".parent"`
+  done
+  for id in $IDS; do
+    tmproot=`mktemp -d`
+    tar $OPT -xf $FILE $id/layer.tar -O | tar -x -C $tmproot
+    export MINC_IMPORT_UUID=$id
+    if [ $id = $IMAGE ]; then
+      export MINC_IMPORT_NAME=$NAME
+    fi
+    $MINCFARM import $tmproot
+    export MINC_BASE_UUID=$id
+    rm -rf $tmproot
+  done
+  exit 0
+}
+
+
 test $# -eq 0 && usage
 cmd=$1
 shift 1
@@ -45,7 +80,7 @@ case $cmd in
   do_list $cmd $*
   ;;
   import)
-  test -d $1 || usage "$1 is not a directory"
+  test -d $1 || import_docker $1
   $MINCFARM import $1
   ;;
   commit)
