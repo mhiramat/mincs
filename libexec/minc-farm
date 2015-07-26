@@ -141,7 +141,16 @@ list_containers() {
 }
 
 list_images() {
-  ls $MINCS_IMAGES/
+  echo "ID		SIZE	NAME"
+  cd $MINCS_IMAGES
+  for i in */; do
+    test $i = '*/' && break
+    ID=`echo $i | cut -b 1-12`
+    NAME="(noname)"
+    test -f $i/name && NAME=`cat $i/name`
+    SIZE=`du -sh $i/root | (read i j; echo $i)`
+    echo "$ID	$SIZE	$NAME"
+  done
 }
 
 check_dir() { # dirname UUID
