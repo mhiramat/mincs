@@ -129,8 +129,8 @@ pull_image() { # UUID
 list_containers() {
   echo "ID		PID	NAME"
   cd $MINCS_CONTAINERS
-  for i in * ; do
-    test $i = '*' && break
+  for i in */ ; do
+    test $i = '*/' && break
     ID=`echo $i | cut -b 1-12`
     NAME="<noname>"
     PID=""
