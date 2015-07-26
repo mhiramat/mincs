@@ -173,7 +173,7 @@ c2uuid() { # container-id
 
 i2uuid() { # image-id
   test "$1"
-  list_images | grep -m 1 ^"$1"
+  ls $MINCS_IMAGES/ | grep -m 1 ^"$1"
 }
 
 test $# -eq 0 && usage
