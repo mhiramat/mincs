@@ -126,12 +126,19 @@ pull_image() { # UUID
   test -d $BASEDIR
 }
 
+LONG=""
+WINDOW="1-12"
+if [ "$MINC_LONG_ID" ]; then
+  LONG="							"
+  WINDOW="1-64"
+fi
+
 list_containers() {
-  echo "ID		PID	NAME"
+  echo "ID	$LONG	PID	NAME"
   cd $MINCS_CONTAINERS
   for i in */ ; do
     test $i = '*/' && break
-    ID=`echo $i | cut -b 1-12`
+    ID=`echo $i | cut -b $WINDOW`
     NAME="<noname>"
     PID=""
     test -f $i/utsname && NAME=`cat $i/utsname`
@@ -141,11 +148,11 @@ list_containers() {
 }
 
 list_images() {
-  echo "ID		SIZE	NAME"
+  echo "ID	$LONG	SIZE	NAME"
   cd $MINCS_IMAGES
   for i in */; do
     test $i = '*/' && break
-    ID=`echo $i | cut -b 1-12`
+    ID=`echo $i | cut -b $WINDOW`
     NAME="(noname)"
     test -f $i/name && NAME=`cat $i/name`
     SIZE=`du -sh $i/root | (read i j; echo $i)`
