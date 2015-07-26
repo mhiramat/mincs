@@ -173,6 +173,12 @@ c2uuid() { # container-id
 
 i2uuid() { # image-id
   test "$1"
+  cd $MINCS_IMAGES/
+  for i in *; do
+    if test -f $i/name && test `cat $i/name` = "$1"; then
+      echo $i; return 0
+    fi
+  done
   ls $MINCS_IMAGES/ | grep -m 1 ^"$1"
 }
 
