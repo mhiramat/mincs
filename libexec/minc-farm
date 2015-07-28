@@ -232,6 +232,9 @@ case $cmd in
   dir) # COID
   check_dir $MINCS_CONTAINERS `c2uuid $1`
   ;;
+  idir) # IMID
+  check_dir $MINCS_IMAGES `i2uuid $1`
+  ;;
   imagestack) # IMID
   fabricate `i2uuid $1`
   ;;

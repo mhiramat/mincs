@@ -17,6 +17,8 @@ usage() { # [error messages]
   echo "    rmi UUID            Remove specified image"
   echo "    import DIR|IMAGE    Import DIR or Dokcer IMAGE as an image"
   echo "    commit UUID         Commit specified container to image"
+  echo "    rename UUID NAME    Rename given UUID container to NAME"
+  echo "    renamei UUID NAME    Rename given UUID image to NAME"
   echo " options:"
   echo "    -h or --help        Show this help"
   echo "    --long              Show long ID with li/lc commands"
@@ -93,6 +95,20 @@ case $cmd in
   ;;
   rmi)
   $MINCFARM rmi $1
+  ;;
+  rename|renamei)
+  test $cmd = "rename" && cmd="dir" || cmd="idir"
+  UUID=$1
+  NAME=$2
+  test -z "$UUID" -o -z "$NAME" && usage "No uuid/name was given."
+  DIR=`$MINCFARM $cmd $UUID`
+  if [ -d "$DIR" ]; then
+    $MINCFARM $cmd $NAME > /dev/null && usage "$NAME is already used."
+    test $cmd = "idir" && ( echo "$NAME" > $DIR/name ) || \
+        ( echo "$NAME" > $DIR/utsname)
+  else
+    usage "$UUID is not found."
+  fi
   ;;
   *)
   usage
