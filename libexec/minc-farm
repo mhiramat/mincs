@@ -4,6 +4,7 @@
 # Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
 
+set -e
 [ "$MINC_DEBUG" ] && set -x
 
 LIBEXEC=`dirname $0`
