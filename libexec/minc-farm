@@ -169,6 +169,12 @@ check_dir() { # dirname UUID
 
 c2uuid() { # container-id
   test "$1"
+  cd $MINCS_CONTAINERS/
+  for i in *; do
+    if test -f $i/utsname && test `cat $i/utsname` = "$1"; then
+      echo $i; return 0
+    fi
+  done
   ls $MINCS_CONTAINERS/ | grep -m 1 ^"$1"
 }
 
