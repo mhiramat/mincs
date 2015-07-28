@@ -90,11 +90,8 @@ case $cmd in
   commit)
   $MINCFARM commit $1
   ;;
-  rm)
-  $MINCFARM rm $1
-  ;;
-  rmi)
-  $MINCFARM rmi $1
+  rm|rmi)
+  $MINCFARM $cmd $1
   ;;
   rename|renamei)
   test $cmd = "rename" && cmd="dir" || cmd="idir"
