@@ -134,7 +134,7 @@ if [ -z "$USE_FARM" ]; then
   if [ $KEEPDIR -eq 0 ]; then
     TRAPCMD="rm -rf $MINC_TMPDIR"
   else
-    TRAPCMD="echo Keep $MINC_TMPDIR"
+    TRAPCMD="echo To reuse this, run: $0 -r $MINC_BASEDIR -t $MINC_TMPDIR"
   fi
   trap "$TRAPCMD" EXIT
 elif [ "$USE_FARM" = "image" ]; then
