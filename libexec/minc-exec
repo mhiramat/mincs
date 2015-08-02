@@ -66,6 +66,8 @@ if [ $$ -eq 1 ]; then
     touch $RD/dev/console; bindmount /dev/console
     touch $RD/dev/null; bindmount /dev/null
     touch $RD/dev/zero; bindmount /dev/zero
+    touch $RD/dev/random; bindmount /dev/random
+    touch $RD/dev/urandom; bindmount /dev/urandom
     test -d /dev/mqueue && mkdir $RD/dev/mqueue && bindmount /dev/mqueue
     # TODO: Add other devices here
   fi
