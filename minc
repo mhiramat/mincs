@@ -57,6 +57,10 @@ export MINC_DIRECT=
 # Parse options
 while [ "$#" -ne 0 ]; do
 cmd=$1
+case "$cmd" in [!-]*) # User given command
+    break ;;
+esac
+
 shift 1
 case "$cmd" in
   --keep|-k) # Keep the temporary directory
@@ -115,9 +119,6 @@ case "$cmd" in
   --debug) # Debug mode
     set -x
     export MINC_DEBUG=1
-    ;;
-  [!-]*) # User given command
-    break
     ;;
   *)
     usage "Parse error: $cmd is not supported."
