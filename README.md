@@ -20,6 +20,7 @@ are some programs have that name, I changed the name to minc.
 - IProute2
 - Overlayfs
 - Squashfs-tools (for polecat)
+- libcap (for --nocaps option)
 
 - Or, busybox + unshare patch :)
 
@@ -49,6 +50,15 @@ are some programs have that name, I changed the name to minc.
 
 * -c or --cpu *BITMASK*
        Set runnable CPU bitmask
+
+* --name *UTSNAME*
+       Set container's utsname
+
+* --user *USERSPEC*
+       Run command as given user:group
+
+* --nocaps *CAPLIST*
+       Drop capabilities (e.g. cap_sys_admin)
 
 ## marten usage
 
