@@ -14,9 +14,10 @@ if [ "$MINC_DROPCAPS" ]; then
   cmd="-c $@"
   [ x"$cmd" = "x-c " ] && cmd=""
   if [ "$MINC_USERSPEC" ]; then
-    OPT=`echo $MINC_USERSPEC | awk 'BEGIN{FS=":"} {print "--uid="$1 " --gid="$2}'`
+    OPT=`echo $MINC_USERSPEC | \
+    awk 'BEGIN{FS=":"} {if (NF==2) print "--gid="$2; print "--uid="$1}'`
   fi
-  exec $MINC_DEBUG_PREFIX capsh --drop="$MINC_DROPCAPS" $OPT --chroot=$RD -- $cmd
+  exec $MINC_DEBUG_PREFIX capsh --chroot=$RD --drop="$MINC_DROPCAPS" $OPT -- $cmd
 else
   test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
   exec $MINC_DEBUG_PREFIX chroot $OPT $RD $@
