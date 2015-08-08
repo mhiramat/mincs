@@ -55,7 +55,7 @@ are some programs have that name, I changed the name to minc.
        Set container's utsname
 
 * --user *USERSPEC*
-       Run command as given user:group
+       Run command as given uid:gid
 
 * --nocaps *CAPLIST*
        Drop capabilities (e.g. cap_sys_admin)
