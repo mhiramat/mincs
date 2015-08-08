@@ -5,6 +5,7 @@
 # This program is released under the MIT License, see LICENSE.
 LIBEXEC=`dirname $0`
 MINCCOAT=$LIBEXEC/minc-coat
+MINCLEASH=$LIBEXEC/minc-leash
 
 # Exit if any errors
 set -e
@@ -32,6 +33,9 @@ if [ $$ -eq 1 ]; then
 
   # Do not update /etc/mtab since the mount is private
   export LIBMOUNT_MTAB=/proc/mounts
+
+  # Define leash()
+  . $MINCLEASH
 
   # Setup overlay rootfs
   $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
@@ -108,8 +112,7 @@ if [ $$ -eq 1 ]; then
     # HACK: Open an pty for containers
     cat < $RD/dev/pts/ptmx > $RD/dev/null &
   fi
-  test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
-  exec $MINC_DEBUG_PREFIX chroot $OPT $RD $@
+  leash $RD $@
 fi
 
 # Setup CPU and network limitations

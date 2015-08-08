@@ -36,6 +36,7 @@ usage() { # [error messages]
   echo "    --user <USER>[:GROUP]  specify user and group (ID or name) to use"
   echo "    --simple            Simple chroot model (do not pivot_root)"
   echo "    --usedev		Use devtmpfs for /dev (for loopback etc.)"
+  echo "    --nocaps [CAPS]     Drop given capabilities (same as capsh)"
   echo "    --debug             Debug mode"
   exit $#
 }
@@ -54,6 +55,7 @@ export MINC_BASEDIR=/
 export MINC_USE_DEV=
 export MINC_UTSNAME=
 export MINC_DIRECT=
+export MINC_DROPCAPS=
 # Parse options
 while [ "$#" -ne 0 ]; do
 cmd=$1
@@ -112,6 +114,10 @@ case "$cmd" in
     ;;
   --usedev)
     export MINC_USE_DEV=1
+    ;;
+  --nocaps)
+    export MINC_DROPCAPS="$1"
+    shift 1
     ;;
   --help|-h) # Help Message
     usage

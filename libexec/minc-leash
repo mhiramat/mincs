@@ -1,0 +1,28 @@
+#!/bin/sh
+# minc-leash: MINC least capability shell
+#
+# Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+
+set -e
+test "$MINC_DEBUG" && set -x
+
+leash() {
+RD=$1
+shift 1
+if [ "$MINC_DROPCAPS" ]; then
+  cmd="-c $@"
+  [ x"$cmd" = "x-c " ] && cmd=""
+  if [ "$MINC_USERSPEC" ]; then
+    OPT=`echo $MINC_USERSPEC | awk 'BEGIN{FS=":"} {print "--uid="$1 " --gid="$2}'`
+  fi
+  exec $MINC_DEBUG_PREFIX capsh --drop="$MINC_DROPCAPS" $OPT --chroot=$RD -- $cmd
+else
+  test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
+  exec $MINC_DEBUG_PREFIX chroot $OPT $RD $@
+fi
+}
+
+if [ `basename $0` = "minc-leash" ]; then
+  leash $@
+fi
