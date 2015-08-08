@@ -149,6 +149,9 @@ elif [ "$USE_FARM" = "image" ]; then
   UUID=`$MINCFARM fork $MINC_BASEDIR`
   export MINC_BASEDIR=`$MINCFARM imagestack $MINC_BASEDIR`
   export MINC_TMPDIR=`$MINCFARM dir $UUID`
+  echo $UUID
+  TRAPCMD="echo To reuse this, run: $0 -t "`echo $UUID | cut -b 1-12`
+  trap "$TRAPCMD" EXIT
 else
   # Use minc-farm container
   UUID=`$MINCFARM baseid $MINC_TMPDIR`
