@@ -115,13 +115,24 @@ if [ $$ -eq 1 ]; then
   leash $RD $@
 fi
 
-# Setup CPU and network limitations
-IP_NETNS=
-test "$MINC_NETNS" && IP_NETNS="ip netns exec $MINC_NETNS "
+# Setup Network Namespace
+if [ "$MINC_NETNS" ]; then
+  ip netns add $MINC_NETNS
+  TRAPCMD="ip netns del $MINC_NETNS"
+  trap "$TRAPCMD" EXIT
+  export MINC_NETNSIF=veth0-$MINC_NETNS
+  ip link add name $MINC_NETNSIF type veth peer name veth1-$MINC_NETNS
+  ip link set $MINC_NETNSIF netns $MINC_NETNS
+  IP_NETNS="ip netns exec $MINC_NETNS "
+else
+  TRAPCMD=
+  IP_NETNS=
+fi
+# Setup CPU limitations
 test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
 
 trap '' INT
-trap "rm -f $MINC_TMPDIR/pid" EXIT
+trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
 
 # Enter new namespace and exec command
 $IP_NETNS unshare -iumpf $0 $@

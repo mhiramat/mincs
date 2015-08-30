@@ -159,15 +159,5 @@ else
   export MINC_TMPDIR=`$MINCFARM dir $MINC_TMPDIR`
 fi
 
-# Setup Network Namespace
-if [ "$MINC_NETNS" ]; then
-  ip netns add $MINC_NETNS
-  TRAPCMD="ip netns del $MINC_NETNS;$TRAPCMD"
-  trap "$TRAPCMD" EXIT
-  export MINC_NETNSIF=vminc$$
-  ip link add name $MINC_NETNSIF type veth peer name veth$$
-  ip link set $MINC_NETNSIF netns $MINC_NETNS
-fi
-
 trap '' INT
 $MINCEXEC $@
