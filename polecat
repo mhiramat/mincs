@@ -17,7 +17,7 @@ set -u
 usage() { # [error messages]
   test $# -ne 0 && echo "$*"
   echo "$0 - Build a self-executable containered application"
-  echo "Usage: $0 [options] <rootdir> <command>"
+  echo "Usage: $0 [options] <rootdir> [command]"
   echo " options:"
   echo "    -h or --help           Show this help"
   echo "    -o or --output <FILE>  Output to FILE (default: $OUTFILE)"
@@ -34,6 +34,7 @@ export MINC_NETNS=
 export MINC_DEBUG=
 export MINC_BASEDIR=/
 export MINC_USE_DEV=
+SCRIPT=
 while [ "$1" ]; do
 case $1 in
 -h|--help)
@@ -115,7 +116,10 @@ EOF
   # Now we can directly use upper directory as root directory.
   RD=$UD
 else
+  # Simple command execution
   COMMAND="$@"
+  $TRAPPER -r $ROOTFS $MINC_TMPDIR $COMMAND
+  RD=$MINC_TMPDIR/storage
 fi
 
 # Make a squashfs image
