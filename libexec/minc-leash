@@ -7,27 +7,30 @@
 set -e
 test "$MINC_DEBUG" && set -x
 
-minc_wash() {
-for i in `env | grep "^MINC_" | cut -f 1 -d=`; do
+# wash : wash up the given environment variables
+wash() {
+pattern=$1
+shift 1
+for i in `env | grep $pattern | cut -f 1 -d=`; do
   unset $i
 done
-exec $*
+exec $@
 }
 
 leash() {
 RD=$1
 shift 1
 if [ "$MINC_DROPCAPS" ]; then
-  cmd="-c $@"
-  [ x"$cmd" = "x-c " ] && cmd=""
+  cmd="-c"
+  [ $# -eq 0 ] && cmd=""
   if [ "$MINC_USERSPEC" ]; then
     OPT=`echo $MINC_USERSPEC | \
     awk 'BEGIN{FS=":"} {if (NF==2) print "--gid="$2; print "--uid="$1}'`
   fi
-  minc_wash $MINC_DEBUG_PREFIX capsh --chroot=$RD --drop="$MINC_DROPCAPS" $OPT -- $cmd
+  wash "^MINC_" $MINC_DEBUG_PREFIX capsh --chroot=$RD --drop="$MINC_DROPCAPS" $OPT -- $cmd $@
 else
   test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
-  minc_wash $MINC_DEBUG_PREFIX chroot $OPT $RD $@
+  wash "^MINC_" $MINC_DEBUG_PREFIX chroot $OPT $RD $@
 fi
 }
 
