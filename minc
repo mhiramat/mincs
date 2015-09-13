@@ -160,4 +160,4 @@ else
 fi
 
 trap '' INT
-$MINCEXEC $@
+$MINCEXEC "$@"

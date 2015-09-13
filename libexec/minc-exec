@@ -112,7 +112,7 @@ if [ $$ -eq 1 ]; then
     # HACK: Open an pty for containers
     cat < $RD/dev/pts/ptmx > $RD/dev/null &
   fi
-  leash $RD $@
+  leash $RD "$@"
 fi
 
 # Setup Network Namespace
@@ -135,4 +135,4 @@ trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
 
 # Enter new namespace and exec command
-$IP_NETNS unshare -iumpf $0 $@
+$IP_NETNS unshare -iumpf $0 "$@"
