@@ -93,6 +93,7 @@ if [ $$ -eq 1 ]; then
     done
   fi
 
+  pivot_root -V > /dev/null 2>&1 || MINC_OPT_SIMPLE=1
   if [ "$MINC_OPT_SIMPLE" ]; then
     # Simply umount unused mount points
     grepumount -e "^/sys" -e "^/dev" -e "^/run"
