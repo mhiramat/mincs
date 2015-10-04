@@ -65,7 +65,13 @@ if [ $$ -eq 1 ]; then
     mount -t tmpfs tmpfs $RD/dev
     # Prepare pts
     mkdir $RD/dev/pts
-    mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
+    if [ "$MINC_OPT_PTY" ]; then
+      # This just a quick hack...
+      touch $RD`tty`; bindmount `tty`
+      touch $RD/dev/pts/ptmx; bindmount /dev/pts/ptmx
+    else
+      mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
+    fi
     ln -s /dev/pts/ptmx $RD/dev/ptmx
     touch $RD/dev/console; bindmount /dev/console
     touch $RD/dev/null; bindmount /dev/null
@@ -108,10 +114,6 @@ if [ $$ -eq 1 ]; then
     cd /.orig/
     pivot_root . dev/
     RD=dev/
-  fi
-  if [ "$MINC_OPT_PTY" ]; then
-    # HACK: Open an pty for containers
-    cat < $RD/dev/pts/ptmx > $RD/dev/null &
   fi
   leash $RD "$@"
 fi
