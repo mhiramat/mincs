@@ -7,24 +7,26 @@
 CGROOT=/sys/fs/cgroup
 MEMCG=$CGROOT/memory/mincs/`basename $MINC_TMPDIR`
 CPUCG=$CGROOT/cpu/mincs/`basename $MINC_TMPDIR`
+CGDIRS=
 
 set -e
 
 # with --prepare option, this sets up the cgroups and returns cleanup command
 if [ "x$1" = "x--prepare" ]; then
-  mkdir -p $MEMCG
-  mkdir -p $CPUCG
-  echo "rmdir $MEMCG $CPUCG"
+  [ "$MINC_MEM_LIMIT" ] && CGDIRS="$CGDIRS $MEMCG"
+  [ "$MINC_CPU_SHARES" -o "$MINC_CPU_QUOTA" ] && CGDIRS="$CGDIRS $CPUCG"
+  if [ "$CGDIRS" ]; then
+    mkdir -p $CGDIRS
+    echo "rmdir $CGDIRS"
+  fi
   exit 0;
-else
-  test -d $MEMCG
-  test -d $CPUCG
 fi
 
 # MINC_MEM_LIMIT - memory limit in bytes
 # MINC_MEM_SWAP - swap+memory limit in bytes
 
 if [ "$MINC_MEM_LIMIT" ]; then
+  test -d $MEMCG
   echo $MINC_MEM_LIMIT > $MEMCG/memory.limit_in_bytes
   [ "$MINC_MEM_SWAP" ] && \
     echo $MINC_MEM_SWAP > $MEMCG/memory.memsw.limit_in_bytes
@@ -35,11 +37,13 @@ fi
 # MINC_CPU_QUOTA - CPU quota of the container in usec (default: 100000)
 
 if [ "$MINC_CPU_SHARES" ]; then
+  test -d $CPUCG
   echo $MINC_CPU_SHARES > $CPUCG/cpu.shares
   echo $$ > $CPUCG/tasks
 fi
 
 if [ "$MINC_CPU_QUOTA" ]; then
+  test -d $CPUCG
   echo $MINC_CPU_QUOTA > $CPUCG/cpu.cfs_quota_us
   echo $$ > $CPUCG/tasks
 fi
