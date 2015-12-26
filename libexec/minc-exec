@@ -6,6 +6,7 @@
 LIBEXEC=`dirname $0`
 MINCCOAT=$LIBEXEC/minc-coat
 MINCLEASH=$LIBEXEC/minc-leash
+MINCCAGE=$LIBEXEC/minc-cage
 
 # Exit if any errors
 set -e
@@ -26,7 +27,9 @@ grepumount() { # patterns
 # If PID=1, this is in the new world
 if [ $$ -eq 1 ]; then
   # At this point, we still have original namespace procfs
-  MINC_PID=`cut -f 4 -d" " /proc/self/stat`
+  export MINC_PID=`cut -f 4 -d" " /proc/self/stat`
+
+  . $MINCCAGE
 
   # Make private mount namespace
   mount --make-rprivate /
@@ -133,6 +136,9 @@ else
 fi
 # Setup CPU limitations
 test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
+
+# Prepare Cgroups
+TRAPCMD=`$MINCCAGE --prepare`"; $TRAPCMD"
 
 trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT

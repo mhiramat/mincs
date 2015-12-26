@@ -1,0 +1,42 @@
+#!/bin/sh
+# minc-cage: MINC cgroups support
+
+CGROOT=/sys/fs/cgroup
+MEMCG=$CGROOT/memory/mincs/`basename $MINC_TMPDIR`
+CPUCG=$CGROOT/cpu/mincs/`basename $MINC_TMPDIR`
+
+set -e
+
+if [ "x$1" = "x--prepare" ]; then
+  mkdir -p $MEMCG
+  mkdir -p $CPUCG
+  echo "rmdir $MEMCG $CPUCG"
+  exit 0;
+else
+  test -d $MEMCG
+  test -d $CPUCG
+fi
+
+# MINC_MEM_LIMIT - memory limit in bytes
+# MINC_MEM_SWAP - swap+memory limit in bytes
+
+if [ "$MINC_MEM_LIMIT" ]; then
+  echo $MINC_MEM_LIMIT > $MEMCG/memory.limit_in_bytes
+  [ "$MINC_MEM_SWAP" ] && \
+    echo $MINC_MEM_SWAP > $MEMCG/memory.memsw.limit_in_bytes
+  echo $$ > $MEMCG/tasks
+fi
+
+# MINC_CPU_SHARES - CPU shares of the container (default: 1024)
+# MINC_CPU_QUOTA - CPU quota of the container in usec (default: 100000)
+
+if [ "$MINC_CPU_SHARES" ]; then
+  echo $MINC_CPU_SHARES > $CPUCG/cpu.shares
+  echo $$ > $CPUCG/tasks
+fi
+
+if [ "$MINC_CPU_QUOTA" ]; then
+  echo $MINC_CPU_QUOTA > $CPUCG/cpu.cfs_quota_us
+  echo $$ > $CPUCG/tasks
+fi
+

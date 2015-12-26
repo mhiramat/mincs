@@ -37,6 +37,10 @@ usage() { # [error messages]
   echo "    --simple            Simple chroot model (do not pivot_root)"
   echo "    --usedev		Use devtmpfs for /dev (for loopback etc.)"
   echo "    --nocaps [CAPS]     Drop given capabilities (same as capsh)"
+  echo "    --mem-limit SIZE	memory limitation by cgroups"
+  echo "    --mem-swap SIZE	memory+swap limitation by cgroups"
+  echo "    --cpu-shares SHARE	cpu shares setting by cgroups (default: 1024)"
+  echo "    --cpu-quota QUOTA	cpu quota in usec by cgroups (default: 100000)"
   echo "    --debug             Debug mode"
   exit $#
 }
@@ -56,6 +60,10 @@ export MINC_USE_DEV=
 export MINC_UTSNAME=
 export MINC_DIRECT=
 export MINC_DROPCAPS=
+export MINC_MEM_LIMIT=
+export MINC_MEM_SWAP=
+export MINC_CPU_SHARES=
+export MINC_CPU_QUOTA=
 # Parse options
 while [ "$#" -ne 0 ]; do
 cmd=$1
@@ -96,6 +104,22 @@ case "$cmd" in
     ;;
   --cpu|-c) # Use CPU mask
     MINC_CPUMASK=$1
+    shift 1
+    ;;
+  --mem-limit) # memory limitation by cgroups
+    MINC_MEM_LIMIT=$1
+    shift 1
+    ;;
+  --mem-swap) # memory+swap limitation by cgroups
+    MINC_MEM_SWAP=$1
+    shift 1
+    ;;
+  --cpu-shares) # cpu shares setting by cgroups (default: 1024)
+    MINC_CPU_SHARES=$1
+    shift 1
+    ;;
+  --cpu-quota) # cpu quota setting in usec by cgroups (default: 100000)
+    MINC_CPU_QUOTA=$1
     shift 1
     ;;
   --simple) # Simple chroot model (do not pivot_root and umount)
