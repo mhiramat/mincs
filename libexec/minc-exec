@@ -138,7 +138,9 @@ fi
 test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
 
 # Prepare Cgroups
-TRAPCMD=`$MINCCAGE --prepare`"; $TRAPCMD"
+CAGECMD=`$MINCCAGE --prepare`
+[ "$CAGECMD" ] && TRAPCMD="$CAGECMD;$TRAPCMD"
+
 
 trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
