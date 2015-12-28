@@ -21,13 +21,15 @@ leash() {
 RD=$1
 shift 1
 if [ "$MINC_DROPCAPS" ]; then
-  cmd="-c"
-  [ $# -eq 0 ] && cmd=""
   if [ "$MINC_USERSPEC" ]; then
     OPT=`echo $MINC_USERSPEC | \
     awk 'BEGIN{FS=":"} {if (NF==2) print "--gid="$2; print "--uid="$1}'`
   fi
-  wash "^MINC_" $MINC_DEBUG_PREFIX capsh --chroot=$RD --drop="$MINC_DROPCAPS" $OPT -- $cmd "$*"
+  if [ $# -ne 0 ]; then
+    wash "^MINC_" $MINC_DEBUG_PREFIX capsh --chroot=$RD --drop="$MINC_DROPCAPS" $OPT -- -c "$*"
+  else
+    wash "^MINC_" $MINC_DEBUG_PREFIX capsh --chroot=$RD --drop="$MINC_DROPCAPS" $OPT --
+  fi
 else
   test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
   wash "^MINC_" $MINC_DEBUG_PREFIX chroot $OPT $RD $@
