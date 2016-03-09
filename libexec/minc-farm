@@ -41,13 +41,13 @@ fabricate() { # image-id
   echo
 }
 
-# Import to image directory
+# Import a rootdir to the image directory
 import() { # rootdir
   test -d "$1"
   if [ "$MINC_IMPORT_UUID" ] ;then
     UUID=$MINC_IMPORT_UUID
   else
-    UUID=`tar -c $1 | sha256sum | cut -f 1 -d " "`
+    UUID=`tar -c $1 2>/dev/null  | sha256sum | cut -f 1 -d " "`
   fi
   BASEDIR=$MINCS_IMAGES/$UUID
   if [ -d $BASEDIR ] ;then
@@ -115,10 +115,11 @@ remove_image() { # uuid
 # Commit a container as an image
 commit() { # uuid
   test "$1"
-  test -d $MINCS_CONTAINERS/$1/root
-  UUID=`import $MINCS_CONTAINERS/$1/root`
-  (cd $MINCS_IMAGES/$UUID; rm storage; mv root storage; mkdir root)
-  cp $MINCS_CONTAINERS/$1/baseid $MINCS_IMAGES/$UUID/
+  test -d $MINCS_CONTAINERS/$1/storage
+  test -z "$MINC_IMPORT_NAME" && test -f $MINCS_CONTAINERS/$1/utsname &&\
+    MINC_IMPORT_NAME=`cat $MINCS_CONTAINERS/$1/utsname`
+  MINC_BASE_UUID=`cat $MINCS_CONTAINERS/$1/baseid`
+  import $MINCS_CONTAINERS/$1/storage
 }
 
 pull_image() { # UUID
