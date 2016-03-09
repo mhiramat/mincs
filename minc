@@ -87,7 +87,9 @@ case "$cmd" in
   --rootdir|-r) # Give a rootdir or image instead of /
     export MINC_BASEDIR=$1
     if [ ! -d "$MINC_BASEDIR" ]; then
-      $MINCFARM pull $MINC_BASEDIR > /dev/null	# ensure the given id image exists
+      # ensure the given id image exists
+      $MINCFARM pull $MINC_BASEDIR > /dev/null || \
+        usage "Error: no such image: $MINC_BASEDIR"
       USE_FARM=image
     fi
     shift 1
@@ -178,7 +180,8 @@ elif [ "$USE_FARM" = "image" ]; then
   trap "$TRAPCMD" EXIT
 else
   # Use minc-farm container
-  UUID=`$MINCFARM baseid $MINC_TMPDIR`
+  UUID=`$MINCFARM baseid $MINC_TMPDIR` ||
+    usage "Error No such container. $MINC_TMPDIR"
   export MINC_BASEDIR=`$MINCFARM imagestack $UUID`
   export MINC_TMPDIR=`$MINCFARM dir $MINC_TMPDIR`
 fi
