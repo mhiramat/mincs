@@ -8,6 +8,7 @@ LIBEXEC=`dirname $0`/libexec
 MINCEXEC=$LIBEXEC/minc-exec
 MINCCOAT=$LIBEXEC/minc-coat
 TRAPPER=$LIBEXEC/minc-trapper
+MINCFARM=$LIBEXEC/minc-farm
 OUTFILE=polecat-out.sh
 
 # Exit if any errors
@@ -59,7 +60,14 @@ case $1 in
 esac
 done
 
-test -d "$1" || usage "$1 is not a directory"
+USE_FARM=no
+#test -d "$1" || usage "$1 is not a directory"
+if [ ! -d "$1" ]; then
+  # ensure the given id image exists
+  $MINCFARM pull $1 > /dev/null || \
+    usage "Error: no such image: $MINC_BASEDIR"
+  USE_FARM=image
+fi
 ROOTFS=$1
 shift 1
 
@@ -68,15 +76,18 @@ export MINC_TMPDIR=`mktemp -d polecat-XXXXXXXX`
 trap "rm -rf $MINC_TMPDIR" EXIT
 
 # Working sub-directories
-export MINC_BASEDIR=$ROOTFS
+if [ $USE_FARM = "image" ]; then
+  export MINC_BASEDIR=`$MINCFARM imagestack $ROOTFS`
+else
+  export MINC_BASEDIR=$ROOTFS
+fi
 $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
 RD=$MINC_TMPDIR/root
 trap "$MINCCOAT unbind $MINC_TMPDIR; rm -rf $MINC_TMPDIR" EXIT
 
 # At first, install minc libs
 mkdir -p $RD/opt/libexec
-install -m 755 $MINCCOAT $RD/opt/libexec/
-install -m 755 $MINCEXEC $RD/opt/libexec/
+cp $LIBEXEC/* $RD/opt/libexec/
 
 # Scripting mode
 if [ -f "$SCRIPT" ]; then

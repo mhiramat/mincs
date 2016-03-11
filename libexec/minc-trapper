@@ -9,6 +9,7 @@
 LIBEXEC=`dirname $0`
 MINCEXEC=$LIBEXEC/minc-exec
 MINCCOAT=$LIBEXEC/minc-coat
+MINCFARM=$LIBEXEC/minc-farm
 
 set -e
 test "$MINC_DEBUG" && set -x
@@ -31,7 +32,10 @@ case $1 in
   ;;
 -r|--rootdir)
   MINC_BASEDIR=$2
-  test -d $MINC_BASEDIR || usage "$MINC_BASEDIR is not a directory"
+  if [ ! -d $MINC_BASEDIR ]; then
+    export MINC_BASEDIR=`$MINCFARM imagestack $MINC_BASEDIR` 
+    test -z "$MINC_BASEDIR" && usage "$MINC_BASEDIR is not a directory"
+  fi
   shift 2
   ;;
 *)
@@ -56,7 +60,7 @@ export MINC_TMPDIR
 $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
 TRAPCMD="$MINCCOAT unbind $MINC_TMPDIR;$TRAPCMD";trap "$TRAPCMD" EXIT
 
-export MINC_DEBUG_PREFIX="strace -f -q -e trace=open,execve,access -o $TRACEOUT"
+export MINC_DEBUG_PREFIX="strace -f -q -e trace=file -o $TRACEOUT"
 export MINC_OPT_SIMPLE=1
 $MINCEXEC $@
 TRAPCMD="rm -f $TRACEOUT";trap "$TRAPCMD" EXIT
