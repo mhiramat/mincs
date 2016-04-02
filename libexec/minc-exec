@@ -145,5 +145,8 @@ CAGECMD=`$MINCCAGE --prepare`
 trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
 
+cd `dirname $0`; LIBEXEC=`pwd`
+cd /
+
 # Enter new namespace and exec command
-$IP_NETNS unshare -iumpf $0 "$@"
+$IP_NETNS unshare -iumpf $LIBEXEC/`basename $0` "$@"
