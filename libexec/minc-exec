@@ -106,19 +106,16 @@ if [ $$ -eq 1 ]; then
   if [ "$MINC_OPT_SIMPLE" ]; then
     # Simply umount unused mount points
     grepumount -e "^/sys" -e "^/dev" -e "^/run"
+    leash $RD "$@"
   else
     # To unmount all unused mountpoints, use pivot_root to change root
+    umount -R "/proc"
     cd $RD
     mkdir -p .orig
     pivot_root . .orig
-    grepumount -e "^/\.orig/"
-    # The original root can not unmount because it referred by overlayfs.
-    # So, we pivot to the root again, and chroot to overlay directory.
-    cd /.orig/
-    pivot_root . dev/
-    RD=dev/
+    RD=.
+    leash $RD "umount -R /.orig/ && $@"
   fi
-  leash $RD "$@"
 fi
 
 # Setup Network Namespace
