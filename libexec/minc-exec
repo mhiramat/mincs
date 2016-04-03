@@ -7,6 +7,7 @@ LIBEXEC=`dirname $0`
 MINCCOAT=$LIBEXEC/minc-coat
 MINCLEASH=$LIBEXEC/minc-leash
 MINCCAGE=$LIBEXEC/minc-cage
+LEASH=$LIBEXEC/leash
 
 # Exit if any errors
 set -e
@@ -36,9 +37,6 @@ if [ $$ -eq 1 ]; then
 
   # Do not update /etc/mtab since the mount is private
   export LIBMOUNT_MTAB=/proc/mounts
-
-  # Define leash()
-  . $MINCLEASH
 
   # Setup overlay rootfs
   $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
@@ -102,11 +100,16 @@ if [ $$ -eq 1 ]; then
     done
   fi
 
+  # Define leash()
+  . $MINCLEASH
+
   pivot_root -V > /dev/null 2>&1 || MINC_OPT_SIMPLE=1
   if [ "$MINC_OPT_SIMPLE" ]; then
     # Simply umount unused mount points
     grepumount -e "^/sys" -e "^/dev" -e "^/run"
     leash $RD "$@"
+  elif [ -x $LEASH ]; then
+    exec $LEASH $RD $@
   else
     # To unmount all unused mountpoints, use pivot_root to change root
     umount -R "/proc"
