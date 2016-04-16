@@ -107,19 +107,16 @@ if [ $$ -eq 1 ]; then
   if [ "$MINC_OPT_SIMPLE" ]; then
     # Simply umount unused mount points
     grepumount -e "^/sys" -e "^/dev" -e "^/run"
+    leash $RD "$@"
   else
     # To unmount all unused mountpoints, use pivot_root to change root
+    umount -R "/proc"
     cd $RD
     mkdir -p .orig
     pivot_root . .orig
-    grepumount -e "^/\.orig/"
-    # The original root can not unmount because it referred by overlayfs.
-    # So, we pivot to the root again, and chroot to overlay directory.
-    cd /.orig/
-    pivot_root . dev/
-    RD=dev/
+    RD=.
+    leash $RD "umount -R /.orig/ && exec $@"
   fi
-  leash $RD "$@"
 fi
 
 # Setup Network Namespace
@@ -146,5 +143,8 @@ CAGECMD=`$MINCCAGE --prepare`
 trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
 
+cd `dirname $0`; LIBEXEC=`pwd`
+cd /
+
 # Enter new namespace and exec command
-$IP_NETNS unshare -iumpf $0 "$@"
+$IP_NETNS unshare -iumpf $LIBEXEC/`basename $0` "$@"

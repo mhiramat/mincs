@@ -164,6 +164,12 @@ case "$cmd" in
 esac
 done
 
+# Use default shell for default command
+CMD="$@"
+if [ -z "$CMD" ]; then
+  CMD=$SHELL
+fi
+
 TRAPCMD=
 if [ -z "$USE_FARM" ]; then
   # Setup temporary directory
@@ -193,4 +199,4 @@ else
 fi
 
 trap '' INT
-$MINCEXEC "$@"
+$MINCEXEC "$CMD"
