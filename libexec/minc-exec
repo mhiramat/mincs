@@ -29,16 +29,11 @@ if [ $$ -eq 1 ]; then
   # At this point, we still have original namespace procfs
   export MINC_PID=`cut -f 4 -d" " /proc/self/stat`
 
-  . $MINCCAGE
-
   # Make private mount namespace
   mount --make-rprivate /
 
   # Do not update /etc/mtab since the mount is private
   export LIBMOUNT_MTAB=/proc/mounts
-
-  # Define leash()
-  . $MINCLEASH
 
   # Setup overlay rootfs
   $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
@@ -101,6 +96,12 @@ if [ $$ -eq 1 ]; then
       bindmount $i
     done
   fi
+
+  # Define leash()
+  . $MINCLEASH
+
+  # Set cage
+  . $MINCCAGE
 
   pivot_root -V > /dev/null 2>&1 || MINC_OPT_SIMPLE=1
   if [ "$MINC_OPT_SIMPLE" ]; then

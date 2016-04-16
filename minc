@@ -41,6 +41,7 @@ usage() { # [error messages]
   echo "    --mem-swap SIZE	memory+swap limitation by cgroups"
   echo "    --cpu-shares SHARE	cpu shares setting by cgroups (default: 1024)"
   echo "    --cpu-quota QUOTA	cpu quota in usec by cgroups (default: 100000)"
+  echo "    --pid-max MAX	PID limitation by cgroups"
   echo "    --debug             Debug mode"
   exit $#
 }
@@ -64,6 +65,7 @@ export MINC_MEM_LIMIT=
 export MINC_MEM_SWAP=
 export MINC_CPU_SHARES=
 export MINC_CPU_QUOTA=
+export MINC_PID_MAX=
 # Parse options
 while [ "$#" -ne 0 ]; do
 cmd=$1
@@ -122,6 +124,10 @@ case "$cmd" in
     ;;
   --cpu-quota) # cpu quota setting in usec by cgroups (default: 100000)
     MINC_CPU_QUOTA=$1
+    shift 1
+    ;;
+  --pid-max) # pid limitation by cgroups
+    MINC_PID_MAX=$1
     shift 1
     ;;
   --simple) # Simple chroot model (do not pivot_root and umount)

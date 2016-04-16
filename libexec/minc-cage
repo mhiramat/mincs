@@ -7,6 +7,7 @@
 CGROOT=/sys/fs/cgroup
 MEMCG=$CGROOT/memory/mincs/`basename $MINC_TMPDIR`
 CPUCG=$CGROOT/cpu/mincs/`basename $MINC_TMPDIR`
+PIDCG=$CGROOT/pids/mincs/`basename $MINC_TMPDIR`
 CGDIRS=
 
 set -e
@@ -15,6 +16,7 @@ set -e
 if [ "x$1" = "x--prepare" ]; then
   [ "$MINC_MEM_LIMIT" ] && CGDIRS="$CGDIRS $MEMCG"
   [ "$MINC_CPU_SHARES" -o "$MINC_CPU_QUOTA" ] && CGDIRS="$CGDIRS $CPUCG"
+  [ "$MINC_PID_MAX" ] && CGDIRS="$CGDIRS $PIDCG"
   if [ "$CGDIRS" ]; then
     mkdir -p $CGDIRS
     echo "rmdir $CGDIRS"
@@ -48,3 +50,9 @@ if [ "$MINC_CPU_QUOTA" ]; then
   echo $$ > $CPUCG/tasks
 fi
 
+# MINC_PID_MAX - The max number of PID
+if [ "$MINC_PID_MAX" ]; then
+  test -d $PIDCG
+  echo $MINC_PID_MAX > $PIDCG/pids.max
+  echo $$ > $PIDCG/cgroup.procs
+fi
