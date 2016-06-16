@@ -1,8 +1,8 @@
 # MINCS
 
 MINCS (Minimum Container Shellscripts) is a collection of shell scripts
-for light-weight containers. "minc" starts with "chns" but since there
-are some programs have that name, I changed the name to minc.
+for light-weight containers. Since MINCS just requires posix shell and
+some tools, it is easy to run it even on busybox.
 
 * *minc* is a shell script (frontend) of mini-container script, which
  works as the chroot, but it also changes namespace.
@@ -94,6 +94,8 @@ are some programs have that name, I changed the name to minc.
 c45554627579e3f7aed7ae83a976ed37b5f5cc76be1b37088f4870f5b212ae35
  # minc -r c455 /bin/bash
 ```
+
+### Mixed example of minc and Docker :)
 
 ```sh
  # docker save centos | gzip - > centos.tar.gz
