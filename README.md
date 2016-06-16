@@ -2,7 +2,7 @@
 
 MINCS (Minimum Container Shellscripts) is a collection of shell scripts
 for light-weight containers. Since MINCS just requires posix shell and
-some tools, it is easy to run it even on busybox.
+some tools, it is easy to run it even on busybox ( see [boot2minc](https://github.com/mhiramat/boot2minc) for busybox combination).
 
 * *minc* is a shell script (frontend) of mini-container script, which
  works as the chroot, but it also changes namespace.
