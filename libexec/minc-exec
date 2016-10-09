@@ -80,6 +80,12 @@ if [ $$ -eq 1 ]; then
     # TODO: Add other devices here
   fi
 
+  # bind qemu-user-mode for cross-arch container
+  if [ -x "$MINC_CROSS_QEMU" ]; then
+    mkdir -p $RD/usr/bin/
+    touch $RD/$MINC_CROSS_QEMU; bindmount $MINC_CROSS_QEMU
+  fi
+
   # Do not bind procfs, since it shows outside pids
   mount -t proc -o ro,nosuid,nodev,noexec proc /proc
   mount -t proc -o rw,nosuid,nodev,noexec,relatime proc $RD/proc

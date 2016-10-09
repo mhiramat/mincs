@@ -42,8 +42,13 @@ usage() { # [error messages]
   echo "    --cpu-shares SHARE	cpu shares setting by cgroups (default: 1024)"
   echo "    --cpu-quota QUOTA	cpu quota in usec by cgroups (default: 100000)"
   echo "    --pid-max MAX	PID limitation by cgroups"
+  echo "    --cross ARCH	Make a cross-arch container by using qemu-user-mode"
   echo "    --debug             Debug mode"
   exit $#
+}
+
+get_qemu_bin() { # arch
+  grep interpreter /proc/sys/fs/binfmt_misc/qemu-$1 | cut -f 2 -d " "
 }
 
 KEEPDIR=0
@@ -66,6 +71,7 @@ export MINC_MEM_SWAP=
 export MINC_CPU_SHARES=
 export MINC_CPU_QUOTA=
 export MINC_PID_MAX=
+export MINC_CROSS_QEMU=
 # Parse options
 while [ "$#" -ne 0 ]; do
 cmd=$1
@@ -149,6 +155,10 @@ case "$cmd" in
     ;;
   --nocaps)
     export MINC_DROPCAPS="$1"
+    shift 1
+    ;;
+  --cross)
+    export MINC_CROSS_QEMU=`get_qemu_bin $1`
     shift 1
     ;;
   --help|-h) # Help Message
