@@ -51,6 +51,10 @@ get_qemu_bin() { # arch
   grep interpreter /proc/sys/fs/binfmt_misc/qemu-$1 | cut -f 2 -d " "
 }
 
+abspath() { # dir
+  (cd $1; pwd)
+}
+
 KEEPDIR=0
 USE_FARM=
 MINC_TMPDIR=
@@ -89,6 +93,8 @@ case "$cmd" in
     KEEPDIR=1
     if [ ! -d "$MINC_TMPDIR" ]; then
       USE_FARM=container
+    else
+      MINC_TMPDIR=`abspath $MINC_TMPDIR`
     fi
     shift 1
     ;;
@@ -99,6 +105,8 @@ case "$cmd" in
       $MINCFARM pull $MINC_BASEDIR > /dev/null || \
         usage "Error: no such image: $MINC_BASEDIR"
       USE_FARM=image
+    else
+      MINC_BASEDIR=`abspath $MINC_BASEDIR`
     fi
     shift 1
     ;;
