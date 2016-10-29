@@ -43,6 +43,7 @@ usage() { # [error messages]
   echo "    --cpu-quota QUOTA	cpu quota in usec by cgroups (default: 100000)"
   echo "    --pid-max MAX	PID limitation by cgroups"
   echo "    --cross ARCH	Make a cross-arch container by using qemu-user-mode"
+  echo "    --nopriv <DIR>	Run MINC without root privilege on given <DIR>"
   echo "    --debug             Debug mode"
   exit $#
 }
@@ -76,6 +77,20 @@ export MINC_CPU_SHARES=
 export MINC_CPU_QUOTA=
 export MINC_PID_MAX=
 export MINC_CROSS_QEMU=
+export MINC_NOPRIV=
+
+minc_set_rootfs() {
+    export MINC_BASEDIR=$1
+    if [ ! -d "$MINC_BASEDIR" ]; then
+      # ensure the given id image exists
+      $MINCFARM pull $MINC_BASEDIR > /dev/null || \
+        usage "Error: no such image: $MINC_BASEDIR"
+      USE_FARM=image
+    else
+      MINC_BASEDIR=`abspath $MINC_BASEDIR`
+    fi
+}
+
 # Parse options
 while [ "$#" -ne 0 ]; do
 cmd=$1
@@ -99,15 +114,7 @@ case "$cmd" in
     shift 1
     ;;
   --rootdir|-r) # Give a rootdir or image instead of /
-    export MINC_BASEDIR=$1
-    if [ ! -d "$MINC_BASEDIR" ]; then
-      # ensure the given id image exists
-      $MINCFARM pull $MINC_BASEDIR > /dev/null || \
-        usage "Error: no such image: $MINC_BASEDIR"
-      USE_FARM=image
-    else
-      MINC_BASEDIR=`abspath $MINC_BASEDIR`
-    fi
+    minc_set_rootfs $1
     shift 1
     ;;
   --direct|-D)
@@ -167,6 +174,14 @@ case "$cmd" in
     ;;
   --cross)
     export MINC_CROSS_QEMU=`get_qemu_bin $1`
+    shift 1
+    ;;
+  --nopriv)
+    export MINC_NOPRIV=1
+    export MINC_DIRECT=1
+    export MINC_OPT_PTY=1
+    export MINC_OPT_SIMPLE=1
+    minc_set_rootfs $1
     shift 1
     ;;
   --help|-h) # Help Message

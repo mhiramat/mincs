@@ -93,7 +93,7 @@ if [ $$ -eq 1 ]; then
   bindmount /proc/sysrq-trigger
   bindmount /proc/irq
   bindmount /proc/bus
-  bindmount /sys
+  [ "$MINC_NOPRIV" ] || bindmount /sys
 
   if [ "$MINC_RWBIND" ]; then
     for i in $MINC_RWBIND; do
@@ -154,5 +154,7 @@ trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
 cd `dirname $0`; LIBEXEC=`pwd`
 cd /
 
+UNSHARE_OPT=
 # Enter new namespace and exec command
-$IP_NETNS unshare -iumpf $LIBEXEC/`basename $0` "$@"
+[ "$MINC_NOPRIV" ] && UNSHARE_OPT=--map-root-user
+$IP_NETNS unshare $UNSHARE_OPT -iumpf $LIBEXEC/`basename $0` "$@"
