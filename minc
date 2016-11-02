@@ -32,6 +32,7 @@ usage() { # [error messages]
   echo "    -n or --net         Use network namespace"
   echo "    -c or --cpu <mask>  Set CPU mask"
   echo "    -p or --pty         Assign new pty for the container"
+  echo "    -b or --bind <HOSTPATH>:<PATH> Bind <HOSTPATH> to <PATH> in container"
   echo "    --name <NAME>       Set <NAME> as container's name (hostname)"
   echo "    --user <UID>[:GID]  Specify uid and gid to run command"
   echo "    --simple            Simple chroot model (do not pivot_root)"
@@ -122,7 +123,11 @@ case "$cmd" in
     ;;
   --X11|-X) # Export X11 connection
     [ -z "$DISPLAY" ] && usage "Error: \$DISPLAY is empty"
-    export MINC_RWBIND="/tmp/.X11-unix"
+    export MINC_RWBIND="$MINC_RWBIND /tmp/.X11-unix:/tmp/.X11-unix"
+    ;;
+  --bind|-b)
+    export MINC_RWBIND="$MINC_RWBIND $1"
+    shift 1
     ;;
   --net|-n) # Use NetNS
     export MINC_NETNS="minc$$"
