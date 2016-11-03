@@ -1,0 +1,180 @@
+unshare: new applet
+
+From: Masami Hiramatsu <masami.hiramatsu@gmail.com>
+
+Port unshare command from util-linux.
+    function                                             old     new   delta
+    unshare_main                                           -     308    +308
+    unshare                                                -      20     +20
+    packed_usage                                       30204   30301     +97
+    applet_names                                        2483    2491      +8
+    applet_main                                         2888    2896      +8
+    applet_nameofs                                       722     724      +2
+    ------------------------------------------------------------------------------
+    (add/remove: 2/0 grow/shrink: 4/0 up/down: 443/0)             Total: 443 bytes
+
+Signed-off-by: Masami Hiramatsu <masami.hiramatsu@gmail.com>
+---
+ include/applets.src.h |    1 
+ util-linux/Config.src |    7 +++
+ util-linux/Kbuild.src |    1 
+ util-linux/unshare.c  |  110 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 119 insertions(+)
+ create mode 100644 util-linux/unshare.c
+
+diff --git a/include/applets.src.h b/include/applets.src.h
+index b80c4f4..4cd4672 100644
+--- a/include/applets.src.h
++++ b/include/applets.src.h
+@@ -368,6 +368,7 @@ IF_UDHCPC(APPLET(udhcpc, BB_DIR_SBIN, BB_SUID_DROP))
+ IF_UDHCPD(APPLET(udhcpd, BB_DIR_USR_SBIN, BB_SUID_DROP))
+ IF_UDPSVD(APPLET_ODDNAME(udpsvd, tcpudpsvd, BB_DIR_USR_BIN, BB_SUID_DROP, udpsvd))
+ IF_UMOUNT(APPLET(umount, BB_DIR_BIN, BB_SUID_DROP))
++IF_UNSHARE(APPLET(unshare, BB_DIR_USR_BIN, BB_SUID_DROP))
+ IF_UNAME(APPLET(uname, BB_DIR_BIN, BB_SUID_DROP))
+ IF_UNEXPAND(APPLET_ODDNAME(unexpand, expand, BB_DIR_USR_BIN, BB_SUID_DROP, unexpand))
+ IF_UNIQ(APPLET(uniq, BB_DIR_USR_BIN, BB_SUID_DROP))
+diff --git a/util-linux/Config.src b/util-linux/Config.src
+index c1cd6da..76722cf 100644
+--- a/util-linux/Config.src
++++ b/util-linux/Config.src
+@@ -635,6 +635,13 @@ config SWITCH_ROOT
+ 	  and ending point for searching through the kernel's doubly linked
+ 	  list of active mount points. That's why.
+ 
++config UNSHARE
++	bool "unshare"
++	default y
++	select PLATFORM_LINUX
++	help
++	  The unshare utility can run a command in new namespace.
++
+ config UMOUNT
+ 	bool "umount"
+ 	default y
+diff --git a/util-linux/Kbuild.src b/util-linux/Kbuild.src
+index 468fc6b..5313632 100644
+--- a/util-linux/Kbuild.src
++++ b/util-linux/Kbuild.src
+@@ -43,4 +43,5 @@ lib-$(CONFIG_SCRIPTREPLAY)      += scriptreplay.o
+ lib-$(CONFIG_SETARCH)           += setarch.o
+ lib-$(CONFIG_SWAPONOFF)         += swaponoff.o
+ lib-$(CONFIG_SWITCH_ROOT)       += switch_root.o
++lib-$(CONFIG_UNSHARE)           += unshare.o
+ lib-$(CONFIG_UMOUNT)            += umount.o
+diff --git a/util-linux/unshare.c b/util-linux/unshare.c
+new file mode 100644
+index 0000000..277c363
+--- /dev/null
++++ b/util-linux/unshare.c
+@@ -0,0 +1,110 @@
++/* vi: set sw=4 ts=4: */
++/*
++ * unshare(1) - command-line interface for unshare(2)
++ *
++ * Copyright (C) 2009 Mikhail Gusarov <dottedmag@dottedmag.net>
++ * Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2, or (at your option) any
++ * later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++/*
++ * This program is copied from util-linux package, and drops following features
++ *  - long option support
++ *  - --mount-proc option
++ *  - --map-root-user option
++ *  - version indication
++ */
++//usage:#define unshare_trivial_usage
++//usage:       "[OPTIONS] COMMAND [ARGS]"
++//usage:#define unshare_full_usage "\n\n"
++//usage:       "Unshare command-line interface \n"
++//usage:       "	-m	unshare mounts namespace\n"
++//usage:       "	-u	unshare UTS namespace (hostname etc)\n"
++//usage:       "	-i	unshare System V IPC namespace\n"
++//usage:       "	-n	unshare network namespace\n"
++//usage:       "	-p	unshare pid namespace\n"
++//usage:       "	-U	unshare user namespace\n"
++//usage:       "	-f	fork before launching <program>\n"
++//usage:
++//usage:#define unshare_example_usage
++//usage:       "$ unshare -pmf /bin/sh \n"
++
++#include <sched.h>
++#include <sys/wait.h>
++#include <sys/mount.h>
++#include "libbb.h"
++
++int unshare_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
++int unshare_main(int argc, char *argv[])
++{
++	int unshare_flags = 0;
++	int forkit = 0;
++	const char *def_argv[3] = { "/bin/sh", "-", NULL};
++	uint32_t flag;
++
++	flag = getopt32(argv, "fmuinpU");
++	if (flag & (1 << 0))
++		forkit = 1;
++	if (flag & (1 << 1))
++		unshare_flags |= CLONE_NEWNS;
++	if (flag & (1 << 2))
++		unshare_flags |= CLONE_NEWUTS;
++	if (flag & (1 << 3))
++		unshare_flags |= CLONE_NEWIPC;
++	if (flag & (1 << 4))
++		unshare_flags |= CLONE_NEWNET;
++	if (flag & (1 << 5))
++		unshare_flags |= CLONE_NEWPID;
++	if (flag & (1 << 6))
++		unshare_flags |= CLONE_NEWUSER;
++
++	if (-1 == unshare(unshare_flags)) {
++		bb_perror_msg("unshare failed");
++		return EXIT_FAILURE;
++	}
++
++	if (forkit) {
++		int status;
++		pid_t pid = fork();
++
++		switch(pid) {
++		case -1:
++			bb_perror_msg("fork failed");
++			return EXIT_FAILURE;
++		case 0:	/* child */
++			break;
++		default: /* parent */
++			if (waitpid(pid, &status, 0) == -1) {
++				bb_perror_msg("waitpid failed");
++				return EXIT_FAILURE;
++			}
++			if (WIFEXITED(status))
++				return WEXITSTATUS(status);
++			else if (WIFSIGNALED(status))
++				kill(getpid(), WTERMSIG(status));
++			bb_perror_msg("child exit failed");
++			return EXIT_FAILURE;
++		}
++	}
++
++	if (optind < argc)
++		argv += optind;
++	else
++		argv = (char **)def_argv;
++
++	execvp(argv[0], argv);
++	bb_perror_msg("failed to execute %s", argv[0]);
++	return EXIT_FAILURE;
++}
