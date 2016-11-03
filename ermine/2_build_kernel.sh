@@ -21,7 +21,7 @@ done
 }
 
 # Changes the name of the system
-sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"boot2minc\"/" .config
+sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"ermine\"/" .config
 
 # Config for Virtio environment
 yconfig VIRTIO VIRTIO_PCI VIRTIO_MMIO VIRTIO_CONSOLE VIRTIO_BLK VIRTIO_NET
