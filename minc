@@ -196,8 +196,6 @@ case "$cmd" in
     shift 1
     ;;
   --qemu)
-    export MINC_NOPRIV=1
-    export MINC_DIRECT=1
     export MINC_QEMU=`get_qemu_sys`
     ;;
   --help|-h) # Help Message
