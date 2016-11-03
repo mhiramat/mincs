@@ -45,12 +45,17 @@ usage() { # [error messages]
   echo "    --pid-max MAX	PID limitation by cgroups"
   echo "    --cross ARCH	Make a cross-arch container by using qemu-user-mode"
   echo "    --nopriv <DIR>	Run MINC without root privilege on given <DIR>"
+  echo "    --qemu              Run MINC in qemu-kvm instead of chroot"
   echo "    --debug             Debug mode"
   exit $#
 }
 
 get_qemu_bin() { # arch
   grep interpreter /proc/sys/fs/binfmt_misc/qemu-$1 | cut -f 2 -d " "
+}
+
+get_qemu_sys() { # arch
+  which qemu-system-`uname -m`
 }
 
 abspath() { # dir
@@ -79,6 +84,7 @@ export MINC_CPU_QUOTA=
 export MINC_PID_MAX=
 export MINC_CROSS_QEMU=
 export MINC_NOPRIV=
+export MINC_QEMU=
 
 minc_set_rootfs() {
     export MINC_BASEDIR=$1
@@ -188,6 +194,11 @@ case "$cmd" in
     export MINC_OPT_SIMPLE=1
     minc_set_rootfs $1
     shift 1
+    ;;
+  --qemu)
+    export MINC_NOPRIV=1
+    export MINC_DIRECT=1
+    export MINC_QEMU=`get_qemu_sys`
     ;;
   --help|-h) # Help Message
     usage

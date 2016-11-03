@@ -7,6 +7,8 @@ LIBEXEC=`dirname $0`
 MINCCOAT=$LIBEXEC/minc-coat
 MINCLEASH=$LIBEXEC/minc-leash
 MINCCAGE=$LIBEXEC/minc-cage
+MINC_KERNEL=$LIBEXEC/minc-kernel
+MINC_INITRAMFS=$LIBEXEC/minc-initramfs
 
 # Exit if any errors
 set -e
@@ -46,6 +48,22 @@ if [ $$ -eq 1 ]; then
 
   RD=$MINC_TMPDIR/root
   mkdir -p $RD/etc $RD/dev $RD/sys $RD/proc
+
+  if [ "$MINC_RWBIND" ]; then
+    for i in $MINC_RWBIND; do
+      bindmount2 `echo $i | sed "s/:/ /"`
+    done
+  fi
+
+  # Qemu code runs
+  if [ "$MINC_QEMU" -a -x "$MINC_QEMU" ]; then
+    echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
+    echo "minc --simple -r /mnt/root \"$@\"" >> $MINC_TMPDIR/run.sh
+    echo "poweroff" >> $MINC_TMPDIR/run.sh
+    exec $MINC_QEMU -kernel $MINC_KERNEL -initrd $MINC_INITRAMFS \
+	-append "console=ttyS0 quiet" -nographic \
+	-virtfs local,id=minc,path=$MINC_TMPDIR,security_model=none,mount_tag=minc -enable-kvm
+  fi
 
   if [ "$MINC_UTSNAME" ]; then
     hostname $MINC_UTSNAME
@@ -100,12 +118,6 @@ if [ $$ -eq 1 ]; then
   bindmount /proc/irq
   bindmount /proc/bus
   [ "$MINC_NOPRIV" ] || bindmount /sys
-
-  if [ "$MINC_RWBIND" ]; then
-    for i in $MINC_RWBIND; do
-      bindmount2 `echo $i | sed "s/:/ /"`
-    done
-  fi
 
   # Define leash()
   . $MINCLEASH
