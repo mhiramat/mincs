@@ -47,7 +47,7 @@ mkdir /sys/fs/cgroup/memory
 mount -t cgroup -o memory cgroup /sys/fs/cgroup/memory
 
 if mount -t 9p -o trans=virtio minc /mnt -oversion=9p2000.L,posixacl,cache=loose ; then
-  [ /mnt/run.sh ] && exec sh /mnt/run.sh
+  [ /mnt/run.sh ] && exec /bin/cttyhack sh /mnt/run.sh
 fi
 
 EOF
