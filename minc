@@ -191,7 +191,6 @@ case "$cmd" in
     export MINC_NOPRIV=1
     export MINC_DIRECT=1
     export MINC_OPT_PTY=1
-    export MINC_OPT_SIMPLE=1
     minc_set_rootfs $1
     shift 1
     ;;
