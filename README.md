@@ -57,6 +57,15 @@ some tools, it is easy to run it even on busybox ( see [boot2minc](https://githu
 * --user *USERSPEC*
        Run command as given uid:gid
 
+* --cross *arch*
+       Run command with given arch (require setting up qemu-user-mode)
+
+* --nopriv *rootdir*
+       Run command in given rootfs without root privilege
+
+* --qemu
+       Run command in Qemu (like Clear Container, this requires to run build.sh beforehand)
+
 * --nocaps *CAPLIST*
        Drop capabilities (e.g. cap_sys_admin)
 
