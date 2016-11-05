@@ -15,6 +15,7 @@ sh 3_get_busybox.sh
 sh 4_build_busybox.sh
 sh 5_generate_rootfs.sh
 sh 6_pack_rootfs.sh
+sh 7_make_initrd.sh
 cp work/bzImage ../libexec/minc-kernel
-cp work/initramfs ../libexec/minc-initramfs
+gzip -c work/initrd > ../libexec/minc-initramfs
 echo "Success!"

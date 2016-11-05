@@ -35,7 +35,7 @@ cat > bootscript.sh << EOF
 #!/bin/sh
 
 dmesg -n 1
-mount -t devtmpfs none /dev
+mount -t devtmpfs none /dev 2> /dev/null
 mount -t proc none /proc
 mount -t sysfs none /sys
 mount -t tmpfs tmpfs /tmp

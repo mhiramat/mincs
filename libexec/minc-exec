@@ -68,8 +68,8 @@ if [ $$ -eq 1 ]; then
     echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
     echo "minc -r /mnt/root --name `hostname` \"$@\"" >> $MINC_TMPDIR/run.sh
     echo "poweroff" >> $MINC_TMPDIR/run.sh
-    exec $MINC_QEMU -kernel $MINC_KERNEL -initrd $MINC_INITRAMFS \
-	-append "console=ttyS0 quiet" -nographic \
+    exec $MINC_QEMU -kernel $MINC_KERNEL -initrd $MINC_INITRAMFS -nographic \
+	-append "console=ttyS0 root=/dev/ram0 rootfstype=ext2 ro quiet" \
 	-virtfs local,id=minc,path=$MINC_TMPDIR,security_model=none,mount_tag=minc -enable-kvm
   fi
 
@@ -134,7 +134,6 @@ if [ $$ -eq 1 ]; then
     leash $RD "$@"
   else
     # To unmount all unused mountpoints, use pivot_root to change root
-    umount -R "/proc"
     cd $RD
     mkdir -p .orig
     pivot_root . .orig
