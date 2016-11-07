@@ -1,6 +1,6 @@
 #!/bin/sh
-if [ -e libexec/minc-kernel -a -e libexec/minc-initramfs ]; then
-  echo "minc-kernel and minc-initramfs are already built. skip it"
+if [ -e libexec/minc-kernel -a -e libexec/minc-initrd ]; then
+  echo "minc-kernel and minc-initrd are already built. skip it"
   exit 0
 fi
 
@@ -17,5 +17,5 @@ sh 5_generate_rootfs.sh
 sh 6_pack_rootfs.sh
 sh 7_make_initrd.sh
 cp work/bzImage ../libexec/minc-kernel
-gzip -c work/initrd > ../libexec/minc-initramfs
+gzip -c work/initrd > ../libexec/minc-initrd
 echo "Success!"
