@@ -45,14 +45,17 @@ mkdir /sys/fs/cgroup/cpu
 mount -t cgroup -o cpu cgroup /sys/fs/cgroup/cpu
 mkdir /sys/fs/cgroup/memory
 mount -t cgroup -o memory cgroup /sys/fs/cgroup/memory
+EOF
 
+cat > mincscript.sh << EOF
 if mount -t 9p -o trans=virtio minc /mnt -oversion=9p2000.L,posixacl,cache=loose ; then
   [ /mnt/run.sh ] && exec /bin/cttyhack sh /mnt/run.sh
 fi
-
+exec /bin/sh
 EOF
 
 chmod +x bootscript.sh
+chmod +x mincscript.sh
 
 cat > welcome.txt << EOF
 ==== Ermine qemu runtime ====
@@ -63,7 +66,7 @@ cat > inittab << EOF
 ::restart:/sbin/init
 ::ctrlaltdel:/sbin/reboot
 ::once:cat /etc/welcome.txt
-::respawn:/bin/cttyhack /bin/sh
+ttyS0::respawn:/bin/cttyhack /etc/mincscript.sh
 
 EOF
 

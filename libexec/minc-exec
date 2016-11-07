@@ -69,7 +69,7 @@ if [ $$ -eq 1 ]; then
     echo "minc -r /mnt/root --name `hostname` \"$@\"" >> $MINC_TMPDIR/run.sh
     echo "poweroff" >> $MINC_TMPDIR/run.sh
     exec $MINC_QEMU -kernel $MINC_KERNEL -initrd $MINC_INITRAMFS -nographic \
-	-append "console=ttyS0 root=/dev/ram0 rootfstype=ext2 ro quiet" \
+	-append "root=/dev/ram0 rootfstype=ext2 ro quiet" \
 	-virtfs local,id=minc,path=$MINC_TMPDIR,security_model=none,mount_tag=minc -enable-kvm
   fi
 
