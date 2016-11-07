@@ -11,7 +11,7 @@ mkfs.ext2 /dev/loop0
 mkdir -p /rootfs
 mount /dev/loop0 /rootfs
 cd /rootfs
-gzip -cd /mnt/initramfs | cpio -i -vd
+gzip -cd /mnt/initramfs | cpio -i -d
 cd ../
 umount /rootfs
 poweroff
