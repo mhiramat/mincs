@@ -49,7 +49,10 @@ EOF
 
 cat > mincscript.sh << EOF
 if mount -t 9p -o trans=virtio minc /mnt -oversion=9p2000.L,posixacl,cache=loose ; then
-  [ /mnt/run.sh ] && exec /bin/cttyhack sh /mnt/run.sh
+  if [ /mnt/run.sh ]; then
+    /bin/cttyhack sh /mnt/run.sh
+    poweroff
+  fi
 fi
 exec /bin/sh
 EOF
