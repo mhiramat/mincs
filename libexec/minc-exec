@@ -65,8 +65,13 @@ if [ $$ -eq 1 ]; then
 
   # Qemu code runs
   if [ "$MINC_QEMU" -a -x "$MINC_QEMU" ]; then
+    MINC_GUEST_OPT="-r /mnt/root --name `hostname`"
+    if [ -z "$MINC_DIRECT" ]; then
+      # if the host mounts overlayfs on rootfs, guest skips it.
+      MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
+    fi
     echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
-    echo "minc -r /mnt/root --name `hostname` \"$@\"" >> $MINC_TMPDIR/run.sh
+    echo "minc $MINC_GUEST_OPT \"$@\"" >> $MINC_TMPDIR/run.sh
     exec $MINC_QEMU -kernel $MINC_KERNEL -initrd $MINC_INITRD -nographic \
 	-append "root=/dev/ram0 rootfstype=ext2 ro quiet" \
 	-virtfs local,id=minc,path=$MINC_TMPDIR,security_model=none,mount_tag=minc -enable-kvm
