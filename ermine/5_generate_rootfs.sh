@@ -10,9 +10,8 @@ cp -R _install ../../rootfs)
 
 # Install mincs
 (cd ../../; PREFIX=./ermine/work/rootfs/usr/ LIBEXEC=/usr/libexec ./install.sh)
-# Remove minc-kernel and minc-initramfs
-rm rootfs/usr/libexec/minc-kernel
-rm rootfs/usr/libexec/minc-initramfs
+# Remove ermine
+rm rootfs/usr/libexec/ermine
 
 # Prepare rootfs
 cd rootfs

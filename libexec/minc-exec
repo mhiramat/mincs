@@ -7,8 +7,7 @@ LIBEXEC=`dirname $0`
 MINCCOAT=$LIBEXEC/minc-coat
 MINCLEASH=$LIBEXEC/minc-leash
 MINCCAGE=$LIBEXEC/minc-cage
-MINC_KERNEL=$LIBEXEC/minc-kernel
-MINC_INITRD=$LIBEXEC/minc-initrd
+MINC_ERMINE=$LIBEXEC/ermine
 
 # Exit if any errors
 set -e
@@ -72,8 +71,8 @@ if [ $$ -eq 1 ]; then
     fi
     echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
     echo "minc $MINC_GUEST_OPT \"$@\"" >> $MINC_TMPDIR/run.sh
-    exec $MINC_QEMU -kernel $MINC_KERNEL -initrd $MINC_INITRD -nographic \
-	-append "root=/dev/ram0 rootfstype=ext2 ro quiet" \
+    exec $MINC_QEMU -kernel $MINC_ERMINE/bzImage -initrd $MINC_ERMINE/initrd \
+	-nographic -append "root=/dev/ram0 rootfstype=ext2 ro quiet" \
 	-virtfs local,id=minc,path=$MINC_TMPDIR,security_model=none,mount_tag=minc -enable-kvm
   fi
 

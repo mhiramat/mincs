@@ -1,10 +1,10 @@
 #!/bin/sh
-if [ -e libexec/minc-kernel -a -e libexec/minc-initrd ]; then
-  echo "minc-kernel and minc-initrd are already built. skip it"
+if [ -e libexec/ermine/bzImage -a -e libexec/ermine/initrd ]; then
+  echo "Ermine kernel and initrd are already built. skip it"
   exit 0
 fi
 
-echo "Build kernel and initramfs for minc --qemu"
+echo "Build ermine kernel and initrd for minc --qemu"
 
 set -e
 cd ermine/
@@ -16,6 +16,8 @@ sh 4_build_busybox.sh
 sh 5_generate_rootfs.sh
 sh 6_pack_rootfs.sh
 sh 7_make_initrd.sh
-cp work/bzImage ../libexec/minc-kernel
-gzip -c work/initrd > ../libexec/minc-initrd
+cd ../
+mkdir -p libexec/ermine
+cp ermine/work/bzImage libexec/ermine/
+gzip -c ermine/work/initrd > libexec/ermine/initrd
 echo "Success!"
