@@ -62,6 +62,10 @@ abspath() { # dir
   (cd $1; pwd)
 }
 
+abspath2() { # host_dir container_path
+  echo `abspath $1`:$2
+}
+
 KEEPDIR=0
 USE_FARM=
 MINC_TMPDIR=
@@ -132,7 +136,8 @@ case "$cmd" in
     export MINC_RWBIND="$MINC_RWBIND /tmp/.X11-unix:/tmp/.X11-unix"
     ;;
   --bind|-b)
-    export MINC_RWBIND="$MINC_RWBIND $1"
+    orig_path=`echo $1 | sed "s/:/ /"`
+    export MINC_RWBIND="$MINC_RWBIND "`abspath2 $orig_path`
     shift 1
     ;;
   --net|-n) # Use NetNS
