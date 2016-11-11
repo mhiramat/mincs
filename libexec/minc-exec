@@ -140,6 +140,7 @@ if [ $$ -eq 1 ]; then
     cd $RD
     mkdir -p .orig
     pivot_root . .orig
+    PATH=/bin:/sbin:/usr/bin:/usr/sbin
     mount --make-rprivate /.orig
     umount -l /.orig
     RD=.
