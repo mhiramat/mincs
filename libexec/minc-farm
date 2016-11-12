@@ -55,7 +55,7 @@ import() { # rootdir
     exit 0;
   fi
   mkdir -p $BASEDIR
-  cp -ab $1 $BASEDIR/root
+  cp -a $1 $BASEDIR/root
   (cd $BASEDIR; ln -s root storage)
   test "$MINC_BASE_UUID" && echo $MINC_BASE_UUID > $BASEDIR/baseid
   test "$MINC_IMPORT_NAME" && echo $MINC_IMPORT_NAME > $BASEDIR/name
