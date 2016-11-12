@@ -16,13 +16,16 @@ some tools, it is easy to run it even on busybox ( see [boot2minc](https://githu
 
 - Posix shell (dash, bash, etc)
 - coreutils
-- Util-linux ( version > 2.24 )
+- Util-linux ( version >= 2.24 for basic usage, and >= 2.28 for --nopriv )
 - IProute2
 - Overlayfs
 - Squashfs-tools (for polecat)
 - libcap (for --nocaps option)
+- docker (for marten)
+- [jq](https://github.com/stedolan/jq/) (for marten)
+- docker (for marten)
 
-- Or, busybox + unshare patch :)
+- Or, busybox + unshare patch (under ermine/busybox) :)
 
 ## minc usage
 
