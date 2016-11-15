@@ -25,7 +25,7 @@ some tools, it is easy to run it even on busybox ( see [boot2minc](https://githu
 - [jq](https://github.com/stedolan/jq/) (for marten)
 - docker (for marten)
 
-- Or, busybox + unshare patch (under ermine/busybox) :)
+- Or, busybox ( version >= 1.25 ) (for minc)
 
 ## minc usage
 
