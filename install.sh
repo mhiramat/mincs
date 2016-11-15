@@ -11,9 +11,13 @@ case "$1" in
   -u|--uninstall)
     UNINSTALL=yes
     ;;
+  --ermine) # install ermine
+    echo "Build ermine and install"
+    ./ermine-breeder
+    ;;
   -h|--help)
     echo "Install script for MINCS"
-    echo "Usage: $0 [-u|--uninstall]"
+    echo "Usage: $0 [-u|--uninstall|--ermine]"
     exit 0
     ;;
 esac
