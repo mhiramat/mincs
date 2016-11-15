@@ -14,7 +14,6 @@ shift 1
 for i in `env | grep $pattern | cut -f 1 -d=`; do
   unset $i
 done
-exec "$@"
 }
 
 leash() {
@@ -25,11 +24,13 @@ if [ "$MINC_DROPCAPS" ]; then
     OPT=`echo $MINC_USERSPEC | \
     awk 'BEGIN{FS=":"} {if (NF==2) print "--gid="$2; print "--uid="$1}'`
   fi
-  wash "^MINC_" $MINC_DEBUG_PREFIX capsh --chroot=$RD --drop="$MINC_DROPCAPS" $OPT -- -c "$*"
+  RUN="$MINC_DEBUG_PREFIX capsh --chroot=$RD $OPT --drop=$MINC_DROPCAPS -- "
 else
   test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
-  wash "^MINC_" $MINC_DEBUG_PREFIX chroot $OPT $RD sh -c "$*"
+  RUN="$MINC_DEBUG_PREFIX chroot $OPT $RD sh"
 fi
+  wash "^MINC_"
+  exec $RUN -c "exec $*"
 }
 
 if [ `basename $0` = "minc-leash" ]; then

@@ -148,7 +148,7 @@ if [ $$ -eq 1 ]; then
     mount --make-rprivate /.orig
     umount -l /.orig
     RD=.
-    leash $RD "exec $@"
+    leash $RD "$@"
   fi
 fi
 
