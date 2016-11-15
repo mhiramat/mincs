@@ -1,0 +1,274 @@
+#!/bin/sh
+#
+# Copyright (C) 2016 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+#
+set -e
+
+abspath() {
+  (cd $1; pwd)
+}
+
+# Workspaces
+TOPDIR=`dirname $0`
+TOPDIR=`abspath $TOPDIR`
+WORKDIR=$TOPDIR/work
+DLDIR=$TOPDIR/download
+DESTDIR=$TOPDIR/libexec/ermine
+
+# Download sources
+LINUX_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.4.30.tar.xz
+BUSYBOX_URL=http://busybox.net/downloads/busybox-1.25.1.tar.bz2
+LIBCAP_URL=https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.25.tar.gz
+
+# Build params
+JOBS=`nproc`
+
+# User config
+CONFIG=$TOPDIR/ermine.config
+test -f $CONFIG && . $CONFIG
+
+cleanup_workdir() {
+  [ -d $WORKDIR ] && rm -rf $WORKDIR
+}
+cleanup_dldir() {
+  [ -d $DLDIR ] && rm -rf $DLDIR
+}
+cleanup_destdir() {
+  [ -d $DESTDIR ] && rm -rf $DESTDIR
+}
+
+prepare_workspaces() {
+  mkdir -p $DLDIR
+  mkdir -p $WORKDIR
+  mkdir -p $DESTDIR
+}
+
+patch_source() { # todir [patches]
+  echo "Patching $target"
+  (cd $1/*/
+  shift 1
+  while [ $# -ne 0 ]; do
+    patch -p1 < $1
+    shift 1
+  done
+  )
+}
+
+setup_source() { # url todir [patches]
+  (cd $DLDIR
+  target=${1##*/}
+  if [ ! -f $target ]; then
+    echo "Downloading $1"
+    wget -c $1
+  fi
+  if [ ! -d $2 ]; then
+    mkdir -p $2
+    echo "Extracting $target"
+    tar -xf $target -C $2
+  fi
+  if [ $# -gt 2 ]; then
+    shift 1
+    patch_source $@
+  fi
+  )
+}
+
+kconfig_y() { # entries
+  while [ $# -ne 0 ]; do
+    sed -i "s/.*CONFIG_${1}\ .*/CONFIG_${1}=y/" .config
+    grep ^CONFIG_${1}=y .config || echo "CONFIG_${1}=y" >> .config
+    shift 1
+  done
+}
+
+configure_kernel() { # config
+  make $1
+  sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"ermine\"/" .config
+  kconfig_y NET_9P NET_9P_VIRTIO 9P_FS 9P_FS_POSIX_ACL OVERLAY_FS \
+    CGROUPS EVENTFD CGROUP_DEVICE CPUSETS CGROUP_CPUACCT \
+    PAGE_COUNTER MEMCG MEMCG_SWAP MEMCG_SWAP_ENABLED MEMCG_KMEM \
+    CGROUP_PERF CGROUP_SCHED CGROUP_HUGETLB FAIR_GROUP_SCHED \
+    CGROUP_PIDS CGROUP_FREEZER CFS_BANDWIDTH RT_GROUP_SCHED \
+    BLK_CGROUP BLK_DEV_RAM BLK_DEV_INITRD
+  make kvmconfig
+  make olddefconfig
+}
+
+build_kernel() { # workdir config
+  [ -f $DESTDIR/vmlinuz ] && return 0
+  (cd $1/linux*/
+  configure_kernel $2
+  # build bzImage (currently only for x86)
+  make bzImage -j $JOBS
+  cp -f arch/x86/boot/bzImage $DESTDIR/vmlinuz
+  )
+}
+
+build_busybox() { # workdir config
+  [ -d $WORKDIR/rootfs ] && return 0
+  (cd $1/busybox*/
+  make defconfig
+  sed -i "s/.*CONFIG_STATIC.*/CONFIG_STATIC=y/" .config
+  make busybox -j $JOBS
+  make install
+  rm -rf $WORKDIR/rootfs
+  cp -R _install $WORKDIR/rootfs
+  )
+}
+
+build_libcap() { # workdir
+  [ -f $WORKDIR/rootfs/usr/sbin/capsh ] && return 0
+  (cd $1/libcap*/
+  make DYNAMIC=no
+  mkdir -p $WORKDIR/rootfs/usr/sbin/
+  cp progs/capsh $WORKDIR/rootfs/usr/sbin/
+  )
+}
+
+install_mincs() {
+  PREFIX=$WORKDIR/rootfs/usr/ LIBEXEC=/usr/libexec ./install.sh
+  rm -rf $WORKDIR/rootfs/usr/libexec/ermine
+}
+
+setup_rootfs() {
+  (cd $WORKDIR/rootfs
+  mkdir -p dev sys proc mnt tmp etc
+  chmod 1777 tmp
+
+  cat > etc/rc.local << EOF
+#!/bin/sh
+mount -t devtmpfs dev /dev 2> /dev/null
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t tmpfs tmpfs /tmp
+mount -t tmpfs tmpfs /sys/fs/cgroup/
+
+mkdir /sys/fs/cgroup/cpu
+mount -t cgroup -o cpu cgroup /sys/fs/cgroup/cpu
+mkdir /sys/fs/cgroup/memory
+mount -t cgroup -o memory cgroup /sys/fs/cgroup/memory
+EOF
+  chmod a+x etc/rc.local
+
+  cat > mincshell.sh << EOF
+#!/bin/sh
+
+run_minc() {
+if mount -t 9p -o trans=virtio minc /mnt -oversion=9p2000.L,posixacl,cache=loose ; then
+  if [ -f /mnt/run.sh ]; then
+    /bin/cttyhack sh /mnt/run.sh
+    poweroff
+  fi
+fi
+}
+mount | grep /mnt > /dev/null || run_minc
+echo "=== Ermine operating console ==="
+echo
+exec /bin/sh
+EOF
+  chmod a+x mincshell.sh
+
+  cat > bin/bash << EOF
+#!/bin/sh
+exec /bin/sh "\$@"
+EOF
+  chmod a+x bin/bash
+
+  cat > etc/inittab << EOF
+::sysinit:/etc/rc.local
+::restart:/sbin/init
+::ctrlaltdel:/sbin/reboot
+ttyS0::respawn:/bin/cttyhack /mincshell.sh
+EOF
+
+  ln -sf /sbin/init init
+)
+}
+
+pack_initramfs() {
+  (cd $WORKDIR/rootfs
+   find . | cpio -H newc -o | gzip > $DESTDIR/initramfs
+  )
+}
+
+test_run() {
+  qemu-system-x86_64 -kernel $DESTDIR/vmlinuz -initrd $DESTDIR/initramfs \
+    -nographic -append "ro console=ttyS0" \
+    -virtfs local,id=minc,path=$WORKDIR,security_model=none,mount_tag=minc \
+    -enable-kvm
+}
+
+usage() {
+  echo "Usage: $0 [OPTS]"
+  echo "options:"
+  echo "  --clean	Cleanup workdir"
+  echo "  --distclean	Cleanup workdir,download and ermine image"
+  echo "  --repack	Rebuild ermine image without cleanup workdir"
+  echo "  --cleanbuild	Rebuild ermine image with cleanup workdir"
+  echo "  --debug	Show all commands (set -x)"
+  echo "  --test-run	Run qemu with ermine image"
+  exit 0
+}
+
+while [ $# -ne 0 ]; do
+case $1 in
+  --clean)
+  cleanup_workdir
+  exit 0
+  ;;
+  --distclean)
+  cleanup_workdir
+  cleanup_dldir
+  cleanup_destdir
+  exit 0
+  ;;
+  --repack)
+  cleanup_destdir
+  ;;
+  --cleanbuild)
+  cleanup_workdir
+  cleanup_destdir
+  ;;
+  --debug)
+  set -x
+  ;;
+  --test-run)
+  test_run
+  exit 0
+  ;;
+  *)
+  usage
+esac
+shift 1
+done
+
+LINUXDIR=$WORKDIR/linux
+BUSYBOXDIR=$WORKDIR/busybox
+LIBCAPDIR=$WORKDIR/libcap
+
+prepare_workspaces
+
+setup_source $LINUX_URL $LINUXDIR
+setup_source $BUSYBOX_URL $BUSYBOXDIR
+setup_source $LIBCAP_URL $LIBCAPDIR
+
+echo "Kernel build"
+build_kernel $LINUXDIR defconfig
+
+echo "busybox build"
+build_busybox $BUSYBOXDIR defconfig
+
+echo "libcap build"
+build_libcap $LIBCAPDIR
+
+echo "install MINCS"
+install_mincs
+
+echo "setup rootfs"
+setup_rootfs
+
+echo "pack initramfs"
+pack_initramfs
+
+exit 0
