@@ -193,6 +193,7 @@ pack_initramfs() {
 }
 
 test_run() {
+  [ -d $1 ] && WORKDIR=`abspath $1`
   qemu-system-x86_64 -kernel $DESTDIR/vmlinuz -initrd $DESTDIR/initramfs \
     -nographic -append "ro console=ttyS0" \
     -virtfs local,id=minc,path=$WORKDIR,security_model=none,mount_tag=minc \
@@ -234,7 +235,7 @@ case $1 in
   set -x
   ;;
   --test-run)
-  test_run
+  test_run $2
   exit 0
   ;;
   *)
