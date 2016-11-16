@@ -82,6 +82,14 @@ kconfig_y() { # entries
   done
 }
 
+kconfig_n() { # entries
+  while [ $# -ne 0 ]; do
+    sed -i "s/.*CONFIG_${1}[= ].*/CONFIG_${1}=n/" .config
+    grep ^CONFIG_${1}=n .config || echo "CONFIG_${1}=n" >> .config
+    shift 1
+  done
+}
+
 configure_kernel() { # config
   make $1
   sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"ermine\"/" .config
