@@ -65,7 +65,7 @@ setup_source() { # url todir [patches]
   if [ ! -d $2 ]; then
     mkdir -p $2
     echo "Extracting $target"
-    tar -xf $target -C $2
+    tar -xf $target -C $2 --no-same-owner
   fi
   if [ $# -gt 2 ]; then
     shift 1
