@@ -29,13 +29,13 @@ CONFIG=$TOPDIR/ermine.config
 test -f $CONFIG && . $CONFIG
 
 cleanup_workdir() {
-  [ -d $WORKDIR ] && rm -rf $WORKDIR
+  rm -rf $WORKDIR
 }
 cleanup_dldir() {
-  [ -d $DLDIR ] && rm -rf $DLDIR
+  rm -rf $DLDIR
 }
 cleanup_destdir() {
-  [ -d $DESTDIR ] && rm -rf $DESTDIR
+  rm -rf $DESTDIR
 }
 
 prepare_workspaces() {
