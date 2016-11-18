@@ -21,9 +21,8 @@ some tools, it is easy to run it even on busybox ( see [boot2minc](https://githu
 - Overlayfs
 - Squashfs-tools (for polecat)
 - libcap (for --nocaps option)
-- docker (for marten)
 - [jq](https://github.com/stedolan/jq/) (for marten)
-- docker (for marten)
+- docker or debootstrap (for marten)
 
 - Or, busybox ( version >= 1.25 ) (for minc)
 
