@@ -135,8 +135,10 @@ build_libcap() { # workdir
 }
 
 install_mincs() {
+  (cd $TOPDIR
   PREFIX=$WORKDIR/rootfs/usr/ LIBEXEC=/usr/libexec ./install.sh
   rm -rf $WORKDIR/rootfs/usr/libexec/ermine
+  )
 }
 
 setup_rootfs() {
