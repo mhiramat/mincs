@@ -210,6 +210,21 @@ test_run() {
     -enable-kvm
 }
 
+run_selfbuild() {
+  if [ -d $1 ]; then
+    echo "Use $1 as a new world"
+    NEWDIR=$1
+    shift 1
+  else
+    echo "Making a new world: it may take a while"
+    mkdir -p $WORKDIR/debian
+    sudo debootstrap --include=wget,build-essential,git,gawk,cpio,bc jessie\
+         $WORKDIR/debian
+    NEWDIR=$WORKDIR/debian
+  fi
+  ${TOPDIR}/minc --nopriv debian -b ${TOPDIR}:/opt /opt/ermine-breeder $@
+}
+
 usage() {
   echo "Usage: $0 [OPTS]"
   echo "options:"
@@ -217,6 +232,8 @@ usage() {
   echo "  --distclean	Cleanup workdir,download and ermine image"
   echo "  --repack	Rebuild ermine image without cleanup workdir"
   echo "  --cleanbuild	Rebuild ermine image with cleanup workdir"
+  echo "  --selfbuild [DIR]	Setup rootfs to build ermine and build (will need sudo)"
+  echo "		If DIR is given, use that as a build rootfs"
   echo "  --debug	Show all commands (set -x)"
   echo "  --test-run	Run qemu with ermine image"
   exit 0
@@ -240,6 +257,11 @@ case $1 in
   --cleanbuild)
   cleanup_workdir
   cleanup_destdir
+  ;;
+  --selfbuild)
+  shift 1
+  run_selfbuild $*
+  exit 0
   ;;
   --debug)
   set -x
