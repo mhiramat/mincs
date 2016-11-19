@@ -24,6 +24,14 @@ LIBCAP_URL=https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/li
 # Build params
 JOBS=`nproc`
 
+# Dummy functions for additional configurations
+user_configure_kernel() {
+  return
+}
+user_configure_busybox() {
+  return
+}
+
 # User config
 CONFIG=$TOPDIR/ermine.config
 test -f $CONFIG && . $CONFIG
@@ -124,6 +132,7 @@ kconfigs_n() { # entries
 
 configure_kernel() {
   make defconfig
+  user_configure_kernel
   kconfig_string DEFAULT_HOSTNAME "ermine"
   kconfigs_y NET_9P NET_9P_VIRTIO 9P_FS 9P_FS_POSIX_ACL OVERLAY_FS \
     CGROUPS EVENTFD CGROUP_DEVICE CPUSETS CGROUP_CPUACCT \
@@ -149,6 +158,7 @@ build_busybox() { # workdir
   [ -d $WORKDIR/rootfs ] && return 0
   (cd $1/busybox*/
   make defconfig
+  user_configure_busybox
   kconfigs_set STATIC y
   make busybox -j $JOBS
   make install
