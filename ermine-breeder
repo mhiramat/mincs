@@ -44,7 +44,7 @@ prepare_workspaces() {
   mkdir -p $DESTDIR
 }
 
-setup_source() { # url todir
+download_source() { # url todir
   (cd $DLDIR
   target=${1##*/}
   if [ ! -f $target ]; then
@@ -57,6 +57,45 @@ setup_source() { # url todir
     tar -xf $target -C $2 --no-same-owner
   fi
   )
+}
+
+git_source() { # url todir
+  if [ ! -d $2 ]; then
+    mkdir $2
+    (cd $2; git clone --depth=1 $1 )
+  fi
+}
+
+file_source() { # url todir
+  path=${1#*/}
+  if [ ! -d $2 ]; then
+    mkdir -p $2
+    if [ -f $path ]; then
+      echo "Extracting $target"
+      tar -xf $target -C $2 --no-same-owner
+    elif [ -d $path ] ; then
+      ln -s $path $2/
+    else
+      echo "Error: File not found: $path" && exit 1
+    fi
+  fi
+}
+
+setup_source() { # url todir
+  scheme=${1%%:/*}
+  ext=${1##*.}
+  [ $ext = "git" ] && scheme=git
+  case $scheme in
+  http|https|ftp)
+    download_source $1 $2
+    ;;
+  git)
+    git_source $1 $2
+    ;;
+  file)
+    file_source $1 $2
+    ;;
+  esac
 }
 
 kconfig_y() { # entries
