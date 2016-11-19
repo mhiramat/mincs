@@ -99,26 +99,33 @@ setup_source() { # url todir
   esac
 }
 
-kconfig_y() { # entries
+kconfig_set() { # entry value
+  sed -i "/.*CONFIG_${1}[= ].*/d" .config
+  echo "CONFIG_${1}=${2}" >> .config
+}
+
+kconfig_string() { # entry string
+  kconfig_set $1 \"$2\"
+}
+
+kconfigs_y() { # entries
   while [ $# -ne 0 ]; do
-    sed -i "s/.*CONFIG_${1}[= ].*/CONFIG_${1}=y/" .config
-    grep ^CONFIG_${1}=y .config || echo "CONFIG_${1}=y" >> .config
+    kconfig_set ${1} y
     shift 1
   done
 }
 
-kconfig_n() { # entries
+kconfigs_n() { # entries
   while [ $# -ne 0 ]; do
-    sed -i "s/.*CONFIG_${1}[= ].*/CONFIG_${1}=n/" .config
-    grep ^CONFIG_${1}=n .config || echo "CONFIG_${1}=n" >> .config
+    kconfig_set ${1} n
     shift 1
   done
 }
 
 configure_kernel() { # config
   make $1
-  sed -i "s/.*CONFIG_DEFAULT_HOSTNAME.*/CONFIG_DEFAULT_HOSTNAME=\"ermine\"/" .config
-  kconfig_y NET_9P NET_9P_VIRTIO 9P_FS 9P_FS_POSIX_ACL OVERLAY_FS \
+  kconfig_string DEFAULT_HOSTNAME "ermine"
+  kconfigs_y NET_9P NET_9P_VIRTIO 9P_FS 9P_FS_POSIX_ACL OVERLAY_FS \
     CGROUPS EVENTFD CGROUP_DEVICE CPUSETS CGROUP_CPUACCT \
     PAGE_COUNTER MEMCG MEMCG_SWAP MEMCG_SWAP_ENABLED MEMCG_KMEM \
     CGROUP_PERF CGROUP_SCHED CGROUP_HUGETLB FAIR_GROUP_SCHED \
