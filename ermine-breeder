@@ -71,9 +71,10 @@ file_source() { # url todir
   if [ ! -d $2 ]; then
     mkdir -p $2
     if [ -f $path ]; then
-      echo "Extracting $target"
+      echo "Extracting $path"
       tar -xf $target -C $2 --no-same-owner
-    elif [ -d $path ] ; then
+    elif [ -d $path ]; then
+      echo "Link $path"
       ln -s $path $2/
     else
       echo "Error: File not found: $path" && exit 1
