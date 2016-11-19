@@ -241,6 +241,8 @@ Usage: $0 <CMD> [OPTS]
  options:
     --repack	Rebuild ermine image without cleanup workdir
     --rebuild	Rebuild ermine image with cleanup workdir
+    --config [CONF_FILE]
+		Use CONF_FILE for config
     --debug	Show all commands (set -x)
 
 EOF
@@ -284,6 +286,10 @@ case $1 in
   cleanup_workdir
   cleanup_destdir
   ;;
+  --config|-c)
+  CONFIG=$2
+  shift 1
+  ;;
   --debug)
   set -x
   ;;
@@ -292,6 +298,8 @@ case $1 in
 esac
 shift 1
 done
+
+[ -f $CONFIG ] && . $CONFIG
 
 LINUXDIR=$WORKDIR/linux
 BUSYBOXDIR=$WORKDIR/busybox
