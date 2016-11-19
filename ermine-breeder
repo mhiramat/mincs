@@ -44,18 +44,7 @@ prepare_workspaces() {
   mkdir -p $DESTDIR
 }
 
-patch_source() { # todir [patches]
-  echo "Patching $target"
-  (cd $1/*/
-  shift 1
-  while [ $# -ne 0 ]; do
-    patch -p1 < $1
-    shift 1
-  done
-  )
-}
-
-setup_source() { # url todir [patches]
+setup_source() { # url todir
   (cd $DLDIR
   target=${1##*/}
   if [ ! -f $target ]; then
@@ -66,10 +55,6 @@ setup_source() { # url todir [patches]
     mkdir -p $2
     echo "Extracting $target"
     tar -xf $target -C $2 --no-same-owner
-  fi
-  if [ $# -gt 2 ]; then
-    shift 1
-    patch_source $@
   fi
   )
 }
