@@ -122,8 +122,8 @@ kconfigs_n() { # entries
   done
 }
 
-configure_kernel() { # config
-  make $1
+configure_kernel() {
+  make defconfig
   kconfig_string DEFAULT_HOSTNAME "ermine"
   kconfigs_y NET_9P NET_9P_VIRTIO 9P_FS 9P_FS_POSIX_ACL OVERLAY_FS \
     CGROUPS EVENTFD CGROUP_DEVICE CPUSETS CGROUP_CPUACCT \
@@ -135,21 +135,21 @@ configure_kernel() { # config
   make olddefconfig
 }
 
-build_kernel() { # workdir config
+build_kernel() { # workdir
   [ -f $DESTDIR/vmlinuz ] && return 0
   (cd $1/linux*/
-  configure_kernel $2
+  configure_kernel
   # build bzImage (currently only for x86)
   make bzImage -j $JOBS
   cp -f arch/x86/boot/bzImage $DESTDIR/vmlinuz
   )
 }
 
-build_busybox() { # workdir config
+build_busybox() { # workdir
   [ -d $WORKDIR/rootfs ] && return 0
   (cd $1/busybox*/
   make defconfig
-  sed -i "s/.*CONFIG_STATIC.*/CONFIG_STATIC=y/" .config
+  kconfigs_set STATIC y
   make busybox -j $JOBS
   make install
   rm -rf $WORKDIR/rootfs
@@ -344,10 +344,10 @@ setup_source $BUSYBOX_URL $BUSYBOXDIR
 setup_source $LIBCAP_URL $LIBCAPDIR
 
 echo "Kernel build"
-build_kernel $LINUXDIR defconfig
+build_kernel $LINUXDIR
 
 echo "busybox build"
-build_busybox $BUSYBOXDIR defconfig
+build_busybox $BUSYBOXDIR
 
 echo "libcap build"
 build_libcap $LIBCAPDIR
