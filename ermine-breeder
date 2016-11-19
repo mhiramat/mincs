@@ -211,7 +211,7 @@ test_run() {
 }
 
 run_selfbuild() {
-  if [ -d $1 ]; then
+  if [ -d "$1" ]; then
     echo "Use $1 as a new world"
     NEWDIR=$1
     shift 1
@@ -222,53 +222,70 @@ run_selfbuild() {
          $WORKDIR/debian
     NEWDIR=$WORKDIR/debian
   fi
-  ${TOPDIR}/minc --nopriv debian -b ${TOPDIR}:/opt /opt/ermine-breeder $@
+  ${TOPDIR}/minc --nopriv debian -b ${TOPDIR}:/opt /opt/ermine-breeder build $@
 }
 
 usage() {
-  echo "Usage: $0 [OPTS]"
-  echo "options:"
-  echo "  --clean	Cleanup workdir"
-  echo "  --distclean	Cleanup workdir,download and ermine image"
-  echo "  --repack	Rebuild ermine image without cleanup workdir"
-  echo "  --cleanbuild	Rebuild ermine image with cleanup workdir"
-  echo "  --selfbuild [DIR]	Setup rootfs to build ermine and build (will need sudo)"
-  echo "		If DIR is given, use that as a build rootfs"
-  echo "  --debug	Show all commands (set -x)"
-  echo "  --test-run	Run qemu with ermine image"
+  cat << EOF
+Usage: $0 <CMD> [OPTS]
+
+ commands:
+  build 	Build ermine by using host toolchain (default)
+  clean 	Cleanup workdir
+  distclean	Cleanup workdir, download and ermine image
+  selfbuild [DIR] [OPTS]
+		Setup new rootfs and build (will need sudo)
+  testrun	Run qemu with ermine image
+  help  	Show this message
+
+ options:
+    --repack	Rebuild ermine image without cleanup workdir
+    --rebuild	Rebuild ermine image with cleanup workdir
+    --debug	Show all commands (set -x)
+
+EOF
   exit 0
 }
 
-while [ $# -ne 0 ]; do
-case $1 in
-  --clean)
+CMD=$1
+shift 1 || usage
+case "$1" in
+  clean)
   cleanup_workdir
   exit 0
   ;;
-  --distclean)
+  distclean)
   cleanup_workdir
   cleanup_dldir
   cleanup_destdir
   exit 0
   ;;
-  --repack)
-  cleanup_destdir
-  ;;
-  --cleanbuild)
-  cleanup_workdir
-  cleanup_destdir
-  ;;
-  --selfbuild)
-  shift 1
+  selfbuild)
   run_selfbuild $*
   exit 0
   ;;
-  --debug)
-  set -x
-  ;;
-  --test-run)
+  testrun)
   test_run $2
   exit 0
+  ;;
+  build|-*)
+  ;;
+  *)
+  usage
+  ;;
+esac
+
+while [ $# -ne 0 ]; do
+case $1 in
+  --repack)
+  cleanup_destdir
+  ;;
+  --rebuild)
+  cleanup_workdir
+  cleanup_destdir
+  ;;
+  --debug)
+  set -x
   ;;
   *)
   usage
