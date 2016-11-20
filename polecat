@@ -37,7 +37,9 @@ export MINC_BASEDIR=/
 export MINC_USE_DEV=
 export MINC_IGNORE_STATE=0
 SCRIPT=
-while [ "$1" ]; do
+
+test $# -eq 0 && usage
+while [ $# -ne 0 ]; do
 case $1 in
 -h|--help)
   usage
