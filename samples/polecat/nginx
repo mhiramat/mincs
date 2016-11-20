@@ -7,6 +7,7 @@ MKDIRS=/var/run
 install_command() {
   rm /etc/resolv.conf
   echo "nameserver 8.8.8.8" > /etc/resolv.conf
+  apt-get update
   apt-get install --force-yes -y nginx
   cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.orig
   echo "daemon off;" > /etc/nginx/nginx.conf
