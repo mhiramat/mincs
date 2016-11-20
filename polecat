@@ -95,7 +95,7 @@ trap "$MINCCOAT unbind $MINC_TMPDIR; rm -rf $MINC_TMPDIR" EXIT
 
 # At first, install minc libs
 mkdir -p $RD/opt/libexec
-cp $LIBEXEC/* $RD/opt/libexec/
+cp $LIBEXEC/minc* $RD/opt/libexec/
 
 # Scripting mode
 if [ -f "$SCRIPT" ]; then
