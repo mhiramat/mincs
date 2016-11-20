@@ -80,6 +80,7 @@ shift 1
 
 # Preparing working dir
 export MINC_TMPDIR=`mktemp -d polecat-XXXXXXXX`
+MINC_TMPDIR=`(cd $MINC_TMPDIR; pwd)`
 trap "rm -rf $MINC_TMPDIR" EXIT
 
 # Working sub-directories
