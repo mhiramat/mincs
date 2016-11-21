@@ -27,10 +27,6 @@ bindmount2() { # hostpath containerpath
   test -e $1 && mount --bind $1 $RD$2
 }
 
-grepumount() { # patterns
-  cut -f 2 -d " " < /proc/mounts | grep $@ | sort -r | xargs umount 2>/dev/null || echo -n ""
-}
-
 # If PID=1, this is in the new world
 if [ $$ -eq 1 ]; then
   # At this point, we still have original namespace procfs
@@ -132,8 +128,6 @@ if [ $$ -eq 1 ]; then
   mount | grep ^"rootfs on / " > /dev/null && export MINC_OPT_SIMPLE=1
 
   if [ "$MINC_OPT_SIMPLE" ]; then
-    # Simply umount unused mount points
-    grepumount -e "^/sys" -e "^/dev" -e "^/run"
     # in this case, cap_sys_chroot should be dropped if possible.
     if which capsh > /dev/null 2>&1; then
       MINC_DROPCAPS="$MINC_DROPCAPS,cap_sys_chroot"
