@@ -159,7 +159,7 @@ build_busybox() { # workdir
   (cd $1/busybox*/
   make defconfig
   user_configure_busybox
-  kconfigs_set STATIC y
+  kconfigs_y STATIC
   make busybox -j $JOBS
   make install
   rm -rf $WORKDIR/rootfs
