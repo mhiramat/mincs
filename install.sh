@@ -24,13 +24,13 @@ esac
 
 uninstall() {
   echo "Uninstall $1 from $2"
-  rm -f $2
+  rm -rf $2
 }
 
 modify_install() { # bin target
   echo "Install $1 into $2"
   if [ -d $1 ];then
-    cp -r $1 $2/
+    cp -r $1 `basename $2`
     return
   fi
   mkdir -p `dirname $2`
