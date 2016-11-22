@@ -19,12 +19,14 @@ test "$MINC_TMPDIR"
 
 bindmount() { # dir
   test -e $1 && mount --bind $1 $RD$1
+  return 0
 }
 
 bindmount2() { # hostpath containerpath
   test -d $1 && mkdir -p $RD$2
   test -f $1 && mkdir -p `dirname $RD$2` && touch $RD$2
   test -e $1 && mount --bind $1 $RD$2
+  return 0
 }
 
 # If PID=1, this is in the new world
