@@ -47,6 +47,10 @@ some tools, it is easy to run it even on busybox ( see [boot2minc](https://githu
 * -r or --rootdir *DIR*|*UUID*|*NAME*
        Set DIR for original root directory
 
+* -b or --bind *HOSTPATH*:*PATH*
+       Bind HOSTPATH to PATH inside container.
+       The PATH must be an absolute path.
+
 * -X or --X11
        Export local X11 unix socket
 
