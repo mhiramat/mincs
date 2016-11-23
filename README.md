@@ -12,6 +12,9 @@ some tools, it is easy to run it even on busybox ( see [boot2minc](https://githu
 
 * *marten* is a shell script to manage uuid-based containers and images.
 
+* *ermine* is a micro linux bootimage for qemu. MINCS has ermine-breeder
+ to build ermine/vmlinuz and initramfs.
+
 ## Pre-requisites
 
 - Posix shell (dash, bash, etc)
@@ -24,7 +27,7 @@ some tools, it is easy to run it even on busybox ( see [boot2minc](https://githu
 - [jq](https://github.com/stedolan/jq/) (for marten)
 - docker or debootstrap (for marten)
 
-- Or, busybox ( version >= 1.25 ) (for minc)
+- Or, busybox ( version >= 1.25 ) and libcap (for minc/ermine)
 
 ## minc usage
 
@@ -66,7 +69,7 @@ some tools, it is easy to run it even on busybox ( see [boot2minc](https://githu
        Run command in given rootfs without root privilege
 
 * --qemu
-       Run command in Qemu (like Clear Container, this requires to run build.sh beforehand)
+       Run command in Qemu (like Clear Container, see ermine)
 
 * --nocaps *CAPLIST*
        Drop capabilities (e.g. cap_sys_admin)
@@ -149,6 +152,63 @@ You'll see the `polecat-out.sh` in current directory, that is
 a self-executable binary. So, you can just run it.
 
 ` ./polecat-out.sh`
+
+## Ermine
+
+Ermine is not a shell script, but it is a micro linux boot image which is
+used for qemu container (minc --qemu). MINCS has a build script for ermine
+called "ermine-breeder". You can build your own ermine on your machine.
+
+### ermine-breeder usage
+
+` ermine-breeder [command] [option(s)]`
+
+### Commands
+
+* build
+	Build ermine by using host toolchain (default)
+
+* clean
+	Cleanup workdir
+
+* selfbuild *[DIR]* *[OPT]*
+	Setup new rootfs and build (will need sudo)
+	If *DIR* is given for rootfs, use the directory as new rootfs.
+
+* testrun
+	Run qemu with ermine image
+
+### Options
+
+* --repack
+	Rebuild ermine image without cleanup workdir
+	(only the kernel will be rebuilt)
+
+* --rebuild
+	Rebuild ermine image with cleanup workdir
+
+* --config *CONF_FILE*
+	Use *CONF_FILE* as config
+
+### Example
+
+To build the ermine by ermine-breeder, you can choose either one of below.
+
+- Install build tools for kernel and busybox (also static-linked glibc) on
+  your environment by using apt/yum/dnf etc.
+- Install debootstrap and setup sudo (since debootstrap requires root
+  privilege)
+
+If you choose the former, you'll just need to run `ermine-breeder`.
+For latter, run `ermine-breeder selfbuild` to build it.
+
+Under samples/ermine/, there are some example configs. E.g.
+
+```
+ $ ./ermine-breeder --config samples/ermine/smallconfig
+```
+
+This will build ermine with small-size configuration, result in less than 5MB.
 
 ## License
 
