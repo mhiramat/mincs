@@ -1,0 +1,3 @@
+LINUX_URL=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+BUSYBOX_URL=git://git.busybox.net/busybox
+LIBCAP_URL=git://git.kernel.org/pub/scm/linux/kernel/git/morgan/libcap.git
