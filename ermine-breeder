@@ -160,6 +160,8 @@ build_busybox() { # workdir
   make defconfig
   user_configure_busybox
   kconfigs_y STATIC
+  kconfigs_n HUSH FEATURE_BASH_IS_NONE
+  kconfigs_y ASH FEATURE_SH_IS_ASH FEATURE_BASH_IS_ASH
   make busybox -j $JOBS
   make install
   rm -rf $WORKDIR/rootfs
@@ -220,12 +222,6 @@ echo
 exec /bin/sh
 EOF
   chmod a+x mincshell.sh
-
-  cat > bin/bash << EOF
-#!/bin/sh
-exec /bin/sh "\$@"
-EOF
-  chmod a+x bin/bash
 
   cat > etc/inittab << EOF
 ::sysinit:/etc/rc.local
