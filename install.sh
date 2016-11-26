@@ -29,11 +29,11 @@ uninstall() {
 
 modify_install() { # bin target
   echo "Install $1 into $2"
+  mkdir -p `dirname $2`
   if [ -d $1 ];then
     cp -r $1 `dirname $2`
     return
   fi
-  mkdir -p `dirname $2`
   cat $1 | sed -e 's%^LIBEXEC=.*$%LIBEXEC='$LIBEXEC%g > $2
   chmod 755 $2
 }
