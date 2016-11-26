@@ -335,10 +335,13 @@ shift 1
 done
 
 # User config
-[ -z "$CONFIG" ] && CONFIG=$TOPDIR/ermine.config
-for conf in $CONFIG; do
-  test -f $conf && . $conf
-done
+if [ -z "$CONFIG" ]; then
+  [ -f $TOPDIR/ermine.config ] && . $TOPDIR/ermine.config
+else
+  for conf in $CONFIG; do
+    . $conf
+  done
+fi
 
 LINUXDIR=$WORKDIR/linux
 BUSYBOXDIR=$WORKDIR/busybox
