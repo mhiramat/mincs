@@ -311,6 +311,7 @@ EOF
   ;;
 esac
 
+CONFIG=
 while [ $# -ne 0 ]; do
 case $1 in
   --repack)
@@ -321,7 +322,7 @@ case $1 in
   cleanup_destdir
   ;;
   --config|-c)
-  CONFIG=$2
+  CONFIG="$CONFIG $2"
   shift 1
   ;;
   --debug)
@@ -335,7 +336,9 @@ done
 
 # User config
 [ -z "$CONFIG" ] && CONFIG=$TOPDIR/ermine.config
-[ -f $CONFIG ] && . $CONFIG
+for conf in $CONFIG; do
+  test -f $conf && . $conf
+done
 
 LINUXDIR=$WORKDIR/linux
 BUSYBOXDIR=$WORKDIR/busybox
