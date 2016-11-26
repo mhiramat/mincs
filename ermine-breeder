@@ -32,10 +32,6 @@ user_configure_busybox() {
   return
 }
 
-# User config
-CONFIG=$TOPDIR/ermine.config
-test -f $CONFIG && . $CONFIG
-
 cleanup_workdir() {
   rm -rf $WORKDIR
 }
@@ -337,6 +333,8 @@ esac
 shift 1
 done
 
+# User config
+[ -z "$CONFIG" ] && CONFIG=$TOPDIR/ermine.config
 [ -f $CONFIG ] && . $CONFIG
 
 LINUXDIR=$WORKDIR/linux
