@@ -256,7 +256,7 @@ run_selfbuild() {
          $WORKDIR/debian
     NEWDIR=$WORKDIR/debian
   fi
-  ${TOPDIR}/minc --nopriv debian -b ${TOPDIR}:/opt /opt/ermine-breeder build $@
+  ${TOPDIR}/minc --nopriv $NEWDIR -b ${TOPDIR}:/opt /opt/ermine-breeder build $@
 }
 
 usage() {
