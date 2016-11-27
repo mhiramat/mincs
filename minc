@@ -15,7 +15,6 @@ MINCFARM=$LIBEXEC/minc-farm
 # Exit if any errors
 set -e
 set -u
-trap 'echo "minc: An error occurred. Exit by error."' ERR
 
 usage() { # [error messages]
   test $# -ne 0 && echo "$*"
