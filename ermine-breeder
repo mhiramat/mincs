@@ -172,6 +172,7 @@ build_libcap() { # workdir
   make DYNAMIC=no
   mkdir -p $WORKDIR/rootfs/usr/sbin/
   cp progs/capsh $WORKDIR/rootfs/usr/sbin/
+  strip $WORKDIR/rootfs/usr/sbin/capsh
   )
 }
 
