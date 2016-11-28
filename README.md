@@ -26,6 +26,8 @@ some tools, it is easy to run it even on busybox ( see [boot2minc](https://githu
 - libcap (for --nocaps option)
 - [jq](https://github.com/stedolan/jq/) (for marten)
 - docker or debootstrap (for marten)
+- qemu-user-static (for --cross)
+- qemu-system (for --qemu)
 
 - Or, busybox ( version >= 1.25 ) and libcap (for minc/ermine)
 
