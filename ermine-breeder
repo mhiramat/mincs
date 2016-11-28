@@ -161,7 +161,6 @@ build_busybox() { # workdir
   kconfigs_y ASH FEATURE_SH_IS_ASH FEATURE_BASH_IS_ASH
   make busybox -j $JOBS
   make install
-  rm -rf $WORKDIR/rootfs
   cp -R _install $WORKDIR/rootfs
   )
 }
