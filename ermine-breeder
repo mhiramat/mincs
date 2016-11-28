@@ -151,8 +151,8 @@ build_kernel() { # workdir
   )
 }
 
-build_busybox() { # workdir
-  [ -d $WORKDIR/rootfs ] && return 0
+build_busybox() { # workdir rootfsdir
+  [ -d $2 ] && return 0
   (cd $1/busybox*/
   make defconfig
   user_configure_busybox
@@ -161,29 +161,29 @@ build_busybox() { # workdir
   kconfigs_y ASH FEATURE_SH_IS_ASH FEATURE_BASH_IS_ASH
   make busybox -j $JOBS
   make install
-  cp -R _install $WORKDIR/rootfs
+  cp -R _install $2
   )
 }
 
-build_libcap() { # workdir
-  [ -f $WORKDIR/rootfs/usr/sbin/capsh ] && return 0
+build_libcap() { # workdir rootfsdir
+  [ -f $2/usr/sbin/capsh ] && return 0
   (cd $1/libcap*/
   make DYNAMIC=no
-  mkdir -p $WORKDIR/rootfs/usr/sbin/
-  cp progs/capsh $WORKDIR/rootfs/usr/sbin/
-  strip $WORKDIR/rootfs/usr/sbin/capsh
+  mkdir -p $2/usr/sbin/
+  cp progs/capsh $2/usr/sbin/
+  strip $2/usr/sbin/capsh
   )
 }
 
-install_mincs() {
+install_mincs() { # rootfsdir
   (cd $TOPDIR
-  PREFIX=$WORKDIR/rootfs/usr/ LIBEXEC=/usr/libexec ./install.sh
-  rm -rf $WORKDIR/rootfs/usr/libexec/ermine
+  PREFIX=$1/usr/ LIBEXEC=/usr/libexec ./install.sh
+  rm -rf $1/usr/libexec/ermine
   )
 }
 
-setup_rootfs() {
-  (cd $WORKDIR/rootfs
+setup_rootfs() { # rootfsdir
+  (cd $1
   mkdir -p dev sys proc mnt tmp etc
   chmod 1777 tmp
 
@@ -231,8 +231,8 @@ EOF
 )
 }
 
-pack_initramfs() {
-  (cd $WORKDIR/rootfs
+pack_initramfs() { # rootfsdir
+  (cd $1
    find . | cpio -H newc -o | gzip > $DESTDIR/initramfs
   )
 }
@@ -347,6 +347,7 @@ fi
 LINUXDIR=$WORKDIR/linux
 BUSYBOXDIR=$WORKDIR/busybox
 LIBCAPDIR=$WORKDIR/libcap
+ROOTFSDIR=$WORKDIR/rootfs
 
 prepare_workspaces
 
@@ -358,18 +359,18 @@ echo "Kernel build"
 build_kernel $LINUXDIR
 
 echo "busybox build"
-build_busybox $BUSYBOXDIR
+build_busybox $BUSYBOXDIR $ROOTFSDIR
 
 echo "libcap build"
-build_libcap $LIBCAPDIR
+build_libcap $LIBCAPDIR $ROOTFSDIR
 
 echo "install MINCS"
-install_mincs
+install_mincs $ROOTFSDIR
 
 echo "setup rootfs"
-setup_rootfs
+setup_rootfs $ROOTFSDIR
 
 echo "pack initramfs"
-pack_initramfs
+pack_initramfs $ROOTFSDIR
 
 exit 0
