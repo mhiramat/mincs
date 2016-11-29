@@ -431,4 +431,7 @@ setup_rootfs $ROOTFSDIR
 echo "pack initramfs"
 pack_initramfs $ROOTFSDIR
 
+ls -sh $DESTDIR
+echo "Done"
+
 exit 0
