@@ -21,6 +21,12 @@ LINUX_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.4.30.tar.xz
 BUSYBOX_URL=http://busybox.net/downloads/busybox-1.25.1.tar.bz2
 LIBCAP_URL=https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.25.tar.gz
 
+# Cross tools
+GCC_arm64_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/aarch64-linux-gnu/gcc-linaro-6.2.1-2016.11-x86_64_aarch64-linux-gnu.tar.xz
+CROSS_COMPILE_arm64=aarch64-linux-gnu-
+GCC_arm_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/arm-linux-gnueabi/gcc-linaro-6.2.1-2016.11-x86_64_arm-linux-gnueabi.tar.xz
+CROSS_COMPILE_arm=arm-linux-gnueabi-
+
 # Build params
 JOBS=`nproc`
 
@@ -142,12 +148,24 @@ configure_kernel() {
 }
 
 build_kernel() { # workdir
-  [ -f $DESTDIR/vmlinuz ] && return 0
+  VMLINUZ=$DESTDIR/vmlinuz.$ARCH
+  [ -f $VMLINUZ ] && return 0
   (cd $1/linux*/
   configure_kernel
-  # build bzImage (currently only for x86)
-  make bzImage -j $JOBS
-  cp -f arch/x86/boot/bzImage $DESTDIR/vmlinuz
+  case $ARCH in
+    x86_64)
+    make bzImage -j $JOBS
+    cp -f arch/x86/boot/bzImage $VMLINUZ
+    ;;
+    arm)
+    make zImage -j $JOBS
+    cp -f arch/arm/boot/zImage $VMLINUZ
+    ;;
+    arm64)
+    make Image.gz -j $JOBS
+    cp -f arch/arm64/boot/Image.gz $VMLINUZ
+    ;;
+  esac
   )
 }
 
@@ -168,10 +186,11 @@ build_busybox() { # workdir rootfsdir
 build_libcap() { # workdir rootfsdir
   [ -f $2/usr/sbin/capsh ] && return 0
   (cd $1/libcap*/
-  make DYNAMIC=no
+  make clean
+  make DYNAMIC=no BUILD_CC=gcc CC=${CROSS_COMPILE}gcc
   mkdir -p $2/usr/sbin/
   cp progs/capsh $2/usr/sbin/
-  strip $2/usr/sbin/capsh
+  ${CROSS_COMPILE}strip $2/usr/sbin/capsh
   )
 }
 
@@ -224,7 +243,7 @@ EOF
 ::sysinit:/etc/rc.local
 ::restart:/sbin/init
 ::ctrlaltdel:/sbin/reboot
-ttyS0::respawn:/bin/cttyhack /mincshell.sh
+${QEMU_TTY}::respawn:/bin/cttyhack /mincshell.sh
 EOF
 
   ln -sf /sbin/init init
@@ -233,16 +252,60 @@ EOF
 
 pack_initramfs() { # rootfsdir
   (cd $1
-   find . | cpio -H newc -o | gzip > $DESTDIR/initramfs
+   find . | cpio -H newc -o | gzip > $DESTDIR/initramfs.$ARCH
   )
 }
 
+setup_arch() { # arch
+  ARCH=$1
+  HOSTARCH=`uname -m`
+  [ -z "$ARCH" ] && ARCH=$HOSTARCH
+  case "$ARCH" in
+  x86_64|amd64)
+    export ARCH=x86_64
+    export CROSS_COMPILE=
+    QEMU_TTY=ttyS0
+    QEMU_ARCH=$ARCH
+    QEMU_OPT="-M pc -enable-kvm"
+    if [ $HOSTARCH != $ARCH ]; then
+      echo "Sorry, $ARCH does not support cross build."
+      exit 1
+    fi
+    ;;
+  arm|armel)
+    export ARCH=arm
+    export CROSS_COMPILE=$CROSS_COMPILE_arm
+    QEMU_TTY=ttyAMA0
+    QEMU_ARCH=$ARCH
+    QEMU_OPT="-M virt"
+    GCC_URL=$GCC_arm_URL
+    ;;
+  aarch64|arm64)
+    export ARCH=arm64
+    export CROSS_COMPILE=$CROSS_COMPILE_arm64
+    QEMU_TTY=ttyAMA0
+    QEMU_ARCH=aarch64
+    QEMU_OPT="-M virt -cpu cortex-a57"
+    GCC_URL=$GCC_arm64_URL
+    ;;
+  *)
+    echo "Sorry, $ARCH is not supported yet."
+    exit 1
+    ;;
+  esac
+}
+
 test_run() {
+  if [ "$1" == "--arch" ]; then
+    ARCH=$2
+    shift 2
+  fi
+  setup_arch $ARCH
   [ "$1" -a -d "$1" ] && WORKDIR=`abspath $1`
-  qemu-system-x86_64 -kernel $DESTDIR/vmlinuz -initrd $DESTDIR/initramfs \
-    -nographic -append "ro console=ttyS0" \
-    -virtfs local,id=minc,path=$WORKDIR,security_model=none,mount_tag=minc \
-    -enable-kvm
+  qemu-system-${QEMU_ARCH} ${QEMU_OPT} \
+    -kernel $DESTDIR/vmlinuz.$ARCH -initrd $DESTDIR/initramfs.$ARCH \
+    -nographic -append "ro console=${QEMU_TTY}" \
+    -virtfs local,id=minc,path=$WORKDIR,security_model=none,mount_tag=minc
 }
 
 run_selfbuild() {
@@ -270,10 +333,13 @@ Usage: $0 <CMD> [OPTS]
   distclean	Cleanup workdir, download and ermine image
   selfbuild [DIR] [OPTS]
 		Setup new rootfs and build (will need sudo)
-  testrun	Run qemu with ermine image
+  testrun [--arch <ARCH>] [DIR]
+		Run qemu with ermine image
   help  	Show this message
 
  options:
+    --arch <ARCH>
+		Build ermine for ARCH (x86_64, arm, arm64)
     --repack	Rebuild ermine image without cleanup workdir
     --rebuild	Rebuild ermine image with cleanup workdir
     --config [CONF_FILE]
@@ -301,7 +367,8 @@ EOF
   exit 0
   ;;
   testrun)
-  test_run $2
+  shift 1
+  test_run $*
   exit 0
   ;;
   build|-*)
@@ -326,6 +393,10 @@ case $1 in
   CONFIG="$CONFIG $2"
   shift 1
   ;;
+  --arch)
+  ARCH=$2
+  shift 1
+  ;;
   --debug)
   set -x
   ;;
@@ -348,9 +419,16 @@ LINUXDIR=$WORKDIR/linux
 BUSYBOXDIR=$WORKDIR/busybox
 LIBCAPDIR=$WORKDIR/libcap
 ROOTFSDIR=$WORKDIR/rootfs
+setup_arch $ARCH
 
 prepare_workspaces
 
+if [ $HOSTARCH != $ARCH ]; then
+  ROOTFSDIR=$WORKDIR/rootfs-$ARCH
+  GCCDIR=$WORKDIR/gcc-$ARCH
+  setup_source $GCC_URL $GCCDIR
+  export PATH="$PATH:"`ls -d $GCCDIR/*/bin`
+fi
 setup_source $LINUX_URL $LINUXDIR
 setup_source $BUSYBOX_URL $BUSYBOXDIR
 setup_source $LIBCAP_URL $LIBCAPDIR

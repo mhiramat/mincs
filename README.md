@@ -181,7 +181,7 @@ called "ermine-breeder". You can build your own ermine on your machine.
 	Setup new rootfs and build (will need sudo)
 	If *DIR* is given for rootfs, use the directory as new rootfs.
 
-* testrun
+* testrun *[--arch <ARCH>]* *[DIR]*
 	Run qemu with ermine image
 
 ### Options
@@ -195,6 +195,9 @@ called "ermine-breeder". You can build your own ermine on your machine.
 
 * --config *CONF_FILE*
 	Use *CONF_FILE* as config
+
+* --arch *ARCH*
+	Build ermine for ARCH (x86_64, arm, arm64)
 
 ### Example
 
