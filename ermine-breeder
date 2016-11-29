@@ -14,7 +14,8 @@ TOPDIR=`dirname $0`
 TOPDIR=`abspath $TOPDIR`
 WORKDIR=$TOPDIR/work
 DLDIR=$TOPDIR/download
-DESTDIR=$TOPDIR/libexec/ermine
+LIBEXEC=$TOPDIR/libexec
+DESTDIR=$LIBEXEC/ermine
 
 # Download sources
 LINUX_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.4.30.tar.xz
@@ -256,56 +257,17 @@ pack_initramfs() { # rootfsdir
   )
 }
 
-setup_arch() { # arch
-  ARCH=$1
-  HOSTARCH=`uname -m`
-  [ -z "$ARCH" ] && ARCH=$HOSTARCH
-  case "$ARCH" in
-  x86_64|amd64)
-    export ARCH=x86_64
-    export CROSS_COMPILE=
-    QEMU_TTY=ttyS0
-    QEMU_ARCH=$ARCH
-    QEMU_OPT="-M pc -enable-kvm"
-    if [ $HOSTARCH != $ARCH ]; then
-      echo "Sorry, $ARCH does not support cross build."
-      exit 1
-    fi
-    ;;
-  arm|armel)
-    export ARCH=arm
-    export CROSS_COMPILE=$CROSS_COMPILE_arm
-    QEMU_TTY=ttyAMA0
-    QEMU_ARCH=$ARCH
-    QEMU_OPT="-M virt"
-    GCC_URL=$GCC_arm_URL
-    ;;
-  aarch64|arm64)
-    export ARCH=arm64
-    export CROSS_COMPILE=$CROSS_COMPILE_arm64
-    QEMU_TTY=ttyAMA0
-    QEMU_ARCH=aarch64
-    QEMU_OPT="-M virt -cpu cortex-a57"
-    GCC_URL=$GCC_arm64_URL
-    ;;
-  *)
-    echo "Sorry, $ARCH is not supported yet."
-    exit 1
-    ;;
-  esac
-}
+# Include prepare_arch and minc_moult
+. $LIBEXEC/minc-moult
 
 test_run() {
   if [ "$1" == "--arch" ]; then
     ARCH=$2
     shift 2
   fi
-  setup_arch $ARCH
   [ "$1" -a -d "$1" ] && WORKDIR=`abspath $1`
-  qemu-system-${QEMU_ARCH} ${QEMU_OPT} \
-    -kernel $DESTDIR/vmlinuz.$ARCH -initrd $DESTDIR/initramfs.$ARCH \
-    -nographic -append "ro console=${QEMU_TTY}" \
-    -virtfs local,id=minc,path=$WORKDIR,security_model=none,mount_tag=minc
+  prepare_arch "$ARCH" # to get QEMU_TTY
+  minc_moult "$ARCH" $WORKDIR "ro console=${QEMU_TTY}"
 }
 
 run_selfbuild() {
@@ -419,7 +381,25 @@ LINUXDIR=$WORKDIR/linux
 BUSYBOXDIR=$WORKDIR/busybox
 LIBCAPDIR=$WORKDIR/libcap
 ROOTFSDIR=$WORKDIR/rootfs
-setup_arch $ARCH
+prepare_arch $ARCH
+export ARCH
+case "$ARCH" in
+  x86_64)
+  export CROSS_COMPILE=
+  if [ $HOSTARCH != $ARCH ]; then
+    echo "Sorry, $ARCH does not support cross build."
+    exit 1
+  fi
+  ;;
+  arm)
+  export CROSS_COMPILE=$CROSS_COMPILE_arm
+  GCC_URL=$GCC_arm_URL
+  ;;
+  arm64)
+  export CROSS_COMPILE=$CROSS_COMPILE_arm64
+  GCC_URL=$GCC_arm64_URL
+  ;;
+esac
 
 prepare_workspaces
 
