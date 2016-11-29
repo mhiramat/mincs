@@ -7,7 +7,7 @@ LIBEXEC=`dirname $0`
 MINCCOAT=$LIBEXEC/minc-coat
 MINCLEASH=$LIBEXEC/minc-leash
 MINCCAGE=$LIBEXEC/minc-cage
-MINC_ERMINE=$LIBEXEC/ermine
+MINCMOULT=$LIBEXEC/minc-moult
 
 # Exit if any errors
 set -e
@@ -61,7 +61,9 @@ if [ $$ -eq 1 ]; then
   echo $MINC_PID > $MINC_TMPDIR/pid
 
   # Qemu code runs
-  if [ "$MINC_QEMU" -a -x "$MINC_QEMU" ]; then
+  if [ "$MINC_QEMU" ]; then
+    # prepare moulting :)
+    . $MINCMOULT
     MINC_GUEST_OPT="-r /mnt/root --name `hostname`"
     if [ -z "$MINC_DIRECT" ]; then
       # if the host mounts overlayfs on rootfs, guest skips it.
@@ -69,9 +71,8 @@ if [ $$ -eq 1 ]; then
     fi
     echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
     echo "minc $MINC_GUEST_OPT \"$@\"" >> $MINC_TMPDIR/run.sh
-    exec $MINC_QEMU -kernel $MINC_ERMINE/vmlinuz -initrd $MINC_ERMINE/initramfs \
-	-nographic -append "root=/dev/ram0 rootfstype=ext2 ro quiet" \
-	-virtfs local,id=minc,path=$MINC_TMPDIR,security_model=none,mount_tag=minc -enable-kvm
+    minc_moult "$MINC_ARCH" "$MINC_TMPDIR" "ro quiet console=tty0"
+    exit $? # failsafe
   fi
 
   # Hide /etc/mtab in this namespace

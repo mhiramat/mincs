@@ -54,10 +54,6 @@ get_qemu_bin() { # arch
   grep interpreter /proc/sys/fs/binfmt_misc/qemu-$1 | cut -f 2 -d " "
 }
 
-get_qemu_sys() { # arch
-  which qemu-system-`uname -m`
-}
-
 abspath() { # dir
   (cd $1; pwd)
 }
@@ -89,6 +85,7 @@ export MINC_PID_MAX=
 export MINC_CROSS_QEMU=
 export MINC_NOPRIV=
 export MINC_QEMU=
+export MINC_ARCH=`uname -m`
 
 minc_set_rootfs() {
     export MINC_BASEDIR=$1
@@ -189,6 +186,7 @@ case "$cmd" in
     shift 1
     ;;
   --cross)
+    export MINC_ARCH=$1
     export MINC_CROSS_QEMU=`get_qemu_bin $1`
     shift 1
     ;;
@@ -200,7 +198,7 @@ case "$cmd" in
     shift 1
     ;;
   --qemu)
-    export MINC_QEMU=`get_qemu_sys`
+    export MINC_QEMU=1
     ;;
   --help|-h) # Help Message
     usage

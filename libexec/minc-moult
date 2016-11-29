@@ -1,0 +1,48 @@
+#!/bin/sh
+# minc-moult: MINC-container run in cross arch by qemu-system
+#
+# Copyright (C) 2016 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+
+# Normalize ARCH and setup qemu related variables
+prepare_arch() { # arch
+  ARCH=$1
+  HOSTARCH=`uname -m`
+  [ -z "$ARCH" ] && ARCH=$HOSTARCH
+  case "$ARCH" in
+  x86_64|amd64)
+    ARCH=x86_64
+    QEMU_TTY=ttyS0
+    QEMU_ARCH=$ARCH
+    QEMU_OPT="-M pc -enable-kvm"
+    ;;
+  arm|armv7l)
+    ARCH=arm
+    QEMU_TTY=ttyAMA0
+    QEMU_ARCH=$ARCH
+    QEMU_OPT="-M virt"
+    ;;
+  aarch64|arm64)
+    ARCH=arm64
+    QEMU_TTY=ttyAMA0
+    QEMU_ARCH=aarch64
+    QEMU_OPT="-M virt -cpu cortex-a57"
+    ;;
+  *)
+    echo "Sorry, $ARCH is not supported yet."
+    exit 1
+    ;;
+  esac
+}
+
+# Launch qemu for given arch. If you'd like initrd, you need to pass
+# "root=/dev/ram0 rootfstype=ext2" to kernel_opt
+minc_moult() { # arch virtdir kernel_opt
+  ERMINEDIR=$LIBEXEC/ermine
+  prepare_arch $1
+  exec qemu-system-${QEMU_ARCH} $QEMU_OPT \
+    -kernel $ERMINEDIR/vmlinuz.$ARCH -initrd $ERMINEDIR/initramfs.$ARCH \
+    -nographic -append "$3" \
+    -virtfs local,id=minc,path=$2,security_model=none,mount_tag=minc
+}
+
