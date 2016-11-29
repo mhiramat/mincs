@@ -50,6 +50,15 @@ usage() { # [error messages]
   exit $#
 }
 
+# normalize to qemu arch
+qemuarch() { # arch
+  case "$1" in
+  amd64|x86_64) echo x86_64 ;;
+  armv7l|armel) echo arm ;;
+  arm64|aarch64) echo aarch64 ;;
+  esac
+}
+
 get_qemu_bin() { # arch
   grep interpreter /proc/sys/fs/binfmt_misc/qemu-$1 | cut -f 2 -d " "
 }
@@ -186,8 +195,8 @@ case "$cmd" in
     shift 1
     ;;
   --cross)
-    export MINC_ARCH=$1
-    export MINC_CROSS_QEMU=`get_qemu_bin $1`
+    export MINC_ARCH=`qemuarch $1`
+    export MINC_CROSS_QEMU=`get_qemu_bin $MINC_ARCH`
     shift 1
     ;;
   --nopriv)
