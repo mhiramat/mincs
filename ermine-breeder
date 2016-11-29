@@ -368,6 +368,15 @@ esac
 shift 1
 done
 
+
+if [ "$ARCH" = all ]; then
+  [ "$CONFIG" ] && CONFOPT=`echo "$CONFIG" | xargs echo " --config " `
+  $0 --arch x86_64 $CONFOPT
+  $0 --arch arm $CONFOPT
+  $0 --arch arm64 $CONFOPT
+  exit $?
+fi
+
 # User config
 if [ -z "$CONFIG" ]; then
   [ -f $TOPDIR/ermine.config ] && . $TOPDIR/ermine.config
