@@ -216,6 +216,8 @@ Under samples/ermine/, there are some example configs. E.g.
 
 This will build ermine with small-size configuration, result in less than 5MB.
 
+Multi config files are also supported, so that you can combine different configs by giving multi --config CONF options. Note that settings in configs are overwritten by latter config.
+
 ## License
 
 This program is released under the MIT License, see LICENSE.
