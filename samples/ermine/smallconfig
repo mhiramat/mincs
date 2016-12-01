@@ -31,6 +31,8 @@ user_configure_kernel() {
 	     EARLY_PRINTK_DBGP MAGIC_SYSRQ X86_DEBUG_FPU
   kconfigs_n TRACING KPROBE_EVENT BLK_DEV_IO_TRACE DEBUG_FS
   kconfigs_n SECURITY
+  # blacklist
+  kconfigs_n PHY_SUN4I_USB
 }
 
 user_configure_busybox() {
