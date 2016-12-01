@@ -261,7 +261,7 @@ pack_initramfs() { # rootfsdir
 . $LIBEXEC/minc-moult
 
 test_run() {
-  if [ "$1" == "--arch" ]; then
+  if [ "$1" = "--arch" ]; then
     ARCH=$2
     shift 2
   fi
