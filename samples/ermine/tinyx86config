@@ -1,0 +1,5 @@
+user_configure_kernel(){
+  make tinyconfig
+  kconfigs_y PRINTK EARLY_PRINTK BLK_DEV_INITRD DEVTMPFS BINFMT_SCRIPT \
+	PROC_FS MULTIUSER SYSVIPC FUTEX
+}
