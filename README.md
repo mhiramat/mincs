@@ -2,7 +2,7 @@
 
 MINCS (Minimum Container Shellscripts) is a collection of shell scripts
 for light-weight containers. Since MINCS just requires posix shell and
-some tools, it is easy to run it even on busybox ( see [boot2minc](https://github.com/mhiramat/boot2minc) for busybox combination).
+some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for busybox combination).
 
 * [*minc*](#minc-usage) is a shell script (frontend) of mini-container script, which
  works as the chroot, but it also changes namespace.
@@ -220,6 +220,11 @@ Under samples/ermine/, there are some example configs. E.g.
 This will build ermine with small-size configuration, result in less than 5MB.
 
 Multi config files are also supported, so that you can combine different configs by giving multi --config CONF options. Note that settings in configs are overwritten by latter config.
+
+### Known issues on major distros
+
+- On Fedora 24/x86_64, qemu-static's aarch64 setup is broken. You must setup binfmt for qemu-aarch64 to run with --cross aarch64.
+- On Ubuntu 16.04/x86_64, qemu-system's aarch64 will not work without installing qemu's UEFI image. (It seems that qemu-efi package doesn't help, you need to install it from pcbios directory in qemu's source code to /usr/share/qemu/)
 
 ## License
 
