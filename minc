@@ -44,6 +44,7 @@ usage() { # [error messages]
   echo "    --cpu-quota QUOTA	cpu quota in usec by cgroups (default: 100000)"
   echo "    --pid-max MAX	PID limitation by cgroups"
   echo "    --cross ARCH	Make a cross-arch container by using qemu-user-mode"
+  echo "    --arch ARCH		Alias of --cross"
   echo "    --nopriv <DIR>	Run MINC without root privilege on given <DIR>"
   echo "    --qemu              Run MINC in qemu-kvm instead of chroot"
   echo "    --debug             Debug mode"
@@ -194,7 +195,7 @@ case "$cmd" in
     export MINC_DROPCAPS="$1"
     shift 1
     ;;
-  --cross)
+  --cross|--arch)
     export MINC_ARCH=`qemuarch $1`
     export MINC_CROSS_QEMU=`get_qemu_bin $MINC_ARCH`
     shift 1
