@@ -223,7 +223,8 @@ Multi config files are also supported, so that you can combine different configs
 
 ### Known issues on major distros
 
-- On Fedora 24/x86_64, qemu-static's aarch64 setup is broken. You must setup binfmt for qemu-aarch64 to run with --cross aarch64.
+- On Fedora 24/x86_64, qemu-static's aarch64 setup has an [issue](https://bugzilla.redhat.com/show_bug.cgi?id=1394859). You must setup a binfmt config file for qemu-aarch64 to run with --cross aarch64.
+
 - On Ubuntu 16.04/x86_64, qemu-system's aarch64 will not work without installing qemu's UEFI image. (It seems that qemu-efi package doesn't help, you need to install it from pcbios directory in qemu's source code to /usr/share/qemu/)
 
 ## License
