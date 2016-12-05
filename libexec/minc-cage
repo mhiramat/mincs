@@ -12,6 +12,13 @@ CGDIRS=
 
 set -e
 
+cleanup_cages() { # dirs
+  [ "$MINC_MEM_LIMIT" ] && echo $$ > $CGROOT/memory/tasks
+  [ "$MINC_CPU_SHARES" -o "$MINC_CPU_QUOTA" ] && echo $$ > $CGROOT/cpu/tasks
+  [ "$MINC_PID_MAX" ] && echo $$ > $CGROOT/pids/tasks
+  rmdir $@
+}
+
 # with --prepare option, this sets up the cgroups and returns cleanup command
 if [ "x$1" = "x--prepare" ]; then
   [ "$MINC_MEM_LIMIT" ] && CGDIRS="$CGDIRS $MEMCG"
@@ -19,7 +26,7 @@ if [ "x$1" = "x--prepare" ]; then
   [ "$MINC_PID_MAX" ] && CGDIRS="$CGDIRS $PIDCG"
   if [ "$CGDIRS" ]; then
     mkdir -p $CGDIRS
-    echo "rmdir $CGDIRS"
+    echo "cleanup_cages $CGDIRS"
   fi
   exit 0;
 fi

@@ -125,9 +125,6 @@ if [ $$ -eq 1 ]; then
   # Define leash()
   . $MINCLEASH
 
-  # Set cage
-  . $MINCCAGE
-
   # We can not use pivot_root on initramfs
   mount | grep ^"rootfs on / " > /dev/null && export MINC_OPT_SIMPLE=1
 
@@ -167,8 +164,11 @@ fi
 test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
 
 # Prepare Cgroups
-CAGECMD=`$MINCCAGE --prepare`
+CAGECMD=`$MINCCAGE --prepare $$`
 [ "$CAGECMD" ] && TRAPCMD="$CAGECMD;$TRAPCMD"
+
+# Set cage
+. $MINCCAGE
 
 
 trap '' INT
