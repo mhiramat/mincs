@@ -4,16 +4,13 @@ MINCS (Minimum Container Shellscripts) is a collection of shell scripts
 for light-weight containers. Since MINCS just requires posix shell and
 some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for busybox combination).
 
-* [*minc*](#minc-usage) is a shell script (frontend) of mini-container script, which
- works as the chroot, but it also changes namespace.
+* [*minc*](#minc-usage) is a shell script (frontend) of mini-container script, which works as the chroot, but it also changes namespace.
 
-* [*polecat*](#polecat-usage) is a shell script to build a self-executable containered
- application.
+* [*polecat*](#polecat-usage) is a shell script to build a self-executable containered application.
 
 * [*marten*](#marten-usage) is a shell script to manage uuid-based containers and images.
 
-* [*ermine*](#ermine) is a micro linux bootimage for qemu. MINCS has ermine-breeder
- to build ermine/vmlinuz and initramfs.
+* [*ermine*](#ermine) is a micro linux bootimage for qemu. MINCS has *ermine-breeder* to build ermine (vmlinuz and initramfs.)
 
 ## Pre-requisites
 
