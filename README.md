@@ -37,47 +37,47 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
 
 ### Options
 
-* -h or --help
+* -h or --help  
        Show help message
 
-* -k or --keep
+* -k or --keep  
        Keep the temporary directory
 
-* -t or --tempdir *DIR*
+* -t or --tempdir *DIR*  
        Set DIR for temporary directory (imply -k)
 
-* -r or --rootdir *DIR*|*UUID*|*NAME*
+* -r or --rootdir *DIR*|*UUID*|*NAME*  
        Set DIR for original root directory
 
-* -b or --bind *HOSTPATH*:*PATH*
+* -b or --bind *HOSTPATH*:*PATH*  
        Bind HOSTPATH to PATH inside container.
        The PATH must be an absolute path.
 
-* -X or --X11
+* -X or --X11  
        Export local X11 unix socket
 
-* -n or --net
+* -n or --net  
        Use network namespace
 
-* -c or --cpu *BITMASK*
+* -c or --cpu *BITMASK*  
        Set runnable CPU bitmask
 
-* --name *UTSNAME*
+* --name *UTSNAME*  
        Set container's utsname
 
-* --user *USERSPEC*
+* --user *USERSPEC*  
        Run command as given uid:gid
 
-* --cross *arch*
+* --cross *arch*  
        Run command with given arch (require setting up qemu-user-mode)
 
-* --nopriv *rootdir*
+* --nopriv *rootdir*  
        Run command in given rootfs without root privilege
 
-* --qemu
+* --qemu  
        Run command in Qemu (like Clear Container, see [Ermine](#ermine))
 
-* --nocaps *CAPLIST*
+* --nocaps *CAPLIST*  
        Drop capabilities (e.g. cap_sys_admin)
 
 ## marten usage
@@ -86,24 +86,24 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
 
 ### Command
 
-* lc or list
+* lc or list  
 	List containers
 
-* li or images
+* li or images  
 	List images
 
-* rm *UUID*
+* rm *UUID*  
 	Remove specified container
 
-* import *DIR*|*DOCKERIMAGE*
+* import *DIR*|*DOCKERIMAGE*  
 	Import DIR or DOCKERIMAGE as an image
 
-* commit *UUID*
+* commit *UUID*  
 	Commit specified container to image
 
 ### Opitons
 
-* -h or --help
+* -h or --help  
        Show help message
 
 ### Mixed example of minc and marten
@@ -138,10 +138,10 @@ ID              SIZE    NAME
 
 ### Options
 
-* -h or --help
+* -h or --help  
        Show help message
 
-* -o or --output *FILE*
+* -o or --output *FILE*  
        Output to FILE instead of *polecat-out.sh*
 
 ### Examples
@@ -171,32 +171,32 @@ called "ermine-breeder". You can build your own ermine on your machine.
 
 ### Commands
 
-* build
+* build  
 	Build ermine by using host toolchain (default)
 
-* clean
+* clean  
 	Cleanup workdir
 
-* selfbuild *[DIR]* *[OPT]*
+* selfbuild *[DIR]* *[OPT]*  
 	Setup new rootfs and build (will need sudo)
 	If *DIR* is given for rootfs, use the directory as new rootfs.
 
-* testrun *[--arch <ARCH>]* *[DIR]*
+* testrun *[--arch <ARCH>]* *[DIR]*  
 	Run qemu with ermine image
 
 ### Options
 
-* --repack
+* --repack  
 	Rebuild ermine image without cleanup workdir
 	(only the kernel will be rebuilt)
 
-* --rebuild
+* --rebuild  
 	Rebuild ermine image with cleanup workdir
 
-* --config *CONF_FILE*
+* --config *CONF_FILE*  
 	Use *CONF_FILE* as config
 
-* --arch *ARCH*
+* --arch *ARCH*  
 	Build ermine for ARCH (x86_64, arm, arm64)
 
 ### Example
