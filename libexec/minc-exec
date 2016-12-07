@@ -133,7 +133,6 @@ if [ $$ -eq 1 ]; then
     if which capsh > /dev/null 2>&1; then
       MINC_DROPCAPS="$MINC_DROPCAPS,cap_sys_chroot"
     fi
-    leash $RD "$@"
   else
     # To unmount all unused mountpoints, use pivot_root to change root
     cd $RD
@@ -143,8 +142,8 @@ if [ $$ -eq 1 ]; then
     mount --make-rprivate /.orig
     umount -l /.orig
     RD=.
-    leash $RD "$@"
   fi
+  leash $RD "$@"
 fi
 
 # Setup Network Namespace
