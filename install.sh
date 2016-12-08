@@ -5,6 +5,7 @@ BIN=$PREFIX/bin
 
 BINS="minc marten polecat"
 LIBS="libexec/*"
+TOPDIR=$(cd $(dirname $0); pwd)
 
 UNINSTALL=
 case "$1" in
@@ -13,7 +14,7 @@ case "$1" in
     ;;
   --ermine) # install ermine
     echo "Build ermine and install"
-    ./ermine-breeder
+    $TOPDIR/ermine-breeder
     ;;
   -h|--help)
     echo "Install script for MINCS"
