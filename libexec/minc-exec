@@ -128,12 +128,18 @@ if [ $$ -eq 1 ]; then
   # We can not use pivot_root on initramfs
   mount | grep ^"rootfs on / " > /dev/null && export MINC_OPT_SIMPLE=1
 
-  if [ "$MINC_OPT_SIMPLE" ]; then
+  # Since capsh depends on /bin/bash, we can not drop caps without bash
+  if [ "$MINC_DROPCAPS" -a ! -e $RD/bin/bash ]; then
+    echo "Warning: No /bin/bash found in rootfs, capabilities are not dropped"
+    MINC_DROPCAPS=""
+  elif [ "$MINC_OPT_SIMPLE" ]; then
     # in this case, cap_sys_chroot should be dropped if possible.
     if which capsh > /dev/null 2>&1; then
       MINC_DROPCAPS="$MINC_DROPCAPS,cap_sys_chroot"
     fi
-  else
+  fi
+
+  if [ -z "$MINC_OPT_SIMPLE" ]; then
     # To unmount all unused mountpoints, use pivot_root to change root
     cd $RD
     mkdir -p .orig
