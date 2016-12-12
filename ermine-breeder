@@ -55,6 +55,19 @@ prepare_workspaces() {
   mkdir -p $DESTDIR
 }
 
+extract_source() { # file todir
+ echo "Extracting $1"
+ case $1 in
+ *.tar*)
+   tar -xf $1 -C $2 --no-same-owner ;;
+ *.zip)
+   unzip -d $2 $1 ;;
+ *)
+   echo "$1 is not supported archive format."
+   exit 1 ;;
+ esac
+}
+
 download_source() { # url todir
   (cd $DLDIR
   target=${1##*/}
@@ -64,8 +77,7 @@ download_source() { # url todir
   fi
   if [ ! -d $2 ]; then
     mkdir -p $2
-    echo "Extracting $target"
-    tar -xf $target -C $2 --no-same-owner
+    extract_source $target $2
   fi
   )
 }
@@ -82,8 +94,7 @@ file_source() { # url todir
   if [ ! -d $2 ]; then
     mkdir -p $2
     if [ -f $path ]; then
-      echo "Extracting $path"
-      tar -xf $path -C $2 --no-same-owner
+      extract_source $path $2
     elif [ -d $path ]; then
       echo "Link $path"
       ln -s $path $2/
