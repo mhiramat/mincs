@@ -55,7 +55,7 @@ usage() { # [error messages]
 qemuarch() { # arch
   case "$1" in
   amd64|x86_64) echo x86_64 ;;
-  armv7l|armel) echo arm ;;
+  arm|armv7l|armel) echo arm ;;
   arm64|aarch64) echo aarch64 ;;
   esac
 }
