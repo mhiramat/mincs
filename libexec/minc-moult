@@ -14,19 +14,19 @@ prepare_arch() { # arch
     ARCH=x86_64
     QEMU_TTY=ttyS0
     QEMU_ARCH=$ARCH
-    QEMU_OPT="-M pc -enable-kvm"
+    QEMU_OPT="$QEMU_OPT -M pc -enable-kvm"
     ;;
   arm|armv7l)
     ARCH=arm
     QEMU_TTY=ttyAMA0
     QEMU_ARCH=$ARCH
-    QEMU_OPT="-M virt"
+    QEMU_OPT="$QEMU_OPT -M virt"
     ;;
   aarch64|arm64)
     ARCH=arm64
     QEMU_TTY=ttyAMA0
     QEMU_ARCH=aarch64
-    QEMU_OPT="-M virt -cpu cortex-a57"
+    QEMU_OPT="$QEMU_OPT -M virt -cpu cortex-a57"
     ;;
   *)
     echo "Sorry, $ARCH is not supported yet."

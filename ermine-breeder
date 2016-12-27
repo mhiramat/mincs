@@ -284,7 +284,11 @@ test_run() {
     ARCH=$2
     shift 2
   fi
-  [ "$1" -a -d "$1" ] && WORKDIR=`abspath $1`
+  if [ "$1" -a -d "$1" ]; then
+     WORKDIR=`abspath $1`
+     shift 1
+  fi
+  QEMU_OPT="$@"
   prepare_arch "$ARCH" # to get QEMU_TTY
   minc_moult "$ARCH" $WORKDIR "ro console=${QEMU_TTY}"
 }
