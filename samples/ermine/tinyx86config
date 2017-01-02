@@ -1,5 +1,5 @@
-user_configure_kernel(){
-  make tinyconfig
+user_configure_kernel(){ #outdir
+  make tinyconfig O=$1
   kconfigs_y PRINTK EARLY_PRINTK BLK_DEV_INITRD DEVTMPFS BINFMT_SCRIPT \
 	PROC_FS MULTIUSER SYSVIPC FUTEX
 }

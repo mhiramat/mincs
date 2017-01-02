@@ -122,8 +122,8 @@ setup_source() { # url todir
 }
 
 kconfig_set() { # entry value
-  sed -i "/.*CONFIG_${1}[= ].*/d" .config
-  echo "CONFIG_${1}=${2}" >> .config
+  sed -i "/.*CONFIG_${1}[= ].*/d" $OUTDIR/.config
+  echo "CONFIG_${1}=${2}" >> $OUTDIR/.config
 }
 
 kconfig_string() { # entry string
@@ -144,9 +144,9 @@ kconfigs_n() { # entries
   done
 }
 
-configure_kernel() {
-  make defconfig
-  user_configure_kernel
+configure_kernel() { # outdir
+  make defconfig O=$1
+  user_configure_kernel $1
   kconfig_string DEFAULT_HOSTNAME "ermine"
   # config minc related configs
   kconfigs_y OVERLAY_FS NAMESPACES UTS_NS IPC_NS USER_NS PID_NS NET_NS \
@@ -164,26 +164,28 @@ configure_kernel() {
   if [ $ARCH = arm -o $ARCH = arm64 ]; then
     kconfigs_y ARM_AMBA SERIAL_AMBA_PL011 SERIAL_AMBA_PL011_CONSOLE
   fi
-  make olddefconfig
+  make olddefconfig O=$1
+  make modules O=$1
 }
 
 build_kernel() { # workdir
   VMLINUZ=$DESTDIR/vmlinuz.$ARCH
   [ -f $VMLINUZ ] && return 0
+  export OUTDIR=$1/build-${ARCH}/
   (cd $1/linux*/
-  configure_kernel
+  configure_kernel $OUTDIR
   case $ARCH in
     x86_64)
-    make bzImage -j $JOBS
-    cp -f arch/x86/boot/bzImage $VMLINUZ
+    make bzImage -j $JOBS O=$OUTDIR
+    cp -f $OUTDIR/arch/x86/boot/bzImage $VMLINUZ
     ;;
     arm)
-    make zImage -j $JOBS
-    cp -f arch/arm/boot/zImage $VMLINUZ
+    make zImage -j $JOBS O=$OUTDIR
+    cp -f $OUTDIR/arch/arm/boot/zImage $VMLINUZ
     ;;
     arm64)
-    make Image.gz -j $JOBS
-    cp -f arch/arm64/boot/Image.gz $VMLINUZ
+    make Image.gz -j $JOBS O=$OUTDIR
+    cp -f $OUTDIR/arch/arm64/boot/Image.gz $VMLINUZ
     ;;
   esac
   )
