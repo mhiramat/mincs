@@ -193,6 +193,7 @@ build_kernel() { # workdir
 build_busybox() { # workdir rootfsdir
   [ -d $2 ] && return 0
   (cd $1/busybox*/
+  OUTDIR=`pwd`
   make defconfig
   user_configure_busybox
   kconfigs_y STATIC
