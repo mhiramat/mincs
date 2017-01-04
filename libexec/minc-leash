@@ -24,13 +24,18 @@ if [ "$MINC_DROPCAPS" ]; then
     OPT=`echo $MINC_USERSPEC | \
     awk 'BEGIN{FS=":"} {if (NF==2) print "--gid="$2; print "--uid="$1}'`
   fi
+  [ "$CAPSH_EXEC" ] && OPT="$OPT --exec"
   RUN="$MINC_DEBUG_PREFIX capsh --chroot=$RD $OPT --drop=$MINC_DROPCAPS -- "
+  if [ -z "$CAPSH_EXEC" ]; then
+    wash "^MINC_"
+    exec $RUN -c "exec $*"
+  fi
 else
   test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
-  RUN="$MINC_DEBUG_PREFIX chroot $OPT $RD sh"
+  RUN="$MINC_DEBUG_PREFIX chroot $OPT $RD"
 fi
-  wash "^MINC_"
-  exec $RUN -c "exec $*"
+wash "^MINC_"
+exec $RUN "$@"
 }
 
 if [ `basename $0` = "minc-leash" ]; then
