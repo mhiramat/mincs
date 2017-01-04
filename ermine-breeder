@@ -20,7 +20,7 @@ DESTDIR=$LIBEXEC/ermine
 # Download sources
 LINUX_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.8.11.tar.xz
 BUSYBOX_URL=http://busybox.net/downloads/busybox-1.25.1.tar.bz2
-LIBCAP_URL=https://www.kernel.org/pub/linux/libs/security/linux-privs/libcap2/libcap-2.25.tar.gz
+LIBCAP_URL=https://github.com/mhiramat/libcap/archive/capsh-exec-v1.zip
 
 # Cross tools
 GCC_arm64_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/aarch64-linux-gnu/gcc-linaro-6.2.1-2016.11-x86_64_aarch64-linux-gnu.tar.xz
