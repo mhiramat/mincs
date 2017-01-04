@@ -281,6 +281,10 @@ pack_initramfs() { # rootfsdir
 . $LIBEXEC/minc-moult
 
 test_run() {
+  if [ "$1" = "--debug" ]; then
+    set -x
+    shift 1
+  fi
   if [ "$1" = "--arch" ]; then
     ARCH=$2
     shift 2
