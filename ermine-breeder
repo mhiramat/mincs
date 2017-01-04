@@ -165,7 +165,6 @@ configure_kernel() { # outdir
     kconfigs_y ARM_AMBA SERIAL_AMBA_PL011 SERIAL_AMBA_PL011_CONSOLE
   fi
   make olddefconfig O=$1
-  make modules O=$1
 }
 
 build_kernel() { # workdir
