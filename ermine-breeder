@@ -30,6 +30,7 @@ CROSS_COMPILE_arm=arm-linux-gnueabi-
 
 # Build params
 JOBS=`nproc`
+BUILD_MOD=no
 
 # Dummy functions for additional configurations
 user_configure_kernel() {
@@ -187,6 +188,15 @@ build_kernel() { # workdir
     cp -f $OUTDIR/arch/arm64/boot/Image.gz $VMLINUZ
     ;;
   esac
+  )
+}
+
+build_module() { # workdir rootfsdir
+  export OUTDIR=$1/build-${ARCH}/
+  mkdir -p $2/lib/modules
+  (cd $1/linux*/
+  make modules -j $JOBS O=$OUTDIR
+  INSTALL_MOD_PATH=$2 make modules_install -j $JOBS O=$OUTDIR
   )
 }
 
@@ -459,6 +469,11 @@ build_busybox $BUSYBOXDIR $ROOTFSDIR
 
 echo "libcap build"
 build_libcap $LIBCAPDIR $ROOTFSDIR
+
+if [ "$BUILD_MOD" = "yes" ]; then
+  echo "kernel module build"
+  build_module $LINUXDIR $ROOTFSDIR
+fi
 
 echo "install MINCS"
 install_mincs $ROOTFSDIR
