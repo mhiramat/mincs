@@ -18,7 +18,7 @@ LIBEXEC=$TOPDIR/libexec
 DESTDIR=$LIBEXEC/ermine
 
 # Download sources
-LINUX_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.8.11.tar.xz
+LINUX_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.9.2.tar.xz
 BUSYBOX_URL=http://busybox.net/downloads/busybox-1.25.1.tar.bz2
 LIBCAP_URL=https://github.com/mhiramat/libcap/archive/capsh-exec-v1.zip
 
