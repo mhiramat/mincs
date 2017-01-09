@@ -22,7 +22,7 @@ DEBIAN=jessie
 linuxarch() { # arch
   case "$1" in
   amd64|x86_64) echo x86_64 ;;
-  armv7l|armel) echo arm ;;
+  armv7l|armel|arm) echo arm ;;
   aarch64|arm64) echo arm64 ;;
   esac
 }
