@@ -35,7 +35,7 @@ else
   RUN="$MINC_DEBUG_PREFIX chroot $OPT $RD"
 fi
 wash "^MINC_"
-exec $RUN "$@"
+exec $RUN $@
 }
 
 if [ `basename $0` = "minc-leash" ]; then
