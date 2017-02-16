@@ -242,6 +242,15 @@ $ sudo ./minc -r ./rootfs/arm --arch arm
 
 - On Ubuntu 16.04/x86\_64, qemu-system's aarch64 will not work without installing qemu's UEFI image. (It seems that qemu-efi package doesn't help, you need to install it from pcbios directory in qemu's source code to /usr/share/qemu/)
 
+- If you can't make it work, you can also build your own qemu-system-arm/aarch64 from source as below:
+
+```
+$ cd qemu
+$ ./configure --target-list=arm-softmmu,aarch64-softmmu --enable-virtfs
+$ make
+```
+
+
 ## License
 
 This program is released under the MIT License, see LICENSE.
