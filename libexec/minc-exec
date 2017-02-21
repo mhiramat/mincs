@@ -122,6 +122,8 @@ if [ $$ -eq 1 ]; then
   bindmount /proc/irq
   bindmount /proc/bus
   [ "$MINC_NOPRIV" ] || bindmount /sys
+  # This is used for application working area
+  mount -t tmpfs tmpfs $RD/tmp
 
   # Define leash()
   . $MINCLEASH
