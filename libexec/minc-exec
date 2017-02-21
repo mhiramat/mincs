@@ -65,10 +65,8 @@ if [ $$ -eq 1 ]; then
     # prepare moulting :)
     . $MINCMOULT
     MINC_GUEST_OPT="-r /mnt/root --name `hostname`"
-    if [ -z "$MINC_DIRECT" ]; then
-      # if the host mounts overlayfs on rootfs, guest skips it.
-      MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
-    fi
+    # Since host mounts overlayfs on rootfs, guest skips it.
+    MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
     [ "$MINC_DEBUG" ] && MINC_GUEST_OPT="$MINC_GUEST_OPT --debug"
     echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
     echo "minc $MINC_GUEST_OPT \"$@\"" >> $MINC_TMPDIR/run.sh
