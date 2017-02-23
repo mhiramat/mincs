@@ -69,6 +69,7 @@ if [ $$ -eq 1 ]; then
     MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
     [ "$MINC_DEBUG" ] && MINC_GUEST_OPT="$MINC_GUEST_OPT --debug"
     echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
+    echo "stty rows `tput lines`; stty cols `tput cols`" >> $MINC_TMPDIR/run.sh
     echo "minc $MINC_GUEST_OPT \"$@\"" >> $MINC_TMPDIR/run.sh
     minc_moult "$MINC_ARCH" "$MINC_TMPDIR" "ro quiet console=tty0"
     exit $? # failsafe
