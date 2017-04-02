@@ -2,15 +2,26 @@
 set -e
 
 usage(){
- echo "Usage: build-debian-rootfs.sh <DIR> [ARCH]"
+ echo "Usage: build-debian-rootfs.sh <DIR> [--arch ARCH] [--deb DEBVER]"
+ echo " ARCH: x86_64|amd64, arm|armv7l|armel, arm64|aarch64"
+ echo " DEBVER: sid, jessie, stretch ..."
  exit 0
 }
 
 test -z "$1" -o ! -d "$1" && usage
 ROOTDIR=$1
-ARCH=$2
 HOSTARCH=`uname -m`
+ARCH=
 DEBIAN=jessie
+
+shift 1
+while [ $# -ne 0 ]; do
+case $1 in
+  --arch) ARCH=$2; shift 2;;
+  --deb) DEBIAN=$2; shift 2;;
+  *) usage;;
+esac
+done
 
 # What you must know about "arch"...
 # arch(1): x86_64 armv7l aarch64  # same as "uname -m"
