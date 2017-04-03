@@ -24,10 +24,10 @@ esac
 done
 
 # What you must know about "arch"...
-# arch(1): x86_64 armv7l aarch64  # same as "uname -m"
-# Linux:   x86_64 arm    arm64
-# Debian:  amd64  armel  arm64
-# Qemu:    x86_64 arm    aarch64
+# arch(1): x86_64 armv7l aarch64 ? # same as "uname -m"
+# Linux:   x86_64 arm    arm64   powerpc
+# Debian:  amd64  armel  arm64   ppc64el
+# Qemu:    x86_64 arm    aarch64 ppc64le
 
 # normalize to linux arch
 linuxarch() { # arch
@@ -37,17 +37,29 @@ linuxarch() { # arch
   aarch64|arm64) echo arm64 ;;
   esac
 }
+debarch() {
+  case "$1" in
+  amd64|x86_64) echo amd64 ;;
+  armv7l|armel|arm) echo armel ;;
+  aarch64|arm64) echo arm64 ;;
+  esac
+}
+qemuarch() {
+  case "$1" in
+  amd64|x86_64) echo x86_64 ;;
+  armv7l|armel|arm) echo arm ;;
+  aarch64|arm64) echo aarch64 ;;
+  esac
+}
+
 ARCH=`linuxarch $ARCH`
 HOSTARCH=`linuxarch $HOSTARCH`
 
 if [ -z "$ARCH" -o "$ARCH" = "$HOSTARCH" ]; then
   debootstrap $DEBIAN $ROOTDIR
 else
-  DEBARCH=$ARCH
-  QEMUARCH=$ARCH
-  [ $ARCH = x86_64 ] && DEBARCH=amd64
-  [ $ARCH = arm ] && DEBARCH=armel
-  [ $ARCH = arm64 ] && QEMUARCH=aarch64
+  DEBARCH=`debarch $ARCH`
+  QEMUARCH=`qemuarch $ARCH`
   BINFMT=/proc/sys/fs/binfmt_misc/qemu-$QEMUARCH
   if [ ! -f $BINFMT ]; then
     echo "Error: $BINFMT is not found."
