@@ -175,7 +175,7 @@ build_kernel() { # workdir
   (cd $1/linux*/
   configure_kernel $OUTDIR
   case $ARCH in
-    x86_64)
+    x86_64|i386)
     make bzImage -j $JOBS O=$OUTDIR
     cp -f $OUTDIR/arch/x86/boot/bzImage $VMLINUZ
     ;;
@@ -438,6 +438,10 @@ case "$ARCH" in
     echo "Sorry, $ARCH does not support cross build."
     exit 1
   fi
+  ;;
+  i386)
+  export CROSS_COMPILE=
+  GCC_URL=
   ;;
   arm)
   export CROSS_COMPILE=$CROSS_COMPILE_arm
