@@ -32,6 +32,7 @@ done
 # normalize to linux arch
 linuxarch() { # arch
   case "$1" in
+  i[3456]86) echo i386 ;;
   amd64|x86_64) echo x86_64 ;;
   armv7l|armel|arm) echo arm ;;
   aarch64|arm64) echo arm64 ;;
@@ -39,6 +40,7 @@ linuxarch() { # arch
 }
 debarch() {
   case "$1" in
+  i[3456]86) echo i386 ;;
   amd64|x86_64) echo amd64 ;;
   armv7l|armel|arm) echo armel ;;
   aarch64|arm64) echo arm64 ;;
@@ -46,6 +48,7 @@ debarch() {
 }
 qemuarch() {
   case "$1" in
+  i[3456]86) echo i386 ;;
   amd64|x86_64) echo x86_64 ;;
   armv7l|armel|arm) echo arm ;;
   aarch64|arm64) echo aarch64 ;;
