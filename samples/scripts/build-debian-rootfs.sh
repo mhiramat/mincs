@@ -36,6 +36,7 @@ linuxarch() { # arch
   amd64|x86_64) echo x86_64 ;;
   armv7l|armel|arm) echo arm ;;
   aarch64|arm64) echo arm64 ;;
+  ppc64|power[34]|ppc64el|ppc64le) echo powerpc ;;
   esac
 }
 debarch() {
@@ -44,6 +45,7 @@ debarch() {
   amd64|x86_64) echo amd64 ;;
   armv7l|armel|arm) echo armel ;;
   aarch64|arm64) echo arm64 ;;
+  ppc64|power[34]|ppc64el|ppc64le) echo ppc64el ;;
   esac
 }
 qemuarch() {
@@ -52,13 +54,14 @@ qemuarch() {
   amd64|x86_64) echo x86_64 ;;
   armv7l|armel|arm) echo arm ;;
   aarch64|arm64) echo aarch64 ;;
+  ppc64|power[34]|ppc64el|ppc64le) echo ppc64le ;;
   esac
 }
 
-ARCH=`linuxarch $ARCH`
+_ARCH=`linuxarch $ARCH`
 HOSTARCH=`linuxarch $HOSTARCH`
 
-if [ -z "$ARCH" -o "$ARCH" = "$HOSTARCH" ]; then
+if [ -z "$_ARCH" -o "$_ARCH" = "$HOSTARCH" ]; then
   debootstrap $DEBIAN $ROOTDIR
 else
   DEBARCH=`debarch $ARCH`
