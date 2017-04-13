@@ -59,7 +59,7 @@ prepare_workspaces() {
 extract_source() { # file todir
  echo "Extracting $1"
  case $1 in
- *.tar*)
+ *.tar*|*tgz)
    tar -xf $1 -C $2 --no-same-owner ;;
  *.zip)
    unzip -d $2 $1 ;;
