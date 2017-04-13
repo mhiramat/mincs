@@ -33,6 +33,10 @@ GCC_arm64_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/
 CROSS_COMPILE_arm64=aarch64-linux-gnu-
 GCC_arm_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/arm-linux-gnueabi/gcc-linaro-6.2.1-2016.11-x86_64_arm-linux-gnueabi.tar.xz
 CROSS_COMPILE_arm=arm-linux-gnueabi-
+#GCC_or1k_URL=https://github.com/openrisc/or1k-gcc/releases/download/or1k-5.4.0-20170218/or1k-elf-5.4.0-20170218.tar.xz
+#CROSS_COMPILE_or1k=or1k-elf-
+GCC_or1k_URL=https://github.com/openrisc/musl-cross/releases/download/gcc5.3.0-musl1.1.14/or1k-linux-musl_gcc5.3.0_binutils2.26_musl1.1.14.tgz
+CROSS_COMPILE_or1k=or1k-musl-linux-
 
 # Build params
 JOBS=`nproc`
@@ -65,7 +69,7 @@ prepare_workspaces() {
 extract_source() { # file todir
  echo "Extracting $1"
  case $1 in
- *.tar*|*tgz)
+ *.tar*|*.tgz)
    tar -xf $1 -C $2 --no-same-owner ;;
  *.zip)
    unzip -q -d $2 $1 ;;
@@ -209,6 +213,9 @@ build_kernel() { # workdir rebuild
     make vmlinux -j $JOBS O=$OUTDIR
     cp -f $OUTDIR/vmlinux $VMLINUZ
     strip $VMLINUZ
+    openrisc)
+    make all -j $JOBS O=$OUTDIR
+    cp -f $OUTDIR/vmlinux $VMLINUZ
     ;;
   esac
   )
@@ -479,6 +486,10 @@ case "$ARCH" in
   i386|um)
   export CROSS_COMPILE=
   GCC_URL=
+  ;;
+  or1k|openrisc)
+  export CROSS_COMPILE=$CROSS_COMPILE_or1k
+  GCC_URL=$GCC_or1k_URL
   ;;
   arm)
   export CROSS_COMPILE=$CROSS_COMPILE_arm

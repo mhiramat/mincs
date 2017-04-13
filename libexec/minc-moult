@@ -23,6 +23,12 @@ prepare_arch() { # arch
     QEMU_ARCH=$ARCH
     QEMU_OPT="$QEMU_OPT -M pc -enable-kvm"
     ;;
+  or1k|openrisc)
+    ARCH=openrisc
+    QEMU_TTY=ttyS0
+    QEMU_ARCH=or32
+    QEMU_OPT="$QEMU_OPT -M or32-sim"
+    ;;
   arm|armv7l)
     ARCH=arm
     QEMU_TTY=ttyAMA0
