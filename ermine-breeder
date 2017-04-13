@@ -317,7 +317,7 @@ run_selfbuild() {
   else
     echo "Making a new world: it may take a while"
     mkdir -p $WORKDIR/debian
-    sudo debootstrap --include=wget,build-essential,git,gawk,cpio,bc jessie\
+    sudo debootstrap --include=wget,build-essential,git,gawk,cpio,bc,unzip jessie\
          $WORKDIR/debian
     NEWDIR=$WORKDIR/debian
   fi
