@@ -2,9 +2,11 @@
 set -e
 
 usage(){
- echo "Usage: build-debian-rootfs.sh <DIR> [--arch ARCH] [--deb DEBVER]"
- echo " ARCH: x86_64|amd64, arm|armv7l|armel, arm64|aarch64"
- echo " DEBVER: sid, jessie, stretch ..."
+ echo "Usage: build-debian-rootfs.sh <DIR> [OPTIONS]"
+ echo "OPTIONS"
+ echo " --arch <ARCH>  Target arch: x86_64|amd64, arm|armv7l|armel, arm64|aarch64"
+ echo " --deb <DEBVER> Target debian version: sid, jessie, stretch ..."
+ echo " --include <PKGS> Install packages (comma separated)"
  exit 0
 }
 
@@ -13,12 +15,14 @@ ROOTDIR=$1
 HOSTARCH=`uname -m`
 ARCH=
 DEBIAN=jessie
+INCLUDE_PKG=
 
 shift 1
 while [ $# -ne 0 ]; do
 case $1 in
   --arch) ARCH=$2; shift 2;;
   --deb) DEBIAN=$2; shift 2;;
+  --include) INCLUDE_PKG=$2; shift 2;;
   *) usage;;
 esac
 done
@@ -60,6 +64,11 @@ qemuarch() {
 
 _ARCH=`linuxarch $ARCH`
 HOSTARCH=`linuxarch $HOSTARCH`
+
+INCLUDE=
+if [ "$INCLUDE_PKG" ]; then
+  INCLUDE="--include $INCLUDE_PKG"
+fi
 
 if [ -z "$_ARCH" -o "$_ARCH" = "$HOSTARCH" ]; then
   debootstrap $DEBIAN $ROOTDIR
