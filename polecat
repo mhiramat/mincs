@@ -9,7 +9,8 @@ MINCEXEC=$LIBEXEC/minc-exec
 MINCCOAT=$LIBEXEC/minc-coat
 TRAPPER=$LIBEXEC/minc-trapper
 MINCFARM=$LIBEXEC/minc-farm
-OUTFILE=polecat-out.sh
+OUTFILE=polecat-out
+FORMAT=sh
 
 # Exit if any errors
 set -e
@@ -23,6 +24,7 @@ usage() { # [error messages]
   echo "    -h or --help           Show this help"
   echo "    -o or --output <FILE>  Output to FILE (default: $OUTFILE)"
   echo "    -s or --script <FILE>  Use FILE as build-script"
+  echo "    -f or --format <FORMAT> Output format (tgz, squashfs(sfs), sh)"
   exit $#
 }
 
@@ -50,6 +52,12 @@ case $1 in
   ;;
 -s|--script)
   SCRIPT=$2
+  shift 2
+  ;;
+-f|--format)
+  FORMAT=$2
+  case "$2" in sh|squashfs|sfs|tgz) ;;
+  *) usage "$2 is not supported format " ;; esac
   shift 2
   ;;
 --debug)
@@ -140,6 +148,27 @@ else
   $TRAPPER -r $ROOTFS $MINC_TMPDIR $COMMAND
   RD=$MINC_TMPDIR/storage
 fi
+
+absdir() {
+  (cd $1; pwd)
+}
+
+OUTDIR=`dirname $OUTFILE`
+mkdir -p $OUTDIR
+OUTDIR=`absdir $OUTDIR`
+OUTFILE=`basename $OUTFILE`
+
+case $FORMAT in
+  tgz)
+  cd $RD;
+  tar czf ${OUTDIR}/${OUTFILE}.${FORMAT} .
+  exit 0
+  ;;
+  squashfs|sfs)
+  mksquashfs $RD ${OUTDIR}/${OUTFILE}.${FORMAT}
+  exit 0
+  ;;
+esac
 
 # Make a squashfs image
 SFS=$MINC_TMPDIR/rootfs.sfs
