@@ -4,7 +4,12 @@
 # Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
 
-LIBEXEC=`dirname $0`/libexec
+absdir() {
+  (cd $1; pwd)
+}
+
+__LIBEXEC=`dirname $0`/libexec
+LIBEXEC=`absdir $__LIBEXEC`
 MINCEXEC=$LIBEXEC/minc-exec
 MINCCOAT=$LIBEXEC/minc-coat
 TRAPPER=$LIBEXEC/minc-trapper
@@ -148,10 +153,6 @@ else
   $TRAPPER -r $ROOTFS $MINC_TMPDIR $COMMAND
   RD=$MINC_TMPDIR/storage
 fi
-
-absdir() {
-  (cd $1; pwd)
-}
 
 OUTDIR=`dirname $OUTFILE`
 mkdir -p $OUTDIR
