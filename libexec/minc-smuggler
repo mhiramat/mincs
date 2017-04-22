@@ -1,0 +1,42 @@
+#!/bin/sh
+# minc-smuggler: Transfer images from Docker Registry server
+
+get_pull_token() { # repository
+  curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:$1:pull" | jq -r .token
+}
+
+get_manifest() { # repository token
+  curl -s -H "Authorization: Bearer $2" \
+	  -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+	  https://index.docker.io/v2/$1/manifests/latest
+}
+
+get_config() { # manifest repo token
+  DIGEST_CONFIG=`jq -r .config.digest < $1`
+  MEDIA=`jq -r .config.mediaType < $1`
+  curl -# -L -H "Authorization: Bearer $3" \
+	  -H "Accept: $MEDIA" \
+	  https://index.docker.io/v2/$2/blobs/$DIGEST_CONFIG
+}
+
+pull_layer() { # digest outdir(repo) token
+  (cd $2
+  curl -# -# -OL -H "Authorization: Bearer $3" \
+	  -H "Accept: application/vnd.docker.image.rootfs.diff.tar.gzip" \
+	  https://index.docker.io/v2/$2/blobs/$1
+  )
+}
+
+pull_layers() { # manifest outdir(repo) token
+  jq -r .layers[].digest < $1 | while read d; do pull_layer $d $2 $3 ; done
+}
+
+set -e
+
+REPO=$1
+mkdir -p $REPO
+TOKEN=`get_pull_token $REPO`
+get_manifest $REPO $TOKEN > $REPO/manifest
+get_config $REPO/manifest $REPO $TOKEN > $REPO/config
+pull_layers $REPO/manifest $REPO $TOKEN
+
