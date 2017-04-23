@@ -5,6 +5,7 @@ set -e -u
 MINC=`dirname $0`/minc
 LIBEXEC=`dirname $0`/libexec
 MINCFARM=$LIBEXEC/minc-farm
+MINCSMGL=$LIBEXEC/minc-smuggler
 
 usage() { # [error messages]
   test $# -ne 0 && echo "$*"
@@ -15,6 +16,7 @@ usage() { # [error messages]
   echo "    li or images        List images"
   echo "    rm UUID             Remove specified container"
   echo "    rmi UUID            Remove specified image"
+  echo "    pull [USER/]NAME[:TAG] Import a docker image from Dockerhub"
   echo "    import DIR|IMAGE    Import DIR or Dokcer IMAGE as an image"
   echo "    commit UUID         Commit specified container to image"
   echo "    rename UUID NAME    Rename given UUID container to NAME"
@@ -86,6 +88,17 @@ shift 1
 case $cmd in
   lc|list|li|images)
   do_list $cmd $*
+  ;;
+  pull)
+  TAG=${1##*:}
+  NAME=${1%%:*}
+  USER=${NAME%%/*}
+  test -z "$NAME" && usage
+  test -z "$TAG" -o "$TAG" = "$NAME" && TAG=latest
+  test -z "$USER" -o "$USER" = "$NAME" && NAME="library/$NAME"
+  echo "Trying to pull $NAME:$TAG"
+  TMPDIR=`mktemp -d backyard-XXXXXX`
+  $MINCSMGL $NAME $TAG $TMPDIR
   ;;
   import)
   test -d $1 || import_docker $1
