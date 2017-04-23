@@ -75,7 +75,11 @@ import_docker() {
   exit 0
 }
 
-
+if [ "$1" = "--debug" ] ; then
+  export MINC_DEBUG=1
+  set -x
+  shift 1
+fi
 test $# -eq 0 && usage
 cmd=$1
 shift 1
