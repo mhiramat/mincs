@@ -2,41 +2,51 @@
 # minc-smuggler: Transfer images from Docker Registry server
 
 get_pull_token() { # repository
-  curl -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:$1:pull" | jq -r .token
+  curl -f -s "https://auth.docker.io/token?service=registry.docker.io&scope=repository:$1:pull" | jq -r .token
 }
 
-get_manifest() { # repository token
-  curl -s -H "Authorization: Bearer $2" \
+get_manifest() { # repository tag token
+  curl -f -s -H "Authorization: Bearer $3" \
 	  -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
-	  https://index.docker.io/v2/$1/manifests/latest
+	  https://index.docker.io/v2/$1/manifests/$2
 }
 
 get_config() { # manifest repo token
   DIGEST_CONFIG=`jq -r .config.digest < $1`
   MEDIA=`jq -r .config.mediaType < $1`
-  curl -# -L -H "Authorization: Bearer $3" \
+  curl -f -# -L -H "Authorization: Bearer $3" \
 	  -H "Accept: $MEDIA" \
 	  https://index.docker.io/v2/$2/blobs/$DIGEST_CONFIG
 }
 
-pull_layer() { # digest outdir(repo) token
-  (cd $2
-  curl -# -# -OL -H "Authorization: Bearer $3" \
+pull_layer() { # digest repo token
+  echo Downloading $1
+  curl -f -# -# -OL -H "Authorization: Bearer $3" \
 	  -H "Accept: application/vnd.docker.image.rootfs.diff.tar.gzip" \
 	  https://index.docker.io/v2/$2/blobs/$1
-  )
 }
 
-pull_layers() { # manifest outdir(repo) token
+pull_layers() { # manifest repo token
   jq -r .layers[].digest < $1 | while read d; do pull_layer $d $2 $3 ; done
 }
 
 set -e
+[ "$MINC_DEBUG" ] && set -x
 
 REPO=$1
-mkdir -p $REPO
-TOKEN=`get_pull_token $REPO`
-get_manifest $REPO $TOKEN > $REPO/manifest
-get_config $REPO/manifest $REPO $TOKEN > $REPO/config
-pull_layers $REPO/manifest $REPO $TOKEN
+TAG=$2
+DLDIR=$3
+if [ -z "$REPO" -o -z "$TAG" -o ! -d "$3" ]; then
+  echo "Usage: $0 REPOSITORY TAG DLDIR"
+  exit 1
+fi
 
+TOKEN=`get_pull_token $REPO`
+cd $DLDIR
+echo "Downloading manifest.json"
+get_manifest $REPO $TAG $TOKEN > manifest.json
+echo "Downloading config.json"
+get_config manifest.json $REPO $TOKEN > config.json
+pull_layers manifest.json $REPO $TOKEN
+
+exit 0

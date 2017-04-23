@@ -5,6 +5,7 @@ set -e -u
 MINC=`dirname $0`/minc
 LIBEXEC=`dirname $0`/libexec
 MINCFARM=$LIBEXEC/minc-farm
+MINCSMGL=$LIBEXEC/minc-smuggler
 
 usage() { # [error messages]
   test $# -ne 0 && echo "$*"
@@ -15,6 +16,7 @@ usage() { # [error messages]
   echo "    li or images        List images"
   echo "    rm UUID             Remove specified container"
   echo "    rmi UUID            Remove specified image"
+  echo "    pull [USER/]NAME[:TAG] Import a docker image from Dockerhub"
   echo "    import DIR|IMAGE    Import DIR or Dokcer IMAGE as an image"
   echo "    commit UUID         Commit specified container to image"
   echo "    rename UUID NAME    Rename given UUID container to NAME"
@@ -75,6 +77,34 @@ import_docker() {
   exit 0
 }
 
+pull_docker() {
+  TAG=${1##*:}
+  NAME=${1%%:*}
+  USER=${NAME%%/*}
+  test -z "$NAME" && usage
+  test -z "$TAG" -o "$TAG" = "$NAME" && TAG=latest
+  test -z "$USER" -o "$USER" = "$NAME" && NAME="library/$NAME"
+  echo "Trying to pull $NAME:$TAG"
+  TMPDIR=`mktemp -d backyard-XXXXXX`
+  $MINCSMGL $NAME $TAG $TMPDIR
+  echo "Pulled. Importing image: $NAME"
+  LASTID=`cat $TMPDIR/manifest.json | jq -r .layers[].digest | tail -n 1`
+  LASTID=${LASTID##*:}
+  cat $TMPDIR/manifest.json | jq -r .layers[].digest | while read d; do
+    tmproot=`mktemp -d $TMPDIR/layer-root-XXXXXX`
+    ID=${d##*:}
+    tar --force-local -xf $TMPDIR/$d -C $tmproot
+    export MINC_IMPORT_UUID=$ID
+    test "$ID" = "$LASTID" && export MINC_IMPORT_NAME=${NAME##*/}
+    $MINCFARM import $tmproot
+    export MINC_BASE_UUID=$ID
+    rm -rf $tmproot
+  done
+  rm -rf $TMPDIR
+  exit 0
+}
+
+
 test $# -eq 0 && usage
 if [ "$1" = "--debug" ] ; then
   export MINC_DEBUG=1
@@ -87,6 +117,9 @@ shift 1
 case $cmd in
   lc|list|li|images)
   do_list $cmd $*
+  ;;
+  pull)
+  pull_docker $1
   ;;
   import)
   test -d $1 || import_docker $1
