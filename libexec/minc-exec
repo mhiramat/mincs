@@ -128,7 +128,7 @@ if [ $$ -eq 1 ]; then
   . $MINCLEASH
 
   # We can not use pivot_root on initramfs
-  mount | grep ^"rootfs on / " > /dev/null && export MINC_OPT_SIMPLE=1
+  mount | grep -q ^"rootfs on / " && export MINC_OPT_SIMPLE=1
   if [ "$MINC_OPT_SIMPLE" ]; then
     # in this case, cap_sys_chroot should be dropped if possible.
     if which capsh > /dev/null 2>&1; then
@@ -137,10 +137,10 @@ if [ $$ -eq 1 ]; then
   fi
 
   CAPSH_EXEC=
-  capsh -h | grep "^ *--exec" > /dev/null && CAPSH_EXEC=1
+  capsh -h | grep -q "^ *--exec" && CAPSH_EXEC=1
   # Since capsh depends on /bin/bash, we can not drop caps without bash
   if [ "$MINC_DROPCAPS" -a ! -x $RD/bin/bash ]; then
-    if capsh -h | grep "SHELL" > /dev/null && test -x $RD/bin/sh ; then
+    if capsh -h | grep -q "SHELL" && test -x $RD/bin/sh ; then
       export SHELL=/bin/sh
     else
       echo "Warning: No /bin/bash found in rootfs, capabilities are not dropped"

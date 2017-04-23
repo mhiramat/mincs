@@ -264,7 +264,7 @@ if mount -t 9p -o trans=virtio minc /mnt -oversion=9p2000.L,posixacl,cache=none 
   fi
 fi
 }
-mount | grep /mnt > /dev/null || run_minc
+mount | grep -q /mnt || run_minc
 echo "=== Ermine operating console ==="
 echo
 exec /bin/sh
