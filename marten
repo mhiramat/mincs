@@ -75,6 +75,7 @@ import_docker() {
   exit 0
 }
 
+test $# -eq 0 && usage
 if [ "$1" = "--debug" ] ; then
   export MINC_DEBUG=1
   set -x
