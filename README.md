@@ -143,6 +143,32 @@ ID              SIZE    NAME
 8efe422e6104    224M    centos
  $ sudo minc -r centos /bin/bash
 ```
+Or, you can now download docker image from marten directly.
+
+```sh
+ $ sudo marten pull ubuntu
+Trying to pull library/ubuntu:latest
+Downloading manifest.json
+Downloading config.json
+######################################################################## 100.0%
+Downloading sha256:c62795f78da9ad31d9669cb4feb4e8fba995a299a0b2bd0f05b10fdc05b1f35e
+######################################################################## 100.0%
+Downloading sha256:d4fceeeb758e5103c39daf44c73404bf476ef6fd6b7a9a11e2260fcc1797c806
+######################################################################## 100.0%
+Downloading sha256:5c9125a401ae0cf5a5b4128633e7a4e84230d3eb4c541c661618a70e5d29aeff
+######################################################################## 100.0%
+Downloading sha256:0062f774e9942f61d13928855ab8111adc27def6f41bd6f7902c329ec836882b
+######################################################################## 100.0%
+Downloading sha256:6b33fd031facf4d7dd97afeea8a93260c2f15c3e795eeccd8969198a3d52678d
+######################################################################## 100.0%
+Pulled. Importing image: library/ubuntu
+c62795f78da9ad31d9669cb4feb4e8fba995a299a0b2bd0f05b10fdc05b1f35e
+d4fceeeb758e5103c39daf44c73404bf476ef6fd6b7a9a11e2260fcc1797c806
+5c9125a401ae0cf5a5b4128633e7a4e84230d3eb4c541c661618a70e5d29aeff
+0062f774e9942f61d13928855ab8111adc27def6f41bd6f7902c329ec836882b
+6b33fd031facf4d7dd97afeea8a93260c2f15c3e795eeccd8969198a3d52678d
+```
+
 
 ## polecat usage
 
