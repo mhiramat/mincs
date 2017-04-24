@@ -109,27 +109,27 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
 ### Mixed example of minc and marten
 
 ```sh
- # debootstrap stable debroot
- # marten import debroot
+ $ sudo debootstrap stable debroot
+ $ sudo marten import debroot
 c45554627579e3f7aed7ae83a976ed37b5f5cc76be1b37088f4870f5b212ae35
- # minc -r c455 /bin/bash
+ $ sudo minc -r c455 /bin/bash
 ```
 
 ### Mixed example of minc and Docker :)
 
 ```sh
- # docker save centos | gzip - > centos.tar.gz
- # marten import centos.tar.gz
+ $ sudo docker save centos | gzip - > centos.tar.gz
+ $ sudo marten import centos.tar.gz
 Importing image: centos
 511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158
 5b12ef8fd57065237a6833039acc0e7f68e363c15d8abb5cacce7143a1f7de8a
 8efe422e6104930bd0975c199faa15da985b6694513d2e873aa2da9ee402174c
- # marten images
+ $ sudo marten images
 ID              SIZE    NAME
 511136ea3c5a    4.0K    (noname)
 5b12ef8fd570    4.0K    (noname)
 8efe422e6104    224M    centos
- # minc -r centos /bin/bash
+ $ sudo minc -r centos /bin/bash
 ```
 
 ## polecat usage
@@ -150,8 +150,8 @@ To build an executable debian stable container, run a debootstrap on
 a directory and run polecat.
 
 ```sh
- # debootstrap stable debroot
- # polecat debroot /bin/bash
+ $ sudo debootstrap stable debroot
+ $ sudo polecat debroot /bin/bash
 ```
 
 You'll see the `polecat-out.sh` in current directory, that is
@@ -233,7 +233,7 @@ $ sudo ./samples/scripts/build-debian-rootfs.sh ./rootfs/arm arm
 This build debian jessie (debian 8) rootfs arm port under ./rootfs/arm directory. So after it finished, you can run minc as below;
 
 ```
-$ sudo ./minc -r ./rootfs/arm --arch arm
+$ sudo minc -r ./rootfs/arm --arch arm
 ```
 
 ### Known issues on major distros
