@@ -98,8 +98,20 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
 * import *DIR*|*DOCKERIMAGE*  
 	Import DIR or DOCKERIMAGE as an image
 
+* pull *DOCKERTAG*  
+	Import Docker image from dockerhub (without docker)
+
 * commit *UUID*  
 	Commit specified container to image
+
+* rename *UUID* *NAME*  
+	Rename given UUID container to NAME
+
+* renamei *UUID* *NAME*  
+	Rename given UUID image to NAME
+
+* tag *UUID* *NAME*  
+	An alias of renamei (for image)
 
 ### Opitons
 
