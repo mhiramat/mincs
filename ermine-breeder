@@ -168,10 +168,11 @@ configure_kernel() { # outdir
   make olddefconfig O=$1
 }
 
-build_kernel() { # workdir
+build_kernel() { # workdir rebuild
   VMLINUZ=$DESTDIR/vmlinuz.$ARCH
-  [ -f $VMLINUZ ] && return 0
+  [ -f $VMLINUZ -a "$2" -eq 0 ] && return 0
   export OUTDIR=$1/build-${ARCH}/
+  [ "$2" -ne 0 ] && rm -rf $OUTDIR
   (cd $1/linux*/
   configure_kernel $OUTDIR
   case $ARCH in
@@ -381,6 +382,7 @@ EOF
 esac
 
 CONFIG=
+REBUILD_KERNEL=0
 while [ $# -ne 0 ]; do
 case $1 in
   --repack)
@@ -389,6 +391,9 @@ case $1 in
   --rebuild)
   cleanup_workdir
   cleanup_destdir
+  ;;
+  --rebuild-kernel)
+  REBUILD_KERNEL=1
   ;;
   --config|-c)
   CONFIG="$CONFIG $2"
@@ -466,7 +471,7 @@ setup_source $BUSYBOX_URL $BUSYBOXDIR
 setup_source $LIBCAP_URL $LIBCAPDIR
 
 echo "Kernel build"
-build_kernel $LINUXDIR
+build_kernel $LINUXDIR $REBUILD_KERNEL
 
 echo "busybox build"
 build_busybox $BUSYBOXDIR $ROOTFSDIR
