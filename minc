@@ -201,6 +201,7 @@ case "$cmd" in
     ;;
   --cross|--arch)
     export MINC_ARCH=`qemuarch $1`
+    [ -z "$MINC_ARCH" ] && usage "\"$1\" is not supported cross arch."
     export MINC_CROSS_QEMU=`get_qemu_bin $MINC_ARCH`
     shift 1
     ;;
