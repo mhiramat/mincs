@@ -17,8 +17,13 @@ DLDIR=$TOPDIR/download
 LIBEXEC=$TOPDIR/libexec
 DESTDIR=$LIBEXEC/ermine
 
+# Get the latest stable tree
+get_latest_kernel_url() {
+  curl -s -L http://www.kernel.org/ | grep -A1 'id="latest_link"' | tail -n 1 | cut -d\" -f 2
+}
+
 # Download sources
-LINUX_URL=https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.10.6.tar.xz
+LINUX_URL=`get_latest_kernel_url`
 BUSYBOX_URL=http://busybox.net/downloads/busybox-1.25.1.tar.bz2
 LIBCAP_URL=https://github.com/mhiramat/libcap/archive/capsh-exec-v1.zip
 
