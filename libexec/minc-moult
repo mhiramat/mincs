@@ -34,6 +34,11 @@ prepare_arch() { # arch
     QEMU_ARCH=aarch64
     QEMU_OPT="$QEMU_OPT -M virt -cpu cortex-a57"
     ;;
+  um|uml)
+    ARCH=um
+    UM_ARCH=$HOSTARCH
+    UM_OPT=""
+    ;;
   *)
     echo "Sorry, $ARCH is not supported yet."
     exit 1
@@ -46,6 +51,8 @@ prepare_arch() { # arch
 minc_moult() { # arch virtdir kernel_opt
   ERMINEDIR=$LIBEXEC/ermine
   prepare_arch $1
+  [ $ARCH = "um" ] && exec $ERMINEDIR/vmlinuz.$ARCH mem=512M \
+	  initrd=$ERMINEDIR/initramfs.$ARCH hostfs=$2
   exec qemu-system-${QEMU_ARCH} $QEMU_OPT \
     -kernel $ERMINEDIR/vmlinuz.$ARCH -initrd $ERMINEDIR/initramfs.$ARCH \
     -nographic -append "$3" \

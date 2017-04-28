@@ -154,6 +154,8 @@ configure_kernel() { # outdir
   make defconfig O=$1
   user_configure_kernel $1
   kconfig_string DEFAULT_HOSTNAME "ermine"
+  # fundamental features
+  kconfigs_y NET NET_CORE NETDEVICES TTY INET IP_PNP IP_PNP_DHCP BINFMT_ELF
   # config minc related configs
   kconfigs_y OVERLAY_FS NAMESPACES UTS_NS IPC_NS USER_NS PID_NS NET_NS \
     CGROUPS EVENTFD CGROUP_DEVICE CPUSETS CGROUP_CPUACCT \
@@ -161,14 +163,22 @@ configure_kernel() { # outdir
     CGROUP_PERF CGROUP_SCHED CGROUP_HUGETLB FAIR_GROUP_SCHED \
     CGROUP_PIDS CGROUP_FREEZER CFS_BANDWIDTH RT_GROUP_SCHED \
     BLK_CGROUP
-  # config kvm configs (for older arm/arm64 kernels)
-  kconfigs_y NET NET_CORE NETDEVICES BLOCK BLK_DEV TTY PCI PCI_MSI \
-    SERIAL_8250 SERIAL_8250_CONSOLE INET IP_PNP IP_PNP_DHCP BINFMT_ELF \
-    VIRTUALIZATION HYPERVISOR_GUEST PARAVIRT KVM_GUEST VIRTIO \
-    VIRTIO_PCI VIRTIO_BLK VIRTIO_CONSOLE VIRTIO_NET VIRTIO_INPUT \
-    NETWORK_FILESYSTEMS NET_9P NET_9P_VIRTIO 9P_FS 9P_FS_POSIX_ACL
+
+  if [ $ARCH = um ]; then
+    # config user mode linux configs
+    kconfigs_y HOSTFS UML_NET UML_NET_TUNTAP PTY_CHAN NULL_CHAN TTY_CHAN \
+	    BINFMT_MISC BLOCK BLK_DEV BLK_DEV_INITRD
+  else
+    # config kvm configs (for older arm/arm64 kernels)
+    kconfigs_y VIRTUALIZATION HYPERVISOR_GUEST PARAVIRT KVM_GUEST \
+      PCI PCI_MSI VIRTIO BLOCK BLK_DEV BLK_DEV_INITRD \
+      VIRTIO_PCI VIRTIO_BLK VIRTIO_CONSOLE VIRTIO_NET VIRTIO_INPUT \
+      NETWORK_FILESYSTEMS NET_9P NET_9P_VIRTIO 9P_FS 9P_FS_POSIX_ACL
+  fi
   if [ $ARCH = arm -o $ARCH = arm64 ]; then
     kconfigs_y ARM_AMBA SERIAL_AMBA_PL011 SERIAL_AMBA_PL011_CONSOLE
+  elif [ $ARCH = x86_64 -o $ARCH = i386 ]; then
+    kconfigs_y SERIAL_8250 SERIAL_8250_CONSOLE
   fi
   make olddefconfig O=$1
 }
@@ -192,6 +202,10 @@ build_kernel() { # workdir rebuild
     arm64)
     make Image.gz -j $JOBS O=$OUTDIR
     cp -f $OUTDIR/arch/arm64/boot/Image.gz $VMLINUZ
+    ;;
+    um)
+    make vmlinux -j $JOBS O=$OUTDIR
+    cp -f $OUTDIR/vmlinux $VMLINUZ
     ;;
   esac
   )
@@ -261,9 +275,17 @@ EOF
 
   cat > mincshell.sh << EOF
 #!/bin/sh
+mount_host() {
+  if grep -q hostfs /proc/filesystems ; then
+    mount -t hostfs -o / minc /mnt
+  else
+    mount -t 9p -o trans=virtio,version=9p2000.L,posixacl,cache=none minc /mnt
+  fi
+  return $?
+}
 
 run_minc() {
-if mount -t 9p -o trans=virtio minc /mnt -oversion=9p2000.L,posixacl,cache=none ; then
+if mount_host; then
   if [ -f /mnt/run.sh ]; then
     /bin/cttyhack sh /mnt/run.sh
     exec poweroff
@@ -449,7 +471,7 @@ case "$ARCH" in
     exit 1
   fi
   ;;
-  i386)
+  i386|um)
   export CROSS_COMPILE=
   GCC_URL=
   ;;
