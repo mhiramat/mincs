@@ -50,6 +50,7 @@ usage() { # [error messages]
   echo "    --arch ARCH		Alias of --cross"
   echo "    --nopriv DIR	Run MINC without root privilege on given <DIR>"
   echo "    --qemu		Run MINC in qemu-kvm instead of chroot"
+  echo "    --um		Run MINC in user-mode-linux instead of chroot"
   echo "    --debug		Debug mode"
   exit $#
 }
@@ -214,6 +215,10 @@ case "$cmd" in
     ;;
   --qemu)
     export MINC_QEMU=1
+    ;;
+  --um)
+    export MINC_QEMU=1
+    export MINC_ARCH=um
     ;;
   --help|-h) # Help Message
     usage

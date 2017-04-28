@@ -52,7 +52,7 @@ minc_moult() { # arch virtdir kernel_opt
   ERMINEDIR=$LIBEXEC/ermine
   prepare_arch $1
   [ $ARCH = "um" ] && exec $ERMINEDIR/vmlinuz.$ARCH mem=512M \
-	  initrd=$ERMINEDIR/initramfs.$ARCH hostfs=$2
+	  initrd=$ERMINEDIR/initramfs.$ARCH hostfs=$2 $3
   exec qemu-system-${QEMU_ARCH} $QEMU_OPT \
     -kernel $ERMINEDIR/vmlinuz.$ARCH -initrd $ERMINEDIR/initramfs.$ARCH \
     -nographic -append "$3" \
