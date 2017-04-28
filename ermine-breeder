@@ -168,6 +168,7 @@ configure_kernel() { # outdir
     # config user mode linux configs
     kconfigs_y HOSTFS UML_NET UML_NET_TUNTAP PTY_CHAN NULL_CHAN TTY_CHAN \
 	    BINFMT_MISC BLOCK BLK_DEV BLK_DEV_INITRD
+    kconfigs_n BLK_DEV_UBD
   else
     # config kvm configs (for older arm/arm64 kernels)
     kconfigs_y VIRTUALIZATION HYPERVISOR_GUEST PARAVIRT KVM_GUEST \
