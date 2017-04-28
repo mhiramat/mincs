@@ -207,6 +207,7 @@ build_kernel() { # workdir rebuild
     um)
     make vmlinux -j $JOBS O=$OUTDIR
     cp -f $OUTDIR/vmlinux $VMLINUZ
+    strip $VMLINUZ
     ;;
   esac
   )
