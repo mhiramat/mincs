@@ -448,6 +448,7 @@ if [ "$ARCH" = all ]; then
   $0 --arch x86_64 $CONFOPT
   $0 --arch arm $CONFOPT
   $0 --arch arm64 $CONFOPT
+  $0 --arch um $CONFOPT
   exit $?
 fi
 
