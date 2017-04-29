@@ -26,6 +26,7 @@ get_latest_kernel_url() {
 LINUX_URL=`get_latest_kernel_url`
 BUSYBOX_URL=http://busybox.net/downloads/busybox-1.26.2.tar.bz2
 LIBCAP_URL=https://github.com/mhiramat/libcap/archive/capsh-exec-v1.zip
+UM_LINUX_URL=https://github.com/mhiramat/linux/archive/um-quiet.zip
 
 # Cross tools
 GCC_arm64_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/aarch64-linux-gnu/gcc-linaro-6.2.1-2016.11-x86_64_aarch64-linux-gnu.tar.xz
@@ -494,6 +495,11 @@ if [ $HOSTARCH != $ARCH ]; then
   GCCDIR=$WORKDIR/gcc-$ARCH
   setup_source $GCC_URL $GCCDIR
   export PATH="$PATH:"`ls -d $GCCDIR/*/bin`
+fi
+#TODO: After the um-quiet patchset merged to stable, this should be removed
+if [ "$ARCH" = "um" ]; then
+  LINUX_URL=$UM_LINUX_URL
+  echo "Note: LINUX_URL is replaced by $UM_LINUX_URL, since um-quiet series is not merged yet."
 fi
 setup_source $LINUX_URL $LINUXDIR
 setup_source $BUSYBOX_URL $BUSYBOXDIR
