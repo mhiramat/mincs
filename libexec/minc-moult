@@ -9,6 +9,7 @@ prepare_arch() { # arch
   ARCH=$1
   HOSTARCH=`uname -m`
   [ -z "$ARCH" ] && ARCH=$HOSTARCH
+  NR_CPUS=`nproc` || NR_CPUS=1
   case "$ARCH" in
   x86_64|amd64)
     ARCH=x86_64
@@ -27,6 +28,7 @@ prepare_arch() { # arch
     QEMU_TTY=ttyAMA0
     QEMU_ARCH=$ARCH
     QEMU_OPT="$QEMU_OPT -M virt"
+    [ $NR_CPUS -gt 3 ] && NR_CPUS=2
     ;;
   aarch64|arm64)
     ARCH=arm64
@@ -55,7 +57,7 @@ minc_moult() { # arch virtdir kernel_opt
 	  initrd=$ERMINEDIR/initramfs.$ARCH hostfs=$2 con0=fd:0,fd:1 con1=null con=pts $3 console=ttyS0
   exec qemu-system-${QEMU_ARCH} $QEMU_OPT -m 512M \
     -kernel $ERMINEDIR/vmlinuz.$ARCH -initrd $ERMINEDIR/initramfs.$ARCH \
-    -nographic -append "$3 console=tty0" \
+    -smp $NR_CPUS -nographic -append "$3 console=tty0" \
     -virtfs local,id=minc,path=$2,security_model=none,mount_tag=minc
 }
 
