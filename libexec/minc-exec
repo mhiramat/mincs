@@ -14,7 +14,7 @@ test "$MINC_DEBUG" && set -x
 
 # Ensure parameters are set
 test "$MINC_BASEDIR"
-test "$MINC_TMPDIR"
+test -d "$MINC_TMPDIR"
 
 # Setup Network Namespace
 if [ "$MINC_NETNS" ]; then
