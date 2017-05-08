@@ -11,13 +11,13 @@ MINCCORE=$LIBEXEC/minc-core
 # Exit if any errors
 set -e
 test "$MINC_DEBUG" && set -x
-
-# Ensure parameters are set
+:
+: "Ensure parameters are set"
 test "$MINC_BASEDIR"
 test -d "$MINC_TMPDIR"
 
-# Setup Network Namespace
 if [ "$MINC_NETNS" ]; then
+  : "Setup Network Namespace"
   ip netns add $MINC_NETNS
   TRAPCMD="ip netns del $MINC_NETNS"
   trap "$TRAPCMD" EXIT
@@ -29,22 +29,23 @@ else
   TRAPCMD=
   IP_NETNS=
 fi
-
-# Setup CPU limitations by CPUSET
+:
+: "Setup CPU limitations by CPUSET"
 test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
-
-# Prepare Cgroups
+:
+: "Prepare Cgroups if needed"
 CAGECMD=`$MINCCAGE --prepare $$`
 if [ "$CAGECMD" ]; then
   TRAPCMD="$CAGECMD;$TRAPCMD"
-  # Setup cgroup "cage" for the container
+  : 'Setup a "cage" for the container'
   . $MINCCAGE
 fi
-
+:
+: "Prepare cleanup commands"
 trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
-
+:
+: 'Enter new namespace and exec command'
 UNSHARE_OPT=
-# Enter new namespace and exec command
 [ "$MINC_NOPRIV" ] && UNSHARE_OPT=--map-root-user
 $IP_NETNS unshare $UNSHARE_OPT -iumpf $MINCCORE "$@"
