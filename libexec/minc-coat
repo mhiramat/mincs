@@ -19,23 +19,28 @@ BASEDIR=$3
 test -d $TMPDIR
 test "$BASEDIR"
 
+:
+: 'Make working sub-directories'
+: 'RD is mountpoint, UD is for upper layer, WD is working space'
 RD=$TMPDIR/root
 UD=$TMPDIR/storage
 WD=$TMPDIR/work
-# Make working sub-directories
 mkdir -p $RD $UD $WD
 
 if [ "$MINC_DIRECT" ]; then
+  :
+  : 'For direct mode, we just bind given dir to mountpoint'
   mount -o bind $BASEDIR $RD
+else
+  :
+  : 'Prepare overlayed root directory'
+  if [ grep -q overlayfs /proc/filesystems ]; then
+    : 'Workaround for ubuntu 14.10 (out-of-tree overlayfs)'
+    mount -t overlayfs -o upperdir=$UD,lowerdir=$BASEDIR overlayfs $RD
+  else
+    mount -t overlay -o upperdir=$UD,lowerdir=$BASEDIR,workdir=$WD overlayfs $RD
+  fi
 fi
-
-mountpoint $RD > /dev/null || \
-# Prepare overlayed root directory
-# This is for upstreamed overlayfs
-mount -t overlay -o upperdir=$UD,lowerdir=$BASEDIR,workdir=$WD overlayfs $RD 2>/dev/null || \
-  # Workaround for ubuntu 14.10 (out-of-tree overlayfs)
-  mount -t overlayfs -o upperdir=$UD,lowerdir=$BASEDIR overlayfs $RD
-
 elif [ $CMD = unbind ]; then
   test -d $TMPDIR/root
   mountpoint $TMPDIR/root > /dev/null && umount $TMPDIR/root || echo -n ""
