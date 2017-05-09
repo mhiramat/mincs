@@ -38,7 +38,6 @@ usage() { # [error messages]
   echo "        		Bind HOSTPATH to PATH in container"
   echo "    --name NAME		Set <NAME> as container's name (hostname)"
   echo "    --user UID[:GID]	Specify uid and gid to run command"
-  echo "    --simple		Simple chroot model (do not pivot_root)"
   echo "    --usedev		Use devtmpfs for /dev (for loopback etc.)"
   echo "    --nocaps [CAPS]	Drop given capabilities (same as capsh)"
   echo "    --mem-limit SIZE	memory limitation by cgroups"
@@ -82,7 +81,6 @@ USE_FARM=
 MINC_TMPDIR=
 export MINC_DEBUG_PREFIX=
 export MINC_RWBIND=
-export MINC_OPT_SIMPLE=
 export MINC_OPT_PTY=
 export MINC_CPUMASK=
 export MINC_NETNS=
@@ -178,9 +176,6 @@ case "$cmd" in
   --pid-max) # pid limitation by cgroups
     MINC_PID_MAX=$1
     shift 1
-    ;;
-  --simple) # Simple chroot model (do not pivot_root and umount)
-    export MINC_OPT_SIMPLE=1
     ;;
   --pty|-p)
     export MINC_OPT_PTY=1

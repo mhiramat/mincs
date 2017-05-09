@@ -44,44 +44,56 @@ leash() { # rootdir [commands]
   exec $RUN $@
 }
 
-:
-: "Check the rootfs, since we can not use pivot_root on initramfs"
-mount | grep -q ^"rootfs on / " && export MINC_OPT_SIMPLE=1
-if [ "$MINC_OPT_SIMPLE" ]; then
-  : 'Without pivot_root, cap_sys_chroot should be dropped if possible.'
-  if which capsh > /dev/null 2>&1; then
-    MINC_DROPCAPS="$MINC_DROPCAPS,cap_sys_chroot"
+if which capsh > /dev/null 2>&1; then
+  :
+  : 'Drop cap_sys_chroot to prohibit chroot-breakout'
+  MINC_DROPCAPS="$MINC_DROPCAPS,cap_sys_chroot"
+  :
+  : 'Check capsh --exec is supported'
+  CAPSH_EXEC=
+  if capsh -h | grep -q "^ *--exec" ; then
+    CAPSH_EXEC=1
+  elif [ ! -x $RD/bin/bash ]; then
+    if capsh -h | grep -q "SHELL" && test -x $RD/bin/sh ; then
+      :
+      : 'If there is no bash but capsh supports $SHELL, use /bin/sh to run'
+      export SHELL=/bin/sh
+    else
+      :
+      : 'We can not run (old) capsh without bash, fallback to chroot'
+      MINC_DROPCAPS=""
+    fi
   fi
-fi
-:
-: 'Check capsh --exec is supported'
-CAPSH_EXEC=
-capsh -h | grep -q "^ *--exec" && CAPSH_EXEC=1
-if [ "$MINC_DROPCAPS" -a ! -x $RD/bin/bash ]; then
-  if capsh -h | grep -q "SHELL" && test -x $RD/bin/sh ; then
-    :
-    : 'If there is no bash but capsh supported $SHELL, use it as user shell'
-    export SHELL=/bin/sh
-  else
-    :
-    : 'We can not run (old) capsh without bash'
-    echo "Warning: No /bin/bash found in rootfs, capabilities are not dropped"
-    MINC_DROPCAPS=""
+else
+  :
+  : 'No capsh found, fallback to chroot + pivot_root magic'
+  if [ "$MINC_DROPCAPS" ]; then
+    echo "Error: Failed to drop capabilities because there is no capsh."
+    exit 1
   fi
+  MINC_DROPCAPS=
 fi
 
-if [ -z "$MINC_OPT_SIMPLE" ]; then
+if [ -z "$MINC_DROPCAPS" ]; then
   :
-  : 'To unmount all unused mountpoints, use pivot_root to change root'
-  cd $RD
-  mkdir -p .orig
-  pivot_root . .orig
-  PATH=/bin:/sbin:/usr/bin:/usr/sbin
-  :
-  : 'Now old root is under /.orig, make it private and umount all of that'
-  mount --make-rprivate /.orig
-  umount -l /.orig
-  RD=.
+  : 'If the rootfs is initramfs, we can not use pivot_root'
+  if mount | grep -q ^"rootfs on / " ; then
+    echo "Warning: Failed to drop cap_sys_chroot. chroot breakout is available"
+  else
+    :
+    : 'To unmount all unused mountpoints, use pivot_root to change root'
+    cd $RD
+    mkdir -p .orig
+    pivot_root . .orig
+    PATH=/bin:/sbin:/usr/bin:/usr/sbin
+    :
+    : 'Now old root is under /.orig, make it private and umount all of that'
+    mount --make-rprivate /.orig
+    umount -l /.orig
+    RD=.
+    : 'Note: In this case, we will use chroot in user container'
+  fi
+  which chroot > /dev/null || (echo "Error: No chroot found"; exit 1)
 fi
 
 if [ `basename $0` = "minc-leash" ]; then
