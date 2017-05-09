@@ -61,7 +61,6 @@ $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
 TRAPCMD="$MINCCOAT unbind $MINC_TMPDIR;$TRAPCMD";trap "$TRAPCMD" EXIT
 
 export MINC_DEBUG_PREFIX="strace -f -q -e trace=file -o $TRACEOUT"
-export MINC_OPT_SIMPLE=1
 test "$MINC_IGNORE_STATE" -ne 0 && set +e
 $MINCEXEC $@
 test "$MINC_IGNORE_STATE" -ne 0 && set -e

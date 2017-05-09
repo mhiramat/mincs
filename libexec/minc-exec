@@ -3,166 +3,21 @@
 #
 # Copyright (C) 2014,2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
+
 LIBEXEC=`dirname $0`
-MINCCOAT=$LIBEXEC/minc-coat
-MINCLEASH=$LIBEXEC/minc-leash
 MINCCAGE=$LIBEXEC/minc-cage
-MINCMOULT=$LIBEXEC/minc-moult
+MINCCORE=$LIBEXEC/minc-core
 
 # Exit if any errors
 set -e
 test "$MINC_DEBUG" && set -x
-
-# Ensure parameters are set
+:
+: "Ensure parameters are set"
 test "$MINC_BASEDIR"
-test "$MINC_TMPDIR"
+test -d "$MINC_TMPDIR"
 
-bindmount() { # dir
-  test -e $1 && mount --bind $1 $RD$1
-  return 0
-}
-
-bindmount2() { # hostpath containerpath
-  test -d $1 && mkdir -p $RD$2
-  test -f $1 && mkdir -p `dirname $RD$2` && touch $RD$2
-  test -e $1 && mount --bind $1 $RD$2
-  return 0
-}
-
-# If PID=1, this is in the new world
-if [ $$ -eq 1 ]; then
-  # At this point, we still have original namespace procfs
-  export MINC_PID=`cut -f 4 -d" " /proc/self/stat`
-
-  # Make private mount namespace
-  mount --make-rprivate /
-
-  # Do not update /etc/mtab since the mount is private
-  export LIBMOUNT_MTAB=/proc/mounts
-
-  # Setup overlay rootfs
-  $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
-
-  RD=$MINC_TMPDIR/root
-  mkdir -p $RD/etc $RD/dev $RD/sys $RD/proc
-
-  if [ "$MINC_RWBIND" ]; then
-    for i in $MINC_RWBIND; do
-      bindmount2 `echo $i | sed "s/:/ /"`
-    done
-  fi
-
-  if [ "$MINC_UTSNAME" ]; then
-    hostname $MINC_UTSNAME
-    echo $MINC_UTSNAME > $MINC_TMPDIR/utsname
-  elif [ -f $MINC_TMPDIR/utsname ]; then
-    hostname `cat $MINC_TMPDIR/utsname`
-  fi
-  echo $MINC_PID > $MINC_TMPDIR/pid
-
-  # Qemu code runs
-  if [ "$MINC_QEMU" ]; then
-    # prepare moulting :)
-    . $MINCMOULT
-    MINC_GUEST_OPT="-r /mnt/root --name `hostname`"
-    # Since host mounts overlayfs on rootfs, guest skips it.
-    MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
-    [ "$MINC_DEBUG" ] && MINC_GUEST_OPT="$MINC_GUEST_OPT --debug"
-    echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
-    echo "stty rows `tput lines`; stty cols `tput cols`" >> $MINC_TMPDIR/run.sh
-    echo "minc $MINC_GUEST_OPT \"$@\"" >> $MINC_TMPDIR/run.sh
-    minc_moult "$MINC_ARCH" "$MINC_TMPDIR" "ro quiet"
-    exit $? # failsafe
-  fi
-
-  # Hide /etc/mtab in this namespace
-  if [ ! -L $RD/etc/mtab ]; then
-    rm -f $RD/etc/mtab
-    ln -s /proc/mounts $RD/etc/mtab
-  fi
-
-  # Prepare /dev special files
-  if [ "$MINC_USE_DEV" ]; then
-    mount -t devtmpfs devtmpfs $RD/dev
-  else
-    # Use fake devfs
-    mount -t tmpfs tmpfs $RD/dev
-    # Prepare pts
-    mkdir $RD/dev/pts
-    if [ "$MINC_OPT_PTY" ]; then
-      # This just a quick hack...
-      touch $RD`tty`; bindmount `tty`
-      touch $RD/dev/pts/ptmx; bindmount /dev/pts/ptmx
-    else
-      mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
-    fi
-    ln -s /dev/pts/ptmx $RD/dev/ptmx
-    touch $RD/dev/console; bindmount /dev/console
-    touch $RD/dev/null; bindmount /dev/null
-    touch $RD/dev/zero; bindmount /dev/zero
-    touch $RD/dev/random; bindmount /dev/random
-    touch $RD/dev/urandom; bindmount /dev/urandom
-    test -d /dev/mqueue && mkdir $RD/dev/mqueue && bindmount /dev/mqueue
-    # TODO: Add other devices here
-  fi
-
-  # bind qemu-user-mode for cross-arch container
-  if [ -x "$MINC_CROSS_QEMU" ]; then
-    mkdir -p $RD/usr/bin/
-    [ -x $RD/$MINC_CROSS_QEMU ] || touch $RD/$MINC_CROSS_QEMU;
-    bindmount $MINC_CROSS_QEMU
-  fi
-
-  # Do not bind procfs, since it shows outside pids
-  mount -t proc -o ro,nosuid,nodev,noexec proc /proc
-  mount -t proc -o rw,nosuid,nodev,noexec,relatime proc $RD/proc
-  bindmount /proc/sys
-  bindmount /proc/sysrq-trigger
-  bindmount /proc/irq
-  bindmount /proc/bus
-  [ "$MINC_NOPRIV" ] || bindmount /sys
-  # This is used for application working area
-  mount -t tmpfs tmpfs $RD/tmp
-
-  # Define leash()
-  . $MINCLEASH
-
-  # We can not use pivot_root on initramfs
-  mount | grep -q ^"rootfs on / " && export MINC_OPT_SIMPLE=1
-  if [ "$MINC_OPT_SIMPLE" ]; then
-    # in this case, cap_sys_chroot should be dropped if possible.
-    if which capsh > /dev/null 2>&1; then
-      MINC_DROPCAPS="$MINC_DROPCAPS,cap_sys_chroot"
-    fi
-  fi
-
-  CAPSH_EXEC=
-  capsh -h | grep -q "^ *--exec" && CAPSH_EXEC=1
-  # Since capsh depends on /bin/bash, we can not drop caps without bash
-  if [ "$MINC_DROPCAPS" -a ! -x $RD/bin/bash ]; then
-    if capsh -h | grep -q "SHELL" && test -x $RD/bin/sh ; then
-      export SHELL=/bin/sh
-    else
-      echo "Warning: No /bin/bash found in rootfs, capabilities are not dropped"
-      MINC_DROPCAPS=""
-    fi
-  fi
-
-  if [ -z "$MINC_OPT_SIMPLE" ]; then
-    # To unmount all unused mountpoints, use pivot_root to change root
-    cd $RD
-    mkdir -p .orig
-    pivot_root . .orig
-    PATH=/bin:/sbin:/usr/bin:/usr/sbin
-    mount --make-rprivate /.orig
-    umount -l /.orig
-    RD=.
-  fi
-  leash $RD "$@"
-fi
-
-# Setup Network Namespace
 if [ "$MINC_NETNS" ]; then
+  : "Setup Network Namespace"
   ip netns add $MINC_NETNS
   TRAPCMD="ip netns del $MINC_NETNS"
   trap "$TRAPCMD" EXIT
@@ -174,24 +29,23 @@ else
   TRAPCMD=
   IP_NETNS=
 fi
-# Setup CPU limitations
+:
+: "Setup CPU limitations by CPUSET"
 test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
-
-# Prepare Cgroups
+:
+: "Prepare Cgroups if needed"
 CAGECMD=`$MINCCAGE --prepare $$`
-[ "$CAGECMD" ] && TRAPCMD="$CAGECMD;$TRAPCMD"
-
-# Set cage
-. $MINCCAGE
-
-
+if [ "$CAGECMD" ]; then
+  TRAPCMD="$CAGECMD;$TRAPCMD"
+  : 'Setup a "cage" for the container'
+  . $MINCCAGE
+fi
+:
+: "Prepare cleanup commands"
 trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
-
-cd `dirname $0`; LIBEXEC=`pwd`
-cd /
-
+:
+: 'Enter new namespace and exec command'
 UNSHARE_OPT=
-# Enter new namespace and exec command
 [ "$MINC_NOPRIV" ] && UNSHARE_OPT=--map-root-user
-$IP_NETNS unshare $UNSHARE_OPT -iumpf $LIBEXEC/`basename $0` "$@"
+$IP_NETNS unshare $UNSHARE_OPT -iumpf $MINCCORE "$@"

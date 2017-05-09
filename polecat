@@ -35,7 +35,6 @@ usage() { # [error messages]
 
 export MINC_DEBUG_PREFIX=
 export MINC_RWBIND=
-export MINC_OPT_SIMPLE=
 export MINC_OPT_PTY=""
 export MINC_CPUMASK=
 export MINC_NETNS=
@@ -130,7 +129,6 @@ EOF
   # Install phase
   echo "--- Installation stage ---"
   export MINC_TMPDIR
-  export MINC_OPT_SIMPLE=1
   $MINCEXEC /install.sh
 
   # Testing phase
@@ -187,7 +185,6 @@ PLCDIR=\`mktemp -d /tmp/polecat-run-XXXXXXXX\`
 TRAPCMD="rm -rf \$PLCDIR"; trap "\$TRAPCMD" EXIT
 export MINC_DEBUG_PREFIX=
 export MINC_RWBIND=
-export MINC_OPT_SIMPLE=
 export MINC_OPT_PTY=""
 export MINC_CPUMASK=
 export MINC_NETNS=
@@ -195,7 +192,6 @@ export MINC_NETNS=
 export MINC_USE_DEV=
 export MINC_BASEDIR=\$PLCDIR/rootfs
 export MINC_TMPDIR=\$PLCDIR/tmp
-export MINC_OPT_SIMPLE=1
 mkdir \$MINC_BASEDIR \$MINC_TMPDIR
 mount -t squashfs -o ro,loop,offset=\$OFFS \$SELF \$MINC_BASEDIR
 TRAPCMD="umount \$MINC_BASEDIR;\$TRAPCMD"; trap "\$TRAPCMD" EXIT

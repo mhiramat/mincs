@@ -1,0 +1,133 @@
+#!/bin/sh
+# minc-core : Mini-container core script in new world
+#
+# Copyright (C) 2017 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+
+LIBEXEC=`dirname $0`
+MINCCOAT=$LIBEXEC/minc-coat
+MINCLEASH=$LIBEXEC/minc-leash
+MINCMOULT=$LIBEXEC/minc-moult
+
+# Exit if any errors
+set -e
+test "$MINC_DEBUG" && set -x
+:
+: 'Get the PID in parent namespace from procfs'
+: '(At this point, we still have the procfs in original namespace)'
+export MINC_PID=`cut -f 4 -d" " /proc/self/stat`
+echo $MINC_PID > $MINC_TMPDIR/pid
+:
+: 'Make current mount namespace private'
+mount --make-rprivate /
+:
+: 'Do not update /etc/mtab since the mount is private'
+export LIBMOUNT_MTAB=/proc/mounts
+:
+: 'Setup overlay rootfs by minc-coat'
+$MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
+:
+: 'Prepare root directory'
+RD=$MINC_TMPDIR/root
+mkdir -p $RD/etc $RD/dev $RD/sys $RD/proc
+
+bindmount() { # dir
+  test -e $1 && mount --bind $1 $RD$1
+  return 0
+}
+
+bindmount2() { # hostpath containerpath
+  test -d $1 && mkdir -p $RD$2
+  test -f $1 && mkdir -p `dirname $RD$2` && touch $RD$2
+  test -e $1 && mount --bind $1 $RD$2
+  return 0
+}
+
+if [ "$MINC_RWBIND" ]; then
+  :
+  : 'Bind user-defined directories'
+  for i in $MINC_RWBIND; do
+    bindmount2 `echo $i | sed "s/:/ /"`
+  done
+fi
+:
+: 'Setup utsname for this container'
+if [ "$MINC_UTSNAME" ]; then
+  hostname $MINC_UTSNAME
+  echo $MINC_UTSNAME > $MINC_TMPDIR/utsname
+elif [ -f $MINC_TMPDIR/utsname ]; then
+  hostname `cat $MINC_TMPDIR/utsname`
+fi
+
+if [ "$MINC_QEMU" ]; then
+  :
+  : 'Qemu mode runs'
+  . $MINCMOULT
+  MINC_GUEST_OPT="-r /mnt/root --name `hostname`"
+  :
+  : 'Since host mounts overlayfs on rootfs, guest skips it.'
+  MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
+  [ "$MINC_DEBUG" ] && MINC_GUEST_OPT="$MINC_GUEST_OPT --debug"
+  :
+  : 'Prepare run.sh for qemu/um internal container'
+  echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
+  echo "stty rows `tput lines`; stty cols `tput cols`" >> $MINC_TMPDIR/run.sh
+  echo "minc $MINC_GUEST_OPT \"$@\"" >> $MINC_TMPDIR/run.sh
+  minc_moult "$MINC_ARCH" "$MINC_TMPDIR" "ro quiet"
+  exit $? # failsafe
+fi
+:
+: 'Hide /etc/mtab from this namespace if needed'
+if [ ! -L $RD/etc/mtab ]; then
+  rm -f $RD/etc/mtab
+  ln -s /proc/mounts $RD/etc/mtab
+fi
+:
+: 'Prepare special device files'
+if [ "$MINC_USE_DEV" ]; then
+  : 'Directly use devtmpfs for new /dev'
+  mount -t devtmpfs devtmpfs $RD/dev
+else
+  : 'Make a fake /dev directory'
+  mount -t tmpfs tmpfs $RD/dev
+  mkdir $RD/dev/pts
+  if [ "$MINC_OPT_PTY" ]; then
+    : 'This is just a quick hack...'
+    touch $RD`tty`; bindmount `tty`
+    touch $RD/dev/pts/ptmx; bindmount /dev/pts/ptmx
+  else
+    mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
+  fi
+  ln -s /dev/pts/ptmx $RD/dev/ptmx
+  : 'Bind some fundamental device files to new /dev'
+  touch $RD/dev/console; bindmount /dev/console
+  touch $RD/dev/null; bindmount /dev/null
+  touch $RD/dev/zero; bindmount /dev/zero
+  touch $RD/dev/random; bindmount /dev/random
+  touch $RD/dev/urandom; bindmount /dev/urandom
+  test -d /dev/mqueue && mkdir $RD/dev/mqueue && bindmount /dev/mqueue
+  # TODO: Add other devices here
+fi
+
+if [ -x "$MINC_CROSS_QEMU" ]; then
+  :
+  : 'Bind qemu-user-mode for cross-arch container'
+  mkdir -p $RD/usr/bin/
+  [ -x $RD/$MINC_CROSS_QEMU ] || touch $RD/$MINC_CROSS_QEMU;
+  bindmount $MINC_CROSS_QEMU
+fi
+:
+: 'Do not bind procfs, since it shows outside pids'
+mount -t proc -o ro,nosuid,nodev,noexec proc /proc
+mount -t proc -o rw,nosuid,nodev,noexec,relatime proc $RD/proc
+bindmount /proc/sys
+bindmount /proc/sysrq-trigger
+bindmount /proc/irq
+bindmount /proc/bus
+[ -z "$MINC_NOPRIV" ] && bindmount /sys
+:
+: '/tmp is used for application working area in container'
+mount -t tmpfs tmpfs $RD/tmp
+
+# Define leash()
+exec $MINCLEASH $RD "$@"
