@@ -12,20 +12,22 @@ MINCMOULT=$LIBEXEC/minc-moult
 # Exit if any errors
 set -e
 test "$MINC_DEBUG" && set -x
-
-# At this point, we still have the procfs in original namespace
+:
+: 'Get the PID in parent namespace from procfs'
+: '(At this point, we still have the procfs in original namespace)'
 export MINC_PID=`cut -f 4 -d" " /proc/self/stat`
 echo $MINC_PID > $MINC_TMPDIR/pid
-
-# Make private mount namespace
+:
+: 'Make current mount namespace private'
 mount --make-rprivate /
-
-# Do not update /etc/mtab since the mount is private
+:
+: 'Do not update /etc/mtab since the mount is private'
 export LIBMOUNT_MTAB=/proc/mounts
-
-# Setup overlay rootfs
+:
+: 'Setup overlay rootfs by minc-coat'
 $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
-
+:
+: 'Prepare root directory'
 RD=$MINC_TMPDIR/root
 mkdir -p $RD/etc $RD/dev $RD/sys $RD/proc
 
@@ -41,13 +43,15 @@ bindmount2() { # hostpath containerpath
   return 0
 }
 
-# Bind user-defined directories
 if [ "$MINC_RWBIND" ]; then
+  :
+  : 'Bind user-defined directories'
   for i in $MINC_RWBIND; do
     bindmount2 `echo $i | sed "s/:/ /"`
   done
 fi
-
+:
+: 'Setup utsname for this container'
 if [ "$MINC_UTSNAME" ]; then
   hostname $MINC_UTSNAME
   echo $MINC_UTSNAME > $MINC_TMPDIR/utsname
@@ -55,49 +59,47 @@ elif [ -f $MINC_TMPDIR/utsname ]; then
   hostname `cat $MINC_TMPDIR/utsname`
 fi
 
-# Qemu code runs
 if [ "$MINC_QEMU" ]; then
-  # prepare moulting :)
+  :
+  : 'Qemu mode runs'
   . $MINCMOULT
   MINC_GUEST_OPT="-r /mnt/root --name `hostname`"
-  # Since host mounts overlayfs on rootfs, guest skips it.
+  :
+  : 'Since host mounts overlayfs on rootfs, guest skips it.'
   MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
   [ "$MINC_DEBUG" ] && MINC_GUEST_OPT="$MINC_GUEST_OPT --debug"
+  :
+  : 'Prepare run.sh for qemu/um internal container'
   echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
   echo "stty rows `tput lines`; stty cols `tput cols`" >> $MINC_TMPDIR/run.sh
   echo "minc $MINC_GUEST_OPT \"$@\"" >> $MINC_TMPDIR/run.sh
   minc_moult "$MINC_ARCH" "$MINC_TMPDIR" "ro quiet"
   exit $? # failsafe
 fi
-
-# Hide /etc/mtab in this namespace
+:
+: 'Hide /etc/mtab from this namespace if needed'
 if [ ! -L $RD/etc/mtab ]; then
   rm -f $RD/etc/mtab
   ln -s /proc/mounts $RD/etc/mtab
 fi
-
-# Hide /etc/mtab in this namespace
-if [ ! -L $RD/etc/mtab ]; then
-  rm -f $RD/etc/mtab
-  ln -s /proc/mounts $RD/etc/mtab
-fi
-
-# Prepare /dev special files
+:
+: 'Prepare special device files'
 if [ "$MINC_USE_DEV" ]; then
+  : 'Directly use devtmpfs for new /dev'
   mount -t devtmpfs devtmpfs $RD/dev
 else
-  # Use fake devfs
+  : 'Make a fake /dev directory'
   mount -t tmpfs tmpfs $RD/dev
-  # Prepare pts
   mkdir $RD/dev/pts
   if [ "$MINC_OPT_PTY" ]; then
-    # This just a quick hack...
+    : 'This is just a quick hack...'
     touch $RD`tty`; bindmount `tty`
     touch $RD/dev/pts/ptmx; bindmount /dev/pts/ptmx
   else
     mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
   fi
   ln -s /dev/pts/ptmx $RD/dev/ptmx
+  : 'Bind some fundamental device files to new /dev'
   touch $RD/dev/console; bindmount /dev/console
   touch $RD/dev/null; bindmount /dev/null
   touch $RD/dev/zero; bindmount /dev/zero
@@ -107,54 +109,64 @@ else
   # TODO: Add other devices here
 fi
 
-# bind qemu-user-mode for cross-arch container
 if [ -x "$MINC_CROSS_QEMU" ]; then
+  :
+  : 'Bind qemu-user-mode for cross-arch container'
   mkdir -p $RD/usr/bin/
   [ -x $RD/$MINC_CROSS_QEMU ] || touch $RD/$MINC_CROSS_QEMU;
   bindmount $MINC_CROSS_QEMU
 fi
-
-# Do not bind procfs, since it shows outside pids
+:
+: 'Do not bind procfs, since it shows outside pids'
 mount -t proc -o ro,nosuid,nodev,noexec proc /proc
 mount -t proc -o rw,nosuid,nodev,noexec,relatime proc $RD/proc
 bindmount /proc/sys
 bindmount /proc/sysrq-trigger
 bindmount /proc/irq
 bindmount /proc/bus
-[ "$MINC_NOPRIV" ] || bindmount /sys
-# This is used for application working area
+[ -z "$MINC_NOPRIV" ] && bindmount /sys
+:
+: '/tmp is used for application working area in container'
 mount -t tmpfs tmpfs $RD/tmp
 
 # Define leash()
 . $MINCLEASH
 
-# We can not use pivot_root on initramfs
+:
+: "Check the rootfs, since we can not use pivot_root on initramfs"
 mount | grep -q ^"rootfs on / " && export MINC_OPT_SIMPLE=1
 if [ "$MINC_OPT_SIMPLE" ]; then
-  # in this case, cap_sys_chroot should be dropped if possible.
+  : 'Without pivot_root, cap_sys_chroot should be dropped if possible.'
   if which capsh > /dev/null 2>&1; then
     MINC_DROPCAPS="$MINC_DROPCAPS,cap_sys_chroot"
   fi
 fi
-
+:
+: 'Check capsh --exec is supported'
 CAPSH_EXEC=
 capsh -h | grep -q "^ *--exec" && CAPSH_EXEC=1
-# Since capsh depends on /bin/bash, we can not drop caps without bash
 if [ "$MINC_DROPCAPS" -a ! -x $RD/bin/bash ]; then
   if capsh -h | grep -q "SHELL" && test -x $RD/bin/sh ; then
+    :
+    : 'If there is no bash but capsh supported $SHELL, use it as user shell'
     export SHELL=/bin/sh
   else
+    :
+    : 'We can not run (old) capsh without bash'
     echo "Warning: No /bin/bash found in rootfs, capabilities are not dropped"
     MINC_DROPCAPS=""
   fi
 fi
 
 if [ -z "$MINC_OPT_SIMPLE" ]; then
-  # To unmount all unused mountpoints, use pivot_root to change root
+  :
+  : 'To unmount all unused mountpoints, use pivot_root to change root'
   cd $RD
   mkdir -p .orig
   pivot_root . .orig
   PATH=/bin:/sbin:/usr/bin:/usr/sbin
+  :
+  : 'Now old root is under /.orig, make it private and umount all of that'
   mount --make-rprivate /.orig
   umount -l /.orig
   RD=.
