@@ -4,6 +4,7 @@
 # Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
 
+# usage: minc-leash ROOTDIR [COMMAND]
 set -e
 test "$MINC_DEBUG" && set -x
 
@@ -14,35 +15,12 @@ wash() { # pattern
   done
 }
 
-leash() { # rootdir [commands]
-  RD=$1
-  shift 1
-  if [ "$MINC_DROPCAPS" ]; then
-    :
-    : 'If we need to drop capabilities, use capsh to run given command'
-    if [ "$MINC_USERSPEC" ]; then
-      : 'Setup userspec option'
-      OPT=`echo $MINC_USERSPEC | \
-        awk 'BEGIN{FS=":"} {if (NF==2) print "--gid="$2; print "--uid="$1}'`
-    fi
-    [ "$CAPSH_EXEC" ] && OPT="$OPT --exec"
-    RUN="$MINC_DEBUG_PREFIX capsh --chroot=$RD $OPT --drop=$MINC_DROPCAPS -- "
-    if [ -z "$CAPSH_EXEC" ]; then
-      : 'If capsh does not support --exec, run it with sh -c '
-      wash "^MINC_"
-      exec $RUN -c "exec $*"
-    fi
-  else
-    :
-    : 'No capability change. Use chroot to run given command in a container'
-    test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
-    RUN="$MINC_DEBUG_PREFIX chroot $OPT $RD"
-  fi
-  : 'Wash out the environment variables for MINCS'
-  wash "^MINC_"
-  : 'Execute given command'
-  exec $RUN $@
-}
+RD=$1
+if test ! -d "$RD" ; then
+  echo "Error: $RD is not a directory."
+  exit 1
+fi
+shift 1
 
 if which capsh > /dev/null 2>&1; then
   :
@@ -74,6 +52,7 @@ else
   MINC_DROPCAPS=
 fi
 
+OPT=
 if [ -z "$MINC_DROPCAPS" ]; then
   :
   : 'If the rootfs is initramfs, we can not use pivot_root'
@@ -93,9 +72,30 @@ if [ -z "$MINC_DROPCAPS" ]; then
     RD=.
     : 'Note: In this case, we will use chroot in user container'
   fi
+  : 'Ensure chroot command is available'
   which chroot > /dev/null || (echo "Error: No chroot found"; exit 1)
+  :
+  : 'No capability change. Use chroot to run given command in a container'
+  test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
+  RUN="$MINC_DEBUG_PREFIX chroot $OPT $RD"
+else
+  :
+  : 'If we need to drop capabilities, use capsh to run given command'
+  if [ "$MINC_USERSPEC" ]; then
+    : 'Setup userspec option'
+    OPT=`echo $MINC_USERSPEC | \
+      awk 'BEGIN{FS=":"} {if (NF==2) print "--gid="$2; print "--uid="$1}'`
+  fi
+  [ "$CAPSH_EXEC" ] && OPT="$OPT --exec"
+  RUN="$MINC_DEBUG_PREFIX capsh --chroot=$RD $OPT --drop=$MINC_DROPCAPS -- "
+  if [ -z "$CAPSH_EXEC" ]; then
+    : 'If capsh does not support --exec, run it with sh -c '
+    wash "^MINC_"
+    exec $RUN -c "exec $*"
+  fi
 fi
 
-if [ `basename $0` = "minc-leash" ]; then
-  leash $@
-fi
+: 'Wash out the environment variables for MINCS'
+wash "^MINC_"
+: 'Execute given command'
+exec $RUN $@

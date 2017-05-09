@@ -130,6 +130,4 @@ bindmount /proc/bus
 mount -t tmpfs tmpfs $RD/tmp
 
 # Define leash()
-. $MINCLEASH
-
-leash $RD "$@"
+exec $MINCLEASH $RD "$@"
