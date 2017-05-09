@@ -52,6 +52,14 @@ else
   MINC_DROPCAPS=
 fi
 
+if [ $# -eq 0 ]; then
+  :
+  : 'No command specifed, use $SHELL instead'
+  CMD=$SHELL
+else
+  CMD=$1; shift 1
+fi
+
 OPT=
 if [ -z "$MINC_DROPCAPS" ]; then
   :
@@ -91,11 +99,11 @@ else
   if [ -z "$CAPSH_EXEC" ]; then
     : 'If capsh does not support --exec, run it with sh -c '
     wash "^MINC_"
-    exec $RUN -c "exec $*"
+    exec $RUN -c "exec $CMD $*"
   fi
 fi
 
 : 'Wash out the environment variables for MINCS'
 wash "^MINC_"
 : 'Execute given command'
-exec $RUN $@
+exec $RUN $CMD $@
