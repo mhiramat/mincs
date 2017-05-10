@@ -230,10 +230,13 @@ done
 
 TRAPCMD=
 if [ -z "$USE_FARM" ]; then
-  # Setup temporary directory
+  :
+  : 'Setup temporary working directory for this container'
   if [ -z "$MINC_TMPDIR" ]; then
     export MINC_TMPDIR=`mktemp -d /tmp/minc$$-XXXXXX`
   fi
+  :
+  : 'Trap the program exit and remove the working directory'
   if [ $KEEPDIR -eq 0 ]; then
     TRAPCMD="rm -rf $MINC_TMPDIR"
   else
@@ -241,7 +244,8 @@ if [ -z "$USE_FARM" ]; then
   fi
   trap "$TRAPCMD" EXIT
 elif [ "$USE_FARM" = "image" ]; then
-  # Use minc-farm to setup new container
+  :
+  : 'Use minc-farm to setup new container from image'
   UUID=`$MINCFARM fork $MINC_BASEDIR`
   export MINC_BASEDIR=`$MINCFARM imagestack $MINC_BASEDIR`
   export MINC_TMPDIR=`$MINCFARM dir $UUID`
@@ -249,7 +253,8 @@ elif [ "$USE_FARM" = "image" ]; then
   TRAPCMD="echo To reuse this, run: $0 -t "`echo $UUID | cut -b 1-12`
   trap "$TRAPCMD" EXIT
 else
-  # Use minc-farm container
+  :
+  : '(Re)use existing minc-farm container'
   UUID=`$MINCFARM baseid $MINC_TMPDIR` ||
     usage "Error No such container. $MINC_TMPDIR"
   export MINC_BASEDIR=`$MINCFARM imagestack $UUID`
