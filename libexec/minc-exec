@@ -13,11 +13,12 @@ set -e
 test "$MINC_DEBUG" && set -x
 :
 : "Ensure parameters are set"
+:
 test "$MINC_BASEDIR"
 test -d "$MINC_TMPDIR"
 
 if [ "$MINC_NETNS" ]; then
-  : "Setup Network Namespace"
+  :;: "Setup Network Namespace";:
   ip netns add $MINC_NETNS
   TRAPCMD="ip netns del $MINC_NETNS"
   trap "$TRAPCMD" EXIT
@@ -31,9 +32,11 @@ else
 fi
 :
 : "Setup CPU limitations by CPUSET"
+:
 test "$MINC_CPUMASK" && taskset -ap $MINC_CPUMASK $$ > /dev/null
 :
 : "Prepare Cgroups if needed"
+:
 CAGECMD=`$MINCCAGE --prepare $$`
 if [ "$CAGECMD" ]; then
   TRAPCMD="$CAGECMD;$TRAPCMD"
@@ -42,10 +45,12 @@ if [ "$CAGECMD" ]; then
 fi
 :
 : "Prepare cleanup commands"
+:
 trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
 :
-: 'Enter new namespace and exec command'
+: 'Enter new namespace and execute command'
+:
 UNSHARE_OPT=
 [ "$MINC_NOPRIV" ] && UNSHARE_OPT=--map-root-user
 $IP_NETNS unshare $UNSHARE_OPT -iumpf $MINCCORE "$@"

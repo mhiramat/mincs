@@ -23,28 +23,23 @@ fi
 shift 1
 
 if which capsh > /dev/null 2>&1; then
-  :
-  : 'Drop cap_sys_chroot to prohibit chroot-breakout'
+  :;: 'Drop cap_sys_chroot to prohibit chroot-breakout';:
   MINC_DROPCAPS="$MINC_DROPCAPS,cap_sys_chroot"
-  :
-  : 'Check capsh --exec is supported'
+  :;: 'Check capsh --exec is supported';:
   CAPSH_EXEC=
   if capsh -h | grep -q "^ *--exec" ; then
     CAPSH_EXEC=1
   elif [ ! -x $RD/bin/bash ]; then
     if capsh -h | grep -q "SHELL" && test -x $RD/bin/sh ; then
-      :
-      : 'If there is no bash but capsh supports $SHELL, use /bin/sh to run'
+      :;: 'If there is no bash but capsh supports $SHELL, use /bin/sh to run';:
       export SHELL=/bin/sh
     else
-      :
-      : 'We can not run (old) capsh without bash, fallback to chroot'
+      :;: 'We can not run (old) capsh without bash, fallback to chroot';:
       MINC_DROPCAPS=""
     fi
   fi
 else
-  :
-  : 'No capsh found, fallback to chroot + pivot_root magic'
+  :;: 'No capsh found, fallback to chroot + pivot_root magic';:
   if [ "$MINC_DROPCAPS" ]; then
     echo "Error: Failed to drop capabilities because there is no capsh."
     exit 1
@@ -53,8 +48,7 @@ else
 fi
 
 if [ $# -eq 0 ]; then
-  :
-  : 'No command specifed, use $SHELL instead'
+  :;: 'No command specifed, use $SHELL instead';:
   CMD=$SHELL
 else
   CMD=$1; shift 1
@@ -62,48 +56,48 @@ fi
 
 OPT=
 if [ -z "$MINC_DROPCAPS" ]; then
-  :
-  : 'If the rootfs is initramfs, we can not use pivot_root'
+  :;: 'If the rootfs is initramfs, we can not use pivot_root';:
   if mount | grep -q ^"rootfs on / " ; then
     echo "Warning: Failed to drop cap_sys_chroot. chroot breakout is available"
   else
-    :
-    : 'To unmount all unused mountpoints, use pivot_root to change root'
+    :;: 'To unmount all unused mountpoints, use pivot_root to change root';:
     cd $RD
     mkdir -p .orig
     pivot_root . .orig
     PATH=/bin:/sbin:/usr/bin:/usr/sbin
-    :
-    : 'Now old root is under /.orig, make it private and umount all of that'
+    :;: 'Now old root is under /.orig, make it private and umount all of that';:
     mount --make-rprivate /.orig
     umount -l /.orig
     RD=.
-    : 'Note: In this case, we will use chroot in user container'
+    :;: '(Note: In this case, we will use chroot in user container)';:
   fi
-  : 'Ensure chroot command is available'
+
+  :;: 'Ensure chroot command is available';:
   which chroot > /dev/null || (echo "Error: No chroot found"; exit 1)
-  :
-  : 'No capability change. Use chroot to run given command in a container'
+
+  :;: 'No capability change. Use chroot to run given command in a container';:
   test "$MINC_USERSPEC" && OPT="--userspec $MINC_USERSPEC"
   RUN="$MINC_DEBUG_PREFIX chroot $OPT $RD"
+
 else
-  :
-  : 'If we need to drop capabilities, use capsh to run given command'
+
+  :;: 'If we need to drop capabilities, use capsh to run given command';:
   if [ "$MINC_USERSPEC" ]; then
-    : 'Setup userspec option'
+    :;: 'Setup userspec option';:
     OPT=`echo $MINC_USERSPEC | \
       awk 'BEGIN{FS=":"} {if (NF==2) print "--gid="$2; print "--uid="$1}'`
   fi
   [ "$CAPSH_EXEC" ] && OPT="$OPT --exec"
   RUN="$MINC_DEBUG_PREFIX capsh --chroot=$RD $OPT --drop=$MINC_DROPCAPS -- "
   if [ -z "$CAPSH_EXEC" ]; then
-    : 'If capsh does not support --exec, run it with sh -c '
+    :;: 'Wash out the environment variables for MINCS';:
     wash "^MINC_"
+    :;: 'If capsh does not support --exec, run it with sh -c ';:
     exec $RUN -c "exec $CMD $*"
   fi
 fi
 
-: 'Wash out the environment variables for MINCS'
+:;: 'Wash out the environment variables for MINCS';:
 wash "^MINC_"
-: 'Execute given command'
+:;: 'Execute given command in new rootfs';:
 exec $RUN $CMD $@

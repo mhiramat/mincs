@@ -35,6 +35,7 @@ fi
 # MINC_MEM_SWAP - swap+memory limit in bytes
 
 if [ "$MINC_MEM_LIMIT" ]; then
+  :;: 'Set cgroups memory limit';:
   test -d $MEMCG
   echo $MINC_MEM_LIMIT > $MEMCG/memory.limit_in_bytes
   [ "$MINC_MEM_SWAP" ] && \
@@ -46,12 +47,14 @@ fi
 # MINC_CPU_QUOTA - CPU quota of the container in usec (default: 100000)
 
 if [ "$MINC_CPU_SHARES" ]; then
+  :;: 'Set cgroups CPU share limit';:
   test -d $CPUCG
   echo $MINC_CPU_SHARES > $CPUCG/cpu.shares
   echo $$ > $CPUCG/tasks
 fi
 
 if [ "$MINC_CPU_QUOTA" ]; then
+  :;: 'Set cgroups CPU quota limit';:
   test -d $CPUCG
   echo $MINC_CPU_QUOTA > $CPUCG/cpu.cfs_quota_us
   echo $$ > $CPUCG/tasks
@@ -59,6 +62,7 @@ fi
 
 # MINC_PID_MAX - The max number of PID
 if [ "$MINC_PID_MAX" ]; then
+  :;: 'Set cgroups max PID limit';:
   test -d $PIDCG
   echo $MINC_PID_MAX > $PIDCG/pids.max
   echo $$ > $PIDCG/cgroup.procs
