@@ -21,6 +21,7 @@ cleanup_cages() { # dirs
 
 # with --prepare option, this sets up the cgroups and returns cleanup command
 if [ "x$1" = "x--prepare" ]; then
+  :;: "Prepare Cgroups if needed";:
   [ "$MINC_MEM_LIMIT" ] && CGDIRS="$CGDIRS $MEMCG"
   [ "$MINC_CPU_SHARES" -o "$MINC_CPU_QUOTA" ] && CGDIRS="$CGDIRS $CPUCG"
   [ "$MINC_PID_MAX" ] && CGDIRS="$CGDIRS $PIDCG"
