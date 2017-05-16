@@ -19,6 +19,15 @@ test "$MINC_DEBUG" && set -x
 export MINC_PID=`cut -f 4 -d" " /proc/self/stat`
 echo $MINC_PID > $MINC_TMPDIR/pid
 
+if [ "$MINC_UTSNAME" ]; then
+  :;: 'Setup utsname for this container';:
+  hostname $MINC_UTSNAME
+  echo $MINC_UTSNAME > $MINC_TMPDIR/utsname
+elif [ -f $MINC_TMPDIR/utsname ]; then
+  :;: 'Setup utsname from existing container image';:
+  hostname `cat $MINC_TMPDIR/utsname`
+fi
+
 :;: 'Make current mount namespace private';:
 mount --make-rprivate /
 
@@ -51,14 +60,6 @@ if [ "$MINC_RWBIND" ]; then
   done
 fi
 
-:;: 'Setup utsname for this container';:
-if [ "$MINC_UTSNAME" ]; then
-  hostname $MINC_UTSNAME
-  echo $MINC_UTSNAME > $MINC_TMPDIR/utsname
-elif [ -f $MINC_TMPDIR/utsname ]; then
-  hostname `cat $MINC_TMPDIR/utsname`
-fi
-
 if [ "$MINC_QEMU" ]; then
   :
   : 'Enter qemu-system or user-mode-linux container (ermine)'
@@ -78,8 +79,8 @@ if [ "$MINC_QEMU" ]; then
   exit $? # failsafe
 fi
 
-:;: 'Hide /etc/mtab from this namespace if needed';:
 if [ ! -L $RD/etc/mtab ]; then
+  :;: 'Hide /etc/mtab from this namespace';:
   rm -f $RD/etc/mtab
   ln -s /proc/mounts $RD/etc/mtab
 fi
