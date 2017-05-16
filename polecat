@@ -103,7 +103,6 @@ else
 fi
 $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
 RD=$MINC_TMPDIR/root
-trap "$MINCCOAT unbind $MINC_TMPDIR; rm -rf $MINC_TMPDIR" EXIT
 
 # At first, install minc libs
 mkdir -p $RD/opt/libexec
@@ -125,6 +124,7 @@ install_command
 EOF
   chmod a+x $RD/*.sh
   trap "" INT
+  $MINCCOAT unbind $MINC_TMPDIR
 
   # Install phase
   echo "--- Installation stage ---"
@@ -146,6 +146,7 @@ EOF
   # Now we can directly use upper directory as root directory.
   RD=$UD
 else
+  $MINCCOAT unbind $MINC_TMPDIR
   # Simple command execution
   COMMAND="$@"
   $TRAPPER -r $ROOTFS $MINC_TMPDIR $COMMAND
@@ -202,7 +203,9 @@ sh \$MINC_BASEDIR/opt/libexec/minc-exec $COMMAND
 exit \$?
 EOF
 
-cat $MINC_TMPDIR/polecat.sh $SFS > $OUTFILE
-chmod a+x $OUTFILE
+cat $MINC_TMPDIR/polecat.sh $SFS > $OUTDIR/$OUTFILE
+chmod a+x $OUTDIR/$OUTFILE
+
+echo -n "done:" ; ls -sh $OUTDIR/$OUTFILE
 
 exit 0
