@@ -23,7 +23,7 @@ get_latest_kernel_url() {
 }
 
 # Download sources
-LINUX_URL=`get_latest_kernel_url`
+LINUX_URL=""
 BUSYBOX_URL=http://busybox.net/downloads/busybox-1.26.2.tar.bz2
 LIBCAP_URL=https://github.com/mhiramat/libcap/archive/capsh-exec-v1.zip
 UM_LINUX_URL=https://github.com/mhiramat/linux/archive/um-quiet.zip
@@ -501,6 +501,9 @@ fi
 if [ "$ARCH" = "um" ]; then
   LINUX_URL=$UM_LINUX_URL
   echo "Note: LINUX_URL is replaced by $UM_LINUX_URL, since um-quiet series is not merged yet."
+elif [ -z "$LINUX_URL" ]; then
+  # Setup the latest kernel url here to avoid accessing kernel.org for testrun
+  LINUX_URL=`get_latest_kernel_url`
 fi
 setup_source $LINUX_URL $LINUXDIR
 setup_source $BUSYBOX_URL $BUSYBOXDIR
