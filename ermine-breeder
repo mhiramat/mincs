@@ -280,7 +280,7 @@ EOF
 #!/bin/sh
 mount_host() {
   if grep -q hostfs /proc/filesystems ; then
-    mount -t hostfs -o / minc /mnt
+    mount -t hostfs -o sync,/ minc /mnt
   else
     mount -t 9p -o trans=virtio,version=9p2000.L,posixacl,cache=none minc /mnt
   fi
