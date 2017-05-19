@@ -62,6 +62,13 @@ if [ "$MINC_RWBIND" ]; then
   done
 fi
 
+if [ -x "$MINC_CROSS_QEMU" ]; then
+  :;: 'Bind qemu-user-mode for cross-arch container';:
+  mkdir -p $RD/usr/bin/
+  [ -x $RD/$MINC_CROSS_QEMU ] || touch $RD/$MINC_CROSS_QEMU;
+  bindmount $MINC_CROSS_QEMU
+fi
+
 if [ "$MINC_QEMU" ]; then
   :
   : 'Enter qemu-system or user-mode-linux container (ermine)'
@@ -107,13 +114,6 @@ else
   bindmounts /dev/console /dev/null /dev/zero /dev/random /dev/urandom
   test -d /dev/mqueue && mkdir $RD/dev/mqueue && bindmount /dev/mqueue
   # TODO: Add other devices here
-fi
-
-if [ -x "$MINC_CROSS_QEMU" ]; then
-  :;: 'Bind qemu-user-mode for cross-arch container';:
-  mkdir -p $RD/usr/bin/
-  [ -x $RD/$MINC_CROSS_QEMU ] || touch $RD/$MINC_CROSS_QEMU;
-  bindmount $MINC_CROSS_QEMU
 fi
 
 :;: 'Do not bind procfs, since it shows outside pids';:
