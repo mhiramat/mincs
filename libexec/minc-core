@@ -42,15 +42,17 @@ RD=$MINC_TMPDIR/root
 mkdir -p $RD/etc $RD/dev $RD/sys $RD/proc
 
 bindmount() { # dir
-  test -e $1 && mount --bind $1 $RD$1
-  return 0
+  test -e $1 && touch $RD$1 && mount --bind $1 $RD$1
+}
+
+bindmounts() { # dir(s)
+  for d in $*; do bindmount $d; done
 }
 
 bindmount2() { # hostpath containerpath
   test -d $1 && mkdir -p $RD$2
   test -f $1 && mkdir -p `dirname $RD$2` && touch $RD$2
   test -e $1 && mount --bind $1 $RD$2
-  return 0
 }
 
 if [ "$MINC_RWBIND" ]; then
@@ -101,12 +103,8 @@ else
     mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
   fi
   ln -s /dev/pts/ptmx $RD/dev/ptmx
-  :;: 'Bind some fundamental device files to new /dev';:
-  touch $RD/dev/console; bindmount /dev/console
-  touch $RD/dev/null; bindmount /dev/null
-  touch $RD/dev/zero; bindmount /dev/zero
-  touch $RD/dev/random; bindmount /dev/random
-  touch $RD/dev/urandom; bindmount /dev/urandom
+  :;: 'Bind fundamental device files to new /dev';:
+  bindmounts /dev/console /dev/null /dev/zero /dev/random /dev/urandom
   test -d /dev/mqueue && mkdir $RD/dev/mqueue && bindmount /dev/mqueue
   # TODO: Add other devices here
 fi
@@ -121,10 +119,7 @@ fi
 :;: 'Do not bind procfs, since it shows outside pids';:
 mount -t proc -o ro,nosuid,nodev,noexec proc /proc
 mount -t proc -o rw,nosuid,nodev,noexec,relatime proc $RD/proc
-bindmount /proc/sys
-bindmount /proc/sysrq-trigger
-bindmount /proc/irq
-bindmount /proc/bus
+bindmounts /proc/sys /proc/sysrq-trigger /proc/irq /proc/bus
 [ -z "$MINC_NOPRIV" ] && bindmount /sys
 
 :;: '/tmp is used for application working area in container';:

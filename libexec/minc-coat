@@ -32,7 +32,7 @@ if [ "$MINC_DIRECT" ]; then
   :;: 'For direct mode, we just bind given dir to mountpoint';:
   mount -o bind $BASEDIR $RD
 else
-  :;: 'Prepare overlayed root directory';:
+  :;: 'Mount overlayed root directory';:
   if grep -q overlayfs /proc/filesystems ; then
     :;: 'Workaround for ubuntu 14.10 (out-of-tree overlayfs)';:
     mount -t overlayfs -o upperdir=$UD,lowerdir=$BASEDIR overlayfs $RD
