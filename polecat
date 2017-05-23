@@ -43,6 +43,7 @@ export MINC_BASEDIR=/
 export MINC_USE_DEV=
 export MINC_IGNORE_STATE=0
 SCRIPT=
+TMPDIR=
 
 test $# -eq 0 && usage
 while [ $# -ne 0 ]; do
@@ -62,6 +63,10 @@ case $1 in
   FORMAT=$2
   case "$2" in sh|squashfs|sfs|tgz) ;;
   *) usage "$2 is not supported format " ;; esac
+  shift 2
+  ;;
+-t|--tempdir)
+  TMPDIR=$2
   shift 2
   ;;
 --debug)
@@ -91,9 +96,13 @@ ROOTFS=$1
 shift 1
 
 # Preparing working dir
-export MINC_TMPDIR=`mktemp -d polecat-XXXXXXXX`
-MINC_TMPDIR=`(cd $MINC_TMPDIR; pwd)`
-trap "rm -rf $MINC_TMPDIR" EXIT
+if [ -d "$TMPDIR" ] ; then
+  export MINC_TMPDIR=$TMPDIR
+else
+  export MINC_TMPDIR=`mktemp -d polecat-XXXXXXXX`
+  MINC_TMPDIR=`(cd $MINC_TMPDIR; pwd)`
+  trap "rm -rf $MINC_TMPDIR" EXIT
+fi
 
 # Working sub-directories
 if [ $USE_FARM = "image" ]; then
@@ -132,9 +141,9 @@ EOF
   $MINCEXEC /install.sh
 
   # Testing phase
+  trap '' TERM
   echo "--- Testing stage (Press ^C after test run) ---"
   $TRAPPER -r $ROOTFS $MINC_TMPDIR $COMMAND
-  trap - INT
 
   # Note that this could cause directory traversal. Do not shoot your foot.
   echo "--- Preparing files ---"
@@ -142,6 +151,7 @@ EOF
   [ "$MKDIRS" ] && for i in $MKDIRS; do mkdir -p $UD/$i; done
   [ "$RMDIRS" ] && for i in $RMDIRS; do rm -rf $UD/$i; done
   rm -f $UD/install.sh
+  trap - INT
 
   # Now we can directly use upper directory as root directory.
   RD=$UD
