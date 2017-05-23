@@ -38,7 +38,7 @@ fi
 CAGECMD=`$MINCCAGE --prepare $$`
 if [ "$CAGECMD" ]; then
   TRAPCMD="$CAGECMD;$TRAPCMD"
-  : 'Setup a "cage" for the container'
+  :;: 'Setup a "cage" for the container';:
   . $MINCCAGE
 fi
 
