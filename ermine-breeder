@@ -68,7 +68,7 @@ extract_source() { # file todir
  *.tar*|*tgz)
    tar -xf $1 -C $2 --no-same-owner ;;
  *.zip)
-   unzip -d $2 $1 ;;
+   unzip -q -d $2 $1 ;;
  *)
    echo "$1 is not supported archive format."
    exit 1 ;;
