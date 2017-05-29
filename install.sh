@@ -16,6 +16,10 @@ case "$1" in
     echo "Build ermine and install"
     $TOPDIR/ermine-breeder
     ;;
+  --minimum)
+    BINS=minc
+    LIBS="libexec/minc-exec libexec/minc-core libexec/minc-coat libexec/minc-leash libexec/minc-cage"
+    ;;
   -h|--help)
     echo "Install script for MINCS"
     echo "Usage: $0 [-u|--uninstall|--ermine]"
