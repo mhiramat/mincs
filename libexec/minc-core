@@ -42,7 +42,7 @@ RD=$MINC_TMPDIR/root
 mkdir -p $RD/etc $RD/dev $RD/sys $RD/proc
 
 bindmount() { # dir
-  test -e $1 && touch $RD$1 && mount --bind $1 $RD$1
+  if test -e $1; then (test -e $RD$1 || touch $RD$1) && mount --bind $1 $RD$1; fi
 }
 
 bindmounts() { # dir(s)
@@ -89,7 +89,7 @@ if [ "$MINC_QEMU" ]; then
   exit $? # failsafe
 fi
 
-if [ ! -L $RD/etc/mtab ]; then
+if [ ! -L $RD/etc/mtab -a -e $RD/etc/mtab ]; then
   :;: 'Hide /etc/mtab from this namespace';:
   rm -f $RD/etc/mtab
   ln -s /proc/mounts $RD/etc/mtab
