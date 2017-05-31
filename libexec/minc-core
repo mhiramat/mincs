@@ -79,11 +79,12 @@ if [ "$MINC_QEMU" ]; then
   :;: 'Since host mounts overlayfs on rootfs, guest skips it.';:
   MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
   [ "$MINC_DEBUG" ] && MINC_GUEST_OPT="$MINC_GUEST_OPT --debug"
+  [ $# -ne 0 ] && MINC_GUEST_OPT="$MINC_GUEST_OPT \"$@\""
 
   :;: 'Prepare run.sh for qemu/um internal container';:
   echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
   echo "stty rows `tput lines`; stty cols `tput cols`" >> $MINC_TMPDIR/run.sh
-  echo "minc $MINC_GUEST_OPT \"$@\"" >> $MINC_TMPDIR/run.sh
+  echo "minc $MINC_GUEST_OPT" >> $MINC_TMPDIR/run.sh
   minc_moult "$MINC_ARCH" "$MINC_TMPDIR" "ro quiet"
   exit $? # failsafe
 fi
