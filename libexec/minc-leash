@@ -55,7 +55,7 @@ else
 fi
 
 OPT=
-if [ -z "$MINC_DROPCAPS" ]; then
+if [ -z "$MINC_DROPCAPS" -o "$MINC_USERSPEC" ]; then
   :;: 'If the rootfs is initramfs, we can not use pivot_root';:
   if mount | grep -q ^"rootfs on / " ; then
     echo "Warning: Failed to drop cap_sys_chroot. chroot breakout is available"
