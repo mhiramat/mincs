@@ -297,6 +297,7 @@ fi
 }
 mount | grep -q /mnt || run_minc
 echo "=== Ermine operating console ==="
+echo "To exit the ermine OS, please run 'poweroff' command"
 echo
 exec /bin/sh
 EOF
