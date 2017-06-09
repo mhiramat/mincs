@@ -3,6 +3,8 @@
 #
 # Copyright (C) 2015 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
+LIBEXEC=`dirname $0`
+MINCHUNT=$LIBEXEC/minc-hunt
 
 # usage: minc-leash ROOTDIR [COMMAND]
 set -e
@@ -10,6 +12,7 @@ test "$MINC_DEBUG" && set -x
 
 # wash : wash up the given environment variables
 wash() { # pattern
+  [ "$MINC_FTRACE" ] && $MINCHUNT
   for i in `env | grep $1 | cut -f 1 -d=`; do
     unset $i
   done

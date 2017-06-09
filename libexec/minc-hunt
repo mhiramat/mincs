@@ -1,0 +1,38 @@
+#!/bin/sh
+# minc-hunt : Mini-container tracking by ftrace
+#
+# Copyright (C) 2017 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+
+set -e
+test "$MINC_DEBUG" && set -x
+
+:;: 'Setup ftrace script abspath';:
+if [ ! -f "$MINC_FTRACE" ]; then
+  echo "NO ftrace script passed";
+  exit 1
+fi
+absdir() {
+  (cd `dirname $1`; pwd)
+}
+MINC_FTRACE=`absdir $MINC_FTRACE`/`basename $MINC_FTRACE`
+
+:;: 'Get ftrace directory via debugfs or tracefs mountpoint';:
+DEBUGDIR=`grep -w debugfs /proc/mounts | cut -f2 -d' ' | head -1`
+if [ -d "$DEBUGDIR" ]; then
+  TRACEDIR=`grep -w tracefs /proc/mounts | cut -f2 -d' ' | head -1`
+else
+  TRACEDIR=$DEBUGDIR/tracing
+fi
+if [ ! -d "$TRACEDIR" ]; then
+  echo "NO tracedir found. Please make sure to mount debugfs or tracefs"
+  exit 1
+fi
+
+cd $TRACEDIR
+:;: 'Setup pid filter for event and ftrace and trace forked processes';:
+echo $MINC_PID > set_event_pid
+echo $MINC_PID > set_ftrace_pid
+echo 1 > options/event-fork
+:;: 'Run user-given script';:
+. $MINC_FTRACE

@@ -50,6 +50,7 @@ usage() { # [error messages]
   echo "    --nopriv DIR	Run MINC without root privilege on given <DIR>"
   echo "    --qemu		Run MINC in qemu-kvm instead of chroot"
   echo "    --um		Run MINC in user-mode-linux instead of chroot"
+  echo "    --ftrace SCRIPT     Set ftrace pid filter and run SCRIPT to setup"
   echo "    --debug		Debug mode"
   exit $#
 }
@@ -214,6 +215,11 @@ case "$cmd" in
   --um)
     export MINC_QEMU=1
     export MINC_ARCH=um
+    ;;
+  --ftrace)
+    [ ! -f "$1" ] && usage "\"$1\" is not a file."
+    export MINC_FTRACE=$1
+    shift 1
     ;;
   --help|-h) # Help Message
     usage
