@@ -7,16 +7,6 @@
 set -e
 test "$MINC_DEBUG" && set -x
 
-:;: 'Setup ftrace script abspath';:
-if [ ! -f "$MINC_FTRACE" ]; then
-  echo "NO ftrace script passed";
-  exit 1
-fi
-absdir() {
-  (cd `dirname $1`; pwd)
-}
-MINC_FTRACE=`absdir $MINC_FTRACE`/`basename $MINC_FTRACE`
-
 :;: 'Get ftrace directory via debugfs or tracefs mountpoint';:
 DEBUGDIR=`grep -w debugfs /proc/mounts | cut -f2 -d' ' | head -1`
 if [ -d "$DEBUGDIR" ]; then

@@ -42,6 +42,17 @@ if [ "$CAGECMD" ]; then
   . $MINCCAGE
 fi
 
+if [ -f "$MINC_FTRACE" ]; then
+  if [ "$MINC_NOPRIV" ]; then
+    echo "You can not control ftrace in non-privilege container"
+    exit 1
+  fi
+  :;: 'Prepare ftrace script for the container';:
+  cp $MINC_FTRACE $MINC_TMPDIR/ftrace.sh
+  TRAPCMD="rm $MINC_TMPDIR/ftrace.sh;$TRAPCMD"
+  MINC_FTRACE=$MINC_TMPDIR/ftrace.sh
+fi
+
 :;: "Prepare cleanup commands";:
 trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
