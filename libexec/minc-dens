@@ -1,0 +1,73 @@
+#!/bin/sh
+# minc-dens : Mini-container docker emulating network support
+#
+# Copyright (C) 2017 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+
+set -e
+test "$MINC_DEBUG" && set -x
+
+MINC_BR=mincbr0
+MINC_BRTMP=192.168.139.X/24
+MINC_LEASE=/var/run/minc.lease
+
+setup_nat() {
+  echo 1 > /proc/sys/net/ipv4/ip_forward
+  MINC_BRNET=`echo $MINC_BRTMP | sed s/X/0/g`
+  iptables -t nat -A POSTROUTING -s $MINC_BRNET ! -d $MINC_BRNET -j MASQUERADE
+  iptables -I FORWARD -i $MINC_BR -j ACCEPT
+  iptables -I FORWARD -o $MINC_BR -m state --state RELATED,ESTABLISHED -j ACCEPT
+}
+
+init_minclease(){
+  echo -n > $MINC_LEASE
+}
+
+mkmincbr(){
+  brctl show | grep -qw $MINC_BR && return 0
+  :;: 'Add a bridge for mincs';:
+  MINC_BRIP=`echo $MINC_BRTMP | sed s/X/1/g`
+  brctl addbr $MINC_BR
+  ip -4 addr add $MINC_BRIP dev $MINC_BR
+  ip link set $MINC_BR up
+  init_minclease
+  setup_nat
+}
+
+rmmincbr(){
+  ip link set $MINC_BR down
+  brctl delbr $MINC_BR
+}
+
+addmincif(){ # ifname
+  ip link set $1 up
+  brctl addif $MINC_BR $1
+}
+
+_get_unused_ipaddr(){ # ifname
+  for i in `seq 2 128`; do
+    MINC_IP=`echo $MINC_BRTMP | sed s/X/$i/g`
+    grep -qw $MINC_IP $MINC_LEASE && continue
+    echo $MINC_IP $1 >> $MINC_LEASE
+    echo $MINC_IP
+    break;
+  done
+}
+
+addmincip(){ # ifname netns
+  MINC_IP=`_get_unused_ipaddr $1`
+  if [ -z "$MINC_IP" ]; then
+    echo "Error: no available IP address remains" 1>&2
+    return 1
+  fi
+  MINC_GWIP=`echo $MINC_BRTMP | sed s@X/24@1@g`
+  ip link set $1 netns $2
+  ip netns exec $2 ip -4 addr add $MINC_IP dev $1
+  ip netns exec $2 ip link set $1 up
+  ip netns exec $2 ip -4 route add default via $MINC_GWIP
+}
+
+delmincip(){ # ifname
+  grep -v $1 $MINC_LEASE > ${MINC_LEASE}.new && \
+	  mv ${MINC_LEASE}.new $MINC_LEASE
+}
