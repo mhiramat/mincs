@@ -1,5 +1,5 @@
 #!/bin/sh
-# minc-dens : Mini-container docker emulating network support
+# minc-dens : Mini-container docker emulating NAT support
 #
 # Copyright (C) 2017 Masami Hiramatsu <masami.hiramatsu@gmail.com>
 # This program is released under the MIT License, see LICENSE.
@@ -14,7 +14,7 @@ MINC_LEASE=/var/run/minc.lease
 setup_nat() {
   echo 1 > /proc/sys/net/ipv4/ip_forward
   MINC_BRNET=`echo $MINC_BRTMP | sed s/X/0/g`
-  iptables -t nat -A POSTROUTING -s $MINC_BRNET ! -d $MINC_BRNET -j MASQUERADE
+  iptables -t nat -A POSTROUTING -s $MINC_BRNET ! -o $MINC_BR -j MASQUERADE
   iptables -I FORWARD -i $MINC_BR -j ACCEPT
   iptables -I FORWARD -o $MINC_BR -m state --state RELATED,ESTABLISHED -j ACCEPT
 }
