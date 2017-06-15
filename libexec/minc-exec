@@ -31,9 +31,18 @@ if [ "$MINC_NETNS" ]; then
 
   :;: 'Setup container internal interface';:
   TRAPCMD="delmincip $MINC_NETNSIF; $TRAPCMD"
-  trap "$TRAPCMD" EXIT
-  addmincip $MINC_NETNSIF $MINC_NETNS
+  trap "set +e; $TRAPCMD" EXIT
+  MINC_IP=`addmincip $MINC_NETNSIF $MINC_NETNS`
   IP_NETNS="ip netns exec $MINC_NETNS "
+
+  if [ "$MINC_PORT_MAP" ] ; then
+    :;: 'Map container port to host port (DNAT)';:
+    for p in $MINC_PORT_MAP; do
+      addmincport $MINC_IP $p
+      TRAPCMD="delmincport $MINC_IP $p; $TRAPCMD"
+      trap "$TRAPCMD" EXIT
+    done
+  fi
 else
   TRAPCMD=
   IP_NETNS=
