@@ -31,7 +31,7 @@ if [ "$MINC_NETNS" ]; then
 
   :;: 'Setup container internal interface';:
   TRAPCMD="delmincip $MINC_NETNSIF; $TRAPCMD"
-  trap "set +e; $TRAPCMD" EXIT
+  trap "$TRAPCMD" EXIT
   MINC_IP=`addmincip $MINC_NETNSIF $MINC_NETNS`
   IP_NETNS="ip netns exec $MINC_NETNS "
 
