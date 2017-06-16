@@ -36,6 +36,8 @@ usage() { # [error messages]
   echo "    -p or --pty		Assign new pty for the container"
   echo "    -b or --bind HOSTPATH:PATH"
   echo "        		Bind HOSTPATH to PATH in container"
+  echo "    --port HOSTPORT:PORT[:udp]"
+  echo "        		Bind HOSTPORT to PORT in container"
   echo "    --name NAME		Set <NAME> as container's name (hostname)"
   echo "    --user UID[:GID]	Specify uid and gid to run command"
   echo "    --usedev		Use devtmpfs for /dev (for loopback etc.)"
@@ -99,6 +101,7 @@ export MINC_PID_MAX=
 export MINC_CROSS_QEMU=
 export MINC_NOPRIV=
 export MINC_QEMU=
+export MINC_PORT_MAP=
 export MINC_ARCH=`uname -m`
 
 minc_set_rootfs() {
@@ -180,6 +183,11 @@ case "$cmd" in
     ;;
   --pty|-p)
     export MINC_OPT_PTY=1
+    ;;
+  --port)
+    export MINC_PORT_MAP="$1 $MINC_PORT_MAP"
+    export MINC_NETNS="minc$$"
+    shift 1
     ;;
   --name)
     export MINC_UTSNAME=$1

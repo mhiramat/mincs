@@ -1,0 +1,134 @@
+#!/bin/sh
+# minc-dens : Mini-container docker emulating NAT support
+#
+# Copyright (C) 2017 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+
+set -e
+test "$MINC_DEBUG" && set -x
+
+MINC_BR=mincbr0
+MINC_BRTMP=192.168.139.X/24
+MINC_LEASE=/var/run/minc.lease
+
+map_port(){ # destip hostport destport proto
+  :;: 'Ingress packet to local ip is DNAT to given container';:
+  iptables -t nat -A MINCS ! -i $MINC_BR -p $4 -m $4 --dport $2 -j DNAT --to-destination $1:$3
+  :;: 'From host (outside of minc container), accept it.';:
+  iptables -A MINCS -d $1 ! -i $MINC_BR -o $MINC_BR -p $4 -m $4 --dport $3 -j ACCEPT
+}
+
+unmap_port(){ # destip hostport destport proto
+  :;: 'Delete DNAT rules';:
+  iptables -t nat -D MINCS ! -i $MINC_BR -p $4 -m $4 --dport $2 -j DNAT --to-destination $1:$3
+  iptables -D MINCS -d $1 ! -i $MINC_BR -o $MINC_BR -p $4 -m $4 --dport $3 -j ACCEPT
+}
+
+setup_nat() {
+  MINC_BRNET=`echo $MINC_BRTMP | sed s/X/0/g`
+  :;: 'Setup NAT (Masquerade & local forwarding) rules';:
+
+  iptables -I FORWARD -i $MINC_BR -j ACCEPT
+  iptables -I FORWARD -o $MINC_BR -m state --state RELATED,ESTABLISHED -j ACCEPT
+  iptables -N MINCS
+  iptables -A MINCS -i $MINC_BR -j RETURN
+  iptables -A FORWARD -o $MINC_BR -j MINCS
+
+  iptables -t nat -A POSTROUTING -s $MINC_BRNET ! -o $MINC_BR -j MASQUERADE
+  iptables -t nat -N MINCS
+  iptables -t nat -A MINCS -i $MINC_BR -j RETURN
+  iptables -t nat -A PREROUTING -m addrtype --dst-type LOCAL -j MINCS
+  echo 1 > /proc/sys/net/ipv4/ip_forward
+}
+
+discard_nat() {
+  MINC_BRNET=`echo $MINC_BRTMP | sed s/X/0/g`
+  :;: 'ignore errors on discarding rules';:
+  set +e
+  iptables -D FORWARD -o $MINC_BR -m state --state RELATED,ESTABLISHED -j ACCEPT
+  iptables -D FORWARD -i $MINC_BR -j ACCEPT
+  iptables -D FORWARD -o $MINC_BR -j MINCS
+  iptables -D MINCS -i $MINC_BR -j RETURN
+  iptables -X MINCS
+
+  iptables -t nat -D PREROUTING -m addrtype --dst-type LOCAL -j MINCS
+  iptables -t nat -D MINCS -i $MINC_BR -j RETURN
+  iptables -t nat -X MINCS
+  iptables -t nat -D POSTROUTING -s $MINC_BRNET ! -o $MINC_BR -j MASQUERADE
+  set -e
+  iptables-save | grep -i minc | tac | while read l; do
+    iptables `echo $l | sed -e "s/-A POSTROUTING/-t nat -D POSTROUTING/" -e "s/^:\([A-Z]*\) \(.*\)/-X \1/" -e "s/-A/-D/"` 
+  done
+}
+
+init_minclease(){
+  echo -n > $MINC_LEASE
+}
+
+mkmincbr(){
+  brctl show | grep -qw $MINC_BR && return 0
+  :;: 'Add a bridge for mincs';:
+  MINC_BRIP=`echo $MINC_BRTMP | sed s/X/1/g`
+  brctl addbr $MINC_BR
+  ip -4 addr add $MINC_BRIP dev $MINC_BR
+  ip link set $MINC_BR up
+  init_minclease
+  setup_nat
+}
+
+rmmincbr(){
+  ip link set $MINC_BR down
+  brctl delbr $MINC_BR
+}
+
+addmincif(){ # ifname
+  ip link set $1 up
+  brctl addif $MINC_BR $1
+}
+
+_get_unused_ipaddr(){ # ifname
+  for i in `seq 2 128`; do
+    MINC_IP=`echo $MINC_BRTMP | sed s/X/$i/g`
+    grep -qw $MINC_IP $MINC_LEASE && continue
+    echo $MINC_IP $1 >> $MINC_LEASE
+    echo $MINC_IP
+    break;
+  done
+}
+
+addmincip(){ # ifname netns
+  MINC_IP=`_get_unused_ipaddr $1`
+  if [ -z "$MINC_IP" ]; then
+    echo "Error: no available IP address remains" 1>&2
+    return 1
+  fi
+  MINC_GWIP=`echo $MINC_BRTMP | sed s@X/24@1@g`
+  ip link set $1 netns $2
+  ip netns exec $2 ip -4 addr add $MINC_IP dev $1
+  ip netns exec $2 ip link set $1 up
+  ip netns exec $2 ip -4 route add default via $MINC_GWIP
+  echo $MINC_IP | cut -d/ -f1
+}
+
+delmincip(){ # ifname
+  grep -v $1 $MINC_LEASE > ${MINC_LEASE}.new ||:
+  ${MINC_LEASE}.new $MINC_LEASE
+}
+
+_parse_portmap() { # hport[:cport[:proto]]
+  ( hport=`echo $1 | cut -d: -f1`
+    cport=`echo $1 | cut -d: -f2`
+    proto=`echo $1 | cut -d: -f3`
+    [ -z "$proto" ] && proto=tcp
+    [ -z "$cport" ] && cport=$hport
+    echo $hport $cport $proto
+  )
+}
+
+addmincport() { # ipaddr portmap
+  map_port $1 `_parse_portmap $2`
+}
+
+delmincport() { # ipaddr hport:cport[:tcp|:udp]
+  unmap_port $1 `_parse_portmap $2` ||:
+}

@@ -7,6 +7,7 @@
 LIBEXEC=`dirname $0`
 MINCCAGE=$LIBEXEC/minc-cage
 MINCCORE=$LIBEXEC/minc-core
+MINCDENS=$LIBEXEC/minc-dens
 
 # Exit if any errors
 set -e
@@ -17,14 +18,31 @@ test "$MINC_BASEDIR"
 test -d "$MINC_TMPDIR"
 
 if [ "$MINC_NETNS" ]; then
+  . $MINCDENS
+  mkmincbr
   :;: "Setup Network Namespace";:
   ip netns add $MINC_NETNS
   TRAPCMD="ip netns del $MINC_NETNS"
   trap "$TRAPCMD" EXIT
+  :;: 'Make an vether pair';:
   export MINC_NETNSIF=veth0-$MINC_NETNS
   ip link add name $MINC_NETNSIF type veth peer name veth1-$MINC_NETNS
-  ip link set $MINC_NETNSIF netns $MINC_NETNS
+  addmincif veth1-$MINC_NETNS
+
+  :;: 'Setup container internal interface';:
+  TRAPCMD="delmincip $MINC_NETNSIF; $TRAPCMD"
+  trap "$TRAPCMD" EXIT
+  MINC_IP=`addmincip $MINC_NETNSIF $MINC_NETNS`
   IP_NETNS="ip netns exec $MINC_NETNS "
+
+  if [ "$MINC_PORT_MAP" ] ; then
+    :;: 'Map container port to host port (DNAT)';:
+    for p in $MINC_PORT_MAP; do
+      addmincport $MINC_IP $p
+      TRAPCMD="delmincport $MINC_IP $p; $TRAPCMD"
+      trap "$TRAPCMD" EXIT
+    done
+  fi
 else
   TRAPCMD=
   IP_NETNS=
