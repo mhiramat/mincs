@@ -112,7 +112,7 @@ addmincip(){ # ifname netns
 
 delmincip(){ # ifname
   grep -v $1 $MINC_LEASE > ${MINC_LEASE}.new ||:
-  ${MINC_LEASE}.new $MINC_LEASE
+  mv ${MINC_LEASE}.new $MINC_LEASE
 }
 
 _parse_portmap() { # hport[:cport[:proto]]
