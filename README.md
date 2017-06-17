@@ -54,7 +54,10 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
        Export local X11 unix socket
 
 * -n or --net  
-       Use network namespace
+       Use network namespace (IP address is assigned)
+
+* --port *PORT1[:PORT2[:PROTO]]*  
+       Map host PORT1 to container PORT2 of PROTO (tcp or udp)
 
 * -c or --cpu *BITMASK*  
        Set runnable CPU bitmask
