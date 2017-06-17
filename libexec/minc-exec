@@ -17,6 +17,24 @@ test "$MINC_DEBUG" && set -x
 test "$MINC_BASEDIR"
 test -d "$MINC_TMPDIR"
 
+TRAPCMD=
+
+if [ $MINC_QEMU ]; then
+  if [ -z "$MINC_NOPRIV" ]; then
+    . $MINCDENS
+    :;: 'Setup ip addr for ermine kernel';:
+    export MINC_NETNSIF="tap-minc$$"
+    TRAPCMD="delmincip $MINC_NETNSIF; $TRAPCMD"
+    trap "$TRAPCMD" EXIT
+    setmincip $MINC_NETNSIF
+    export MINC_KERNEL_OPT="ip=$MINC_IP::$MINC_GWIP:$MINC_NETMASK::eth0::8.8.8.8:"
+    :;: 'We do NOT use NETNS for QEMU mode';:
+    MINC_NETNS=
+  else
+    MINC_KERNEL_OPT=""
+  fi
+fi
+
 if [ "$MINC_NETNS" ]; then
   . $MINCDENS
   mkmincbr
@@ -44,7 +62,6 @@ if [ "$MINC_NETNS" ]; then
     done
   fi
 else
-  TRAPCMD=
   IP_NETNS=
 fi
 

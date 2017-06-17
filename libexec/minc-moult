@@ -55,6 +55,11 @@ minc_moult() { # arch virtdir kernel_opt
   prepare_arch $1
   [ $ARCH = "um" ] && exec $ERMINEDIR/vmlinuz.$ARCH mem=512M \
 	  initrd=$ERMINEDIR/initramfs.$ARCH hostfs=$2 con0=fd:0,fd:1 con1=null con=pts $3 console=ttyS0
+  if [ "$MINC_IP" ]; then
+    [ ! -c /dev/net/tun ] && mknod /dev/net/tun c 10 200
+    QEMU_OPT="$QEMU_OPT -netdev type=tap,script=$LIBEXEC/ermine-ifup,id=net0 \
+    -device virtio-net-pci,netdev=net0"
+  fi
   exec qemu-system-${QEMU_ARCH} $QEMU_OPT -m 512M \
     -kernel $ERMINEDIR/vmlinuz.$ARCH -initrd $ERMINEDIR/initramfs.$ARCH \
     -smp $NR_CPUS -nographic -append "$3 console=tty0" \

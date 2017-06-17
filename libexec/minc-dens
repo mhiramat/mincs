@@ -110,7 +110,7 @@ addmincip(){ # ifname netns
   echo $MINC_IP | cut -d/ -f1
 }
 
-delmincip(){ # ifname
+delmincip(){ # ifname|ID
   grep -v $1 $MINC_LEASE > ${MINC_LEASE}.new ||:
   mv ${MINC_LEASE}.new $MINC_LEASE
 }
@@ -131,4 +131,10 @@ addmincport() { # ipaddr portmap
 
 delmincport() { # ipaddr hport:cport[:tcp|:udp]
   unmap_port $1 `_parse_portmap $2` ||:
+}
+
+setmincip(){ # ID
+  export MINC_IP=`_get_unused_ipaddr $1 | sed s@/24@@`
+  export MINC_GWIP=`echo $MINC_BRTMP | sed s@X/24@1@`
+  export MINC_NETMASK='255.255.255.0'
 }

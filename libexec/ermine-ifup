@@ -1,0 +1,15 @@
+#!/bin/sh
+
+LIBEXEC=`dirname $0`
+MINCDENS=$LIBEXEC/minc-dens
+
+set -e
+test "$MINC_DEBUG" && set -x
+
+. $MINCDENS
+
+ip link set $1 up
+ip link set $1 promisc on
+mkmincbr
+addmincif $1
+

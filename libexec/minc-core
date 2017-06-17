@@ -85,7 +85,7 @@ if [ "$MINC_QEMU" ]; then
   echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
   echo "stty rows `tput lines`; stty cols `tput cols`" >> $MINC_TMPDIR/run.sh
   echo "minc $MINC_GUEST_OPT" >> $MINC_TMPDIR/run.sh
-  minc_moult "$MINC_ARCH" "$MINC_TMPDIR" "ro quiet"
+  minc_moult "$MINC_ARCH" "$MINC_TMPDIR" "ro quiet $MINC_KERNEL_OPT"
   exit $? # failsafe
 fi
 
