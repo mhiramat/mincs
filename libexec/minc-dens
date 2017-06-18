@@ -115,14 +115,15 @@ delmincip(){ # ifname|ID
   mv ${MINC_LEASE}.new $MINC_LEASE
 }
 
+__parse_portmap() { # hport [cport [proto]]
+  echo -n $*
+  [ -z "$2" ] && echo -n " $1"
+  [ -z "$3" ] && echo -n " tcp"
+  echo
+}
+
 _parse_portmap() { # hport[:cport[:proto]]
-  ( hport=`echo $1 | cut -d: -f1`
-    cport=`echo $1 | cut -d: -f2`
-    proto=`echo $1 | cut -d: -f3`
-    [ -z "$proto" ] && proto=tcp
-    [ -z "$cport" ] && cport=$hport
-    echo $hport $cport $proto
-  )
+  __parse_portmap `echo $1 | tr -t : " "`
 }
 
 addmincport() { # ipaddr portmap
