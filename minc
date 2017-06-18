@@ -38,6 +38,7 @@ usage() { # [error messages]
   echo "        		Bind HOSTPATH to PATH in container"
   echo "    --port HOSTPORT:PORT[:udp]"
   echo "        		Bind HOSTPORT to PORT in container"
+  echo "    -B or --background  Run container in background mode"
   echo "    --name NAME		Set <NAME> as container's name (hostname)"
   echo "    --user UID[:GID]	Specify uid and gid to run command"
   echo "    --usedev		Use devtmpfs for /dev (for loopback etc.)"
@@ -103,6 +104,7 @@ export MINC_NOPRIV=
 export MINC_QEMU=
 export MINC_PORT_MAP=
 export MINC_ARCH=`uname -m`
+export MINC_BACKGROUND=
 
 minc_set_rootfs() {
     export MINC_BASEDIR=$1
@@ -153,6 +155,9 @@ case "$cmd" in
     orig_path=`echo $1 | sed "s/:/ /"`
     export MINC_RWBIND="$MINC_RWBIND "`abspath2 $orig_path`
     shift 1
+    ;;
+  --background|-B)
+    MINC_BACKGROUND="echo Exit."
     ;;
   --net|-n) # Use NetNS
     export MINC_NETNS="minc$$"
@@ -261,6 +266,7 @@ elif [ "$USE_FARM" = "image" ]; then
   export MINC_BASEDIR=`$MINCFARM imagestack $MINC_BASEDIR`
   export MINC_TMPDIR=`$MINCFARM dir $UUID`
   echo $UUID
+  KEEPDIR=1
   TRAPCMD="echo To reuse this, run: $0 -t "`echo $UUID | cut -b 1-12`
   trap "$TRAPCMD" EXIT
 else
@@ -269,7 +275,16 @@ else
     usage "Error No such container. $MINC_TMPDIR"
   export MINC_BASEDIR=`$MINCFARM imagestack $UUID`
   export MINC_TMPDIR=`$MINCFARM dir $MINC_TMPDIR`
+  KEEPDIR=1
 fi
 
 trap '' INT
-$MINCEXEC "$@"
+if [ "$MINC_BACKGROUND" ]; then
+  if [ $KEEPDIR -eq 0 ]; then
+    MINC_BACKGROUND=$TRAPCMD
+  fi
+  trap "echo Run container in background. See $MINC_TMPDIR/stdout,stderr." EXIT
+  setsid $MINCEXEC "$@" 1> $MINC_TMPDIR/stdout 2> $MINC_TMPDIR/stderr < /dev/null &
+else
+  $MINCEXEC "$@"
+fi

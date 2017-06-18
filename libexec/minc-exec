@@ -17,7 +17,11 @@ test "$MINC_DEBUG" && set -x
 test "$MINC_BASEDIR"
 test -d "$MINC_TMPDIR"
 
-TRAPCMD=
+TRAPCMD=$MINC_BACKGROUND
+if [ "$MINC_BACKGROUND" ]; then
+  :;: 'Ignore SIGHUP';:
+  trap "" HUP
+fi
 
 if [ $MINC_QEMU ]; then
   if [ -z "$MINC_NOPRIV" ]; then
