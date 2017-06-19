@@ -50,6 +50,10 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
        Bind HOSTPATH to PATH inside container.
        The PATH must be an absolute path.
 
+* -B or --background  
+       Run container in background. The output of stdout and stderr are
+       stored under tempororary directory.
+
 * -X or --X11  
        Export local X11 unix socket
 
