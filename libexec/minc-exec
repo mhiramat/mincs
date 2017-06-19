@@ -32,6 +32,7 @@ if [ $MINC_QEMU ]; then
     trap "$TRAPCMD" EXIT
     setmincip $MINC_NETNSIF
     export MINC_KERNEL_OPT="ip=$MINC_IP::$MINC_GWIP:$MINC_NETMASK::eth0::8.8.8.8:"
+    echo $MINC_IP > $MINC_TMPDIR/ipv4
     :;: 'We do NOT use NETNS for QEMU mode';:
     MINC_NETNS=
   else
@@ -56,6 +57,7 @@ if [ "$MINC_NETNS" ]; then
   trap "$TRAPCMD" EXIT
   MINC_IP=`addmincip $MINC_NETNSIF $MINC_NETNS`
   IP_NETNS="ip netns exec $MINC_NETNS "
+  echo $MINC_IP > $MINC_TMPDIR/ipv4
 
   if [ "$MINC_PORT_MAP" ] ; then
     :;: 'Map container port to host port (DNAT)';:
@@ -64,6 +66,7 @@ if [ "$MINC_NETNS" ]; then
       TRAPCMD="delmincport $MINC_IP $p; $TRAPCMD"
       trap "$TRAPCMD" EXIT
     done
+    echo $MINC_PORT_MAP > $MINC_TMPDIR/portmap
   fi
 else
   IP_NETNS=
