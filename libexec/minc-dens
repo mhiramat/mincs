@@ -66,14 +66,17 @@ init_minclease(){
 }
 
 mkmincbr(){
-  brctl show | grep -qw $MINC_BR && return 0
-  :;: 'Add a bridge for mincs';:
-  MINC_BRIP=`echo $MINC_BRTMP | sed s/X/1/g`
-  brctl addbr $MINC_BR
-  ip -4 addr add $MINC_BRIP dev $MINC_BR
-  ip link set $MINC_BR up
-  init_minclease
-  setup_nat
+  if brctl show | grep -qw $MINC_BR ; then
+    iptables-save | grep -qi minc || setup_nat
+  else
+    :;: 'Add a bridge for mincs';:
+    MINC_BRIP=`echo $MINC_BRTMP | sed s/X/1/g`
+    brctl addbr $MINC_BR
+    ip -4 addr add $MINC_BRIP dev $MINC_BR
+    ip link set $MINC_BR up
+    init_minclease
+    setup_nat
+  fi
 }
 
 rmmincbr(){
