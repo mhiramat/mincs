@@ -13,7 +13,8 @@ MINC_LEASE=/var/run/minc.lease
 
 map_port(){ # destip hostport destport proto
   :;: 'Ingress packet to local ip is DNAT to given container';:
-  iptables -t nat -A MINCS_NAT ! -i $MINC_BR -p $4 -m $4 --dport $2 -j DNAT --to-destination $1:$3
+  iptables -t nat -A POSTROUTING -s $1 -d $1 -p $4 -m $4 --dport $2 -j MASQUERADE
+  iptables -t nat -I MINCS_NAT ! -i $MINC_BR -p $4 -m $4 --dport $2 -j DNAT --to-destination $1:$3
   :;: 'From host (outside of minc container), accept it.';:
   iptables -A MINCS -d $1 ! -i $MINC_BR -o $MINC_BR -p $4 -m $4 --dport $3 -j ACCEPT
 }
@@ -21,6 +22,7 @@ map_port(){ # destip hostport destport proto
 unmap_port(){ # destip hostport destport proto
   :;: 'Delete DNAT rules';:
   iptables -t nat -D MINCS_NAT ! -i $MINC_BR -p $4 -m $4 --dport $2 -j DNAT --to-destination $1:$3
+  iptables -t nat -D POSTROUTING -s $1 -d $1 -p $4 -m $4 --dport $2 -j MASQUERADE
   iptables -D MINCS -d $1 ! -i $MINC_BR -o $MINC_BR -p $4 -m $4 --dport $3 -j ACCEPT
 }
 
@@ -31,13 +33,13 @@ setup_nat() {
   iptables -I FORWARD -i $MINC_BR -j ACCEPT
   iptables -I FORWARD -o $MINC_BR -m state --state RELATED,ESTABLISHED -j ACCEPT
   iptables -N MINCS
-  iptables -A MINCS -i $MINC_BR -j RETURN
   iptables -A FORWARD -o $MINC_BR -j MINCS
 
   iptables -t nat -I POSTROUTING -s $MINC_BRNET ! -o $MINC_BR -j MASQUERADE
   iptables -t nat -N MINCS_NAT
   iptables -t nat -A MINCS_NAT -i $MINC_BR -j RETURN
   iptables -t nat -A PREROUTING -m addrtype --dst-type LOCAL -j MINCS_NAT
+  iptables -t nat -A OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -j MINCS_NAT
   echo 1 > /proc/sys/net/ipv4/ip_forward
 }
 
@@ -48,9 +50,9 @@ discard_nat() {
   iptables -D FORWARD -o $MINC_BR -m state --state RELATED,ESTABLISHED -j ACCEPT
   iptables -D FORWARD -i $MINC_BR -j ACCEPT
   iptables -D FORWARD -o $MINC_BR -j MINCS
-  iptables -D MINCS -i $MINC_BR -j RETURN
   iptables -X MINCS
 
+  iptables -t nat -D OUTPUT ! -d 127.0.0.0/8 -m addrtype --dst-type LOCAL -j MINCS_NAT
   iptables -t nat -D PREROUTING -m addrtype --dst-type LOCAL -j MINCS_NAT
   iptables -t nat -D MINCS_NAT -i $MINC_BR -j RETURN
   iptables -t nat -X MINCS_NAT
