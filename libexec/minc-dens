@@ -34,7 +34,7 @@ setup_nat() {
   iptables -A MINCS -i $MINC_BR -j RETURN
   iptables -A FORWARD -o $MINC_BR -j MINCS
 
-  iptables -t nat -A POSTROUTING -s $MINC_BRNET ! -o $MINC_BR -j MASQUERADE
+  iptables -t nat -I POSTROUTING -s $MINC_BRNET ! -o $MINC_BR -j MASQUERADE
   iptables -t nat -N MINCS_NAT
   iptables -t nat -A MINCS_NAT -i $MINC_BR -j RETURN
   iptables -t nat -A PREROUTING -m addrtype --dst-type LOCAL -j MINCS_NAT
