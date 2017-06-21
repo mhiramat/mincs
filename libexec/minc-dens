@@ -33,7 +33,7 @@ setup_nat() {
   iptables -I FORWARD -i $MINC_BR -j ACCEPT
   iptables -I FORWARD -o $MINC_BR -m state --state RELATED,ESTABLISHED -j ACCEPT
   iptables -N MINCS
-  iptables -A FORWARD -o $MINC_BR -j MINCS
+  iptables -I FORWARD -o $MINC_BR -j MINCS
 
   iptables -t nat -I POSTROUTING -s $MINC_BRNET ! -o $MINC_BR -j MASQUERADE
   iptables -t nat -N MINCS_NAT
