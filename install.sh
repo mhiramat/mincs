@@ -7,9 +7,16 @@ BINS="minc marten polecat"
 LIBS="libexec/*"
 TOPDIR=$(cd $(dirname $0); pwd)
 
+. libexec/minc-dens
+
 UNINSTALL=
 case "$1" in
+  --stop-mincbr)
+    rmmincbr
+    exit 0
+    ;;
   -u|--uninstall)
+    rmmincbr
     UNINSTALL=yes
     ;;
   --ermine) # install ermine

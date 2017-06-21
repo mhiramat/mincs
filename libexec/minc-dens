@@ -82,6 +82,7 @@ mkmincbr(){
 }
 
 rmmincbr(){
+  discard_nat ||:
   ip link set $MINC_BR down
   brctl delbr $MINC_BR
 }
