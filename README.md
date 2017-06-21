@@ -17,7 +17,9 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
 - Posix shell (dash, bash, etc)
 - coreutils
 - Util-linux ( version >= 2.24 for basic usage, and >= 2.28 for --nopriv )
-- IProute2
+- IProute2 (for netns)
+- iptables (for netns)
+- bridge-utils (for netns)
 - Overlayfs
 - Squashfs-tools (for polecat)
 - libcap (for --nocaps option)
