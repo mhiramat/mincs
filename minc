@@ -35,7 +35,7 @@ usage() { # [error messages]
   echo "    -c or --cpu MASK	Set CPU mask"
   echo "    -b or --bind HOSTPATH:PATH"
   echo "        		Bind HOSTPATH to PATH in container"
-  echo "    --port HOSTPORT:PORT[:udp]"
+  echo "    -p or --port HOSTPORT:PORT[:udp]"
   echo "        		Bind HOSTPORT to PORT in container"
   echo "    -B or --background  Run container in background mode"
   echo "    --name NAME		Set <NAME> as container's name (hostname)"
@@ -187,7 +187,7 @@ case "$cmd" in
     MINC_PID_MAX=$1
     shift 1
     ;;
-  --port)
+  -p|--port)
     export MINC_PORT_MAP="$1 $MINC_PORT_MAP"
     export MINC_NETNS="minc$$"
     shift 1
