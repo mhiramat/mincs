@@ -63,7 +63,7 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
 * -n or --net  
        Use network namespace (IP address is assigned)
 
-* --port *PORT1[:PORT2[:PROTO]]*  
+* -p or --port *PORT1[:PORT2[:PROTO]]*  
        Map host PORT1 to container PORT2 of PROTO (tcp or udp)
 
 * -c or --cpu *BITMASK*  
