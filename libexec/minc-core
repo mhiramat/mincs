@@ -55,12 +55,14 @@ bindmount2() { # hostpath containerpath
   test -e $1 && mount --bind $1 $RD$2
 }
 
+user_bindmount() {
 if [ "$MINC_RWBIND" ]; then
   :;: 'Bind user-defined directories';:
   for i in $MINC_RWBIND; do
     bindmount2 `echo $i | sed "s/:/ /"`
   done
 fi
+}
 
 if [ -x "$MINC_CROSS_QEMU" ]; then
   :;: 'Bind qemu-user-mode for cross-arch container';:
@@ -85,6 +87,9 @@ if [ "$MINC_QEMU" ]; then
   echo "#!/bin/sh" > $MINC_TMPDIR/run.sh
   echo "stty rows `tput lines`; stty cols `tput cols`" >> $MINC_TMPDIR/run.sh
   echo "minc $MINC_GUEST_OPT" >> $MINC_TMPDIR/run.sh
+
+  user_bindmount
+
   minc_moult "$MINC_ARCH" "$MINC_TMPDIR" "ro quiet $MINC_KERNEL_OPT"
   exit $? # failsafe
 fi
@@ -125,6 +130,8 @@ bindmounts /proc/sys /proc/sysrq-trigger /proc/irq /proc/bus
 
 :;: '/tmp is used for application working area in container';:
 mount -t tmpfs tmpfs $RD/tmp
+
+user_bindmount
 
 :;: 'Exec leash (chroot/capsh) to run command in new rootfs';:
 exec $MINCLEASH $RD "$@"
