@@ -95,7 +95,7 @@ addmincif(){ # ifname
 _get_unused_ipaddr(){ # ifname
   for i in `seq 2 128`; do
     MINC_IP=`echo $MINC_BRTMP | sed s/X/$i/g`
-    grep -qw $MINC_IP $MINC_LEASE && continue
+    grep -sqw $MINC_IP $MINC_LEASE && continue
     echo $MINC_IP $1 >> $MINC_LEASE
     echo $MINC_IP
     break;
