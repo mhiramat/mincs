@@ -38,6 +38,7 @@ port_mapping() {
 if [ $MINC_QEMU ]; then
   if [ -z "$MINC_NOPRIV" ]; then
     . $MINCDENS
+    mkmincbr
     :;: 'Setup ip addr for ermine kernel';:
     export MINC_NETNSIF="tap-minc$$"
     TRAPCMD="delmincip $MINC_NETNSIF; $TRAPCMD"
