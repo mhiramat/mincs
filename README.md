@@ -30,6 +30,28 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
 
 - Or, busybox ( version >= 1.25 ) and libcap (for minc/ermine)
 
+## Install MINCS
+
+You can run commands in MINCS without installing, but you can also choose
+installing MINCS on your system. To install MINCS, just run `install.sh`
+as below;
+
+```sh
+ $ cd mincs
+ $ sudo ./install.sh
+```
+
+By default, it installs MINCS under /usr/local/. If you would like to install
+it under /usr or other directory, Please specify PREFIX as below;
+
+```sh
+ $ sudo PREFIX=/usr ./install.sh
+```
+
+To uninstall it, run install.sh with --uninstall option. Note that you need
+to specify PREFIX if you gave it when installing.
+
+
 ## minc usage
 
 ` minc [options] [command [arguments]] `
