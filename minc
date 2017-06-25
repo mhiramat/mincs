@@ -151,6 +151,9 @@ case "$cmd" in
   --X11|-X) # Export X11 connection
     [ -z "$DISPLAY" ] && usage "Error: \$DISPLAY is empty"
     export MINC_RWBIND="$MINC_RWBIND /tmp/.X11-unix:/tmp/.X11-unix"
+    if [ "$XAUTHORITY" ] ;then
+      export MINC_RWBIND="$MINC_RWBIND $XAUTHORITY:$XAUTHORITY"
+    fi
     ;;
   --bind|-b)
     orig_path=`echo $1 | sed "s/:/ /"`
