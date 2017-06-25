@@ -13,6 +13,9 @@ MINCDENS=$LIBEXEC/minc-dens
 set -e
 test "$MINC_DEBUG" && set -x
 
+:;: 'Ignore signal interrupts';:
+trap '' INT QUIT
+
 :;: "Ensure parameters are set";:
 test "$MINC_BASEDIR"
 test -d "$MINC_TMPDIR"
@@ -103,8 +106,11 @@ if [ -f "$MINC_FTRACE" ]; then
 fi
 
 :;: "Prepare cleanup commands";:
-trap '' INT
 trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
+
+:;: 'Enable interrupts for exit' ;:
+trap "cat $MINC_TMPDIR/pid | xargs kill -INT" INT
+trap "cat $MINC_TMPDIR/pid | xargs kill -QUIT" QUIT
 
 :;: 'Enter new namespace and execute command';:
 UNSHARE_OPT=

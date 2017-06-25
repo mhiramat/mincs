@@ -282,7 +282,6 @@ else
   KEEPDIR=1
 fi
 
-trap '' INT
 if [ "$MINC_BACKGROUND" ]; then
   if [ $KEEPDIR -eq 0 ]; then
     MINC_BACKGROUND=$TRAPCMD
@@ -290,5 +289,7 @@ if [ "$MINC_BACKGROUND" ]; then
   trap "echo Run container in background. See $MINC_TMPDIR/stdout,stderr." EXIT
   setsid $MINCEXEC "$@" 1> $MINC_TMPDIR/stdout 2> $MINC_TMPDIR/stderr < /dev/null &
 else
+  trap '' INT
+  trap '' QUIT
   $MINCEXEC "$@"
 fi
