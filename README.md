@@ -79,8 +79,8 @@ to specify PREFIX if you gave it when installing.
        stored under tempororary directory.
 
 * -X or --X11  
-       Export local X11 unix socket. This may require to disable xauth
-       by xhost + (note this may be dangerous in multiuser env)
+       Export local X11 unix socket. If XAUTHORITY is defined, this
+       exports it too. (no need to setup xhost)
 
 * -n or --net  
        Use network namespace (IP address is assigned)
@@ -100,7 +100,7 @@ to specify PREFIX if you gave it when installing.
 * --cross *arch*  
        Run command with given arch (require setting up qemu-user-mode)
 
-* --arch *arch*
+* --arch *arch*  
        Same as --cross.
 
 * --nopriv *rootdir*  
