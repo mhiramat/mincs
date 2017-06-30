@@ -47,9 +47,6 @@ _minc() { # command current prev
   # If there is --help option, no more options available.
   if _arg_used $help_flags ; then
     return 0
-  elif [ $COMP_CWORD -ne 0 ]; then
-    # If there are other options, we don't need help anymore.
-    help_flags=
   fi
 
   # If there is virt options are selected, no need to use it.
