@@ -29,7 +29,7 @@ case "$1" in
     ;;
   -h|--help)
     echo "Install script for MINCS"
-    echo "Usage: $0 [-u|--uninstall|--ermine]"
+    echo "Usage: $0 [-u|--uninstall|--ermine|--minimum|--stop-mincbr]"
     exit 0
     ;;
 esac
