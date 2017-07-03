@@ -108,14 +108,17 @@ else
   :;: 'Make a fake /dev directory';:
   mount -t tmpfs tmpfs $RD/dev
   mkdir $RD/dev/pts
+
+  :;: "Get tty or null" ;:
+  TTY=`tty` || TTY=/dev/null
   if [ "$MINC_OPT_PTY" ]; then
     :;: 'This is just a quick hack to show tty in non priv container';:
-    touch $RD`tty`; bindmount `tty`
+    touch $RD$TTY; bindmount $TTY
     touch $RD/dev/pts/ptmx; bindmount /dev/pts/ptmx
   else
     :;: 'Hack the tty bind to /dev/console and set it';:
     touch $RD/dev/console
-    bindmount2 `tty` /dev/console
+    bindmount2 $TTY /dev/console
     stty -F /dev/console > /dev/null
     :;: 'And make a new instance of devpts';:
     mount devpts -t devpts -onoexec,nosuid,gid=5,mode=0620,newinstance,ptmxmode=0666 $RD/dev/pts
