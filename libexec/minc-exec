@@ -66,7 +66,7 @@ if [ "$MINC_NETNS" ]; then
   mkmincbr
   :;: "Setup Network Namespace";:
   ip netns add $MINC_NETNS
-  TRAPCMD="ip netns del $MINC_NETNS"
+  TRAPCMD="ip netns del $MINC_NETNS; $TRAPCMD"
   trap "$TRAPCMD" EXIT
   :;: 'Make an vether pair';:
   export MINC_NETNSIF=veth0-$MINC_NETNS
