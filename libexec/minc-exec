@@ -20,6 +20,9 @@ trap '' INT QUIT
 test "$MINC_BASEDIR"
 test -d "$MINC_TMPDIR"
 
+:;: "Save current setting parameters" ;:
+env | grep ^MINC_ > $MINC_TMPDIR/settings
+
 TRAPCMD=$MINC_BACKGROUND
 if [ "$MINC_BACKGROUND" ]; then
   :;: 'Ignore SIGHUP';:
