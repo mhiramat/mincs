@@ -109,8 +109,8 @@ else
   mount -t tmpfs tmpfs $RD/dev
   mkdir $RD/dev/pts
 
-  :;: "Get tty or null" ;:
-  TTY=`tty` || TTY=/dev/null
+  :;: "Get tty or output file" ;:
+  TTY=`tty` || TTY=`readlink /proc/$MINC_PID/fd/1`
   if [ "$MINC_OPT_PTY" ]; then
     :;: 'This is just a quick hack to show tty in non priv container';:
     touch $RD$TTY; bindmount $TTY
@@ -126,7 +126,7 @@ else
   ln -s /dev/pts/ptmx $RD/dev/ptmx
 
   :;: 'Bind fundamental device files to new /dev';:
-  bindmounts /dev/console /dev/null /dev/zero /dev/random /dev/urandom
+  bindmounts /dev/null /dev/zero /dev/random /dev/urandom
   test -d /dev/mqueue && mkdir $RD/dev/mqueue && bindmount /dev/mqueue
   # TODO: Add other devices here
 fi

@@ -108,4 +108,4 @@ fi
 :;: 'Wash out the environment variables for MINCS';:
 wash "^MINC_"
 :;: 'Execute given command in new rootfs';:
-exec $RUN $CMD $@
+exec $RUN $CMD $@ >> $RD/dev/console 2>&1

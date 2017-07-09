@@ -161,7 +161,7 @@ case "$cmd" in
     shift 1
     ;;
   --background|-B)
-    MINC_BACKGROUND="echo Exit."
+    MINC_BACKGROUND=":;: 'Exit.';:"
     ;;
   --net|-n) # Use NetNS
     export MINC_NETNS="minc$$"
@@ -286,8 +286,8 @@ if [ "$MINC_BACKGROUND" ]; then
   if [ $KEEPDIR -eq 0 ]; then
     MINC_BACKGROUND=$TRAPCMD
   fi
-  trap "echo Run container in background. See $MINC_TMPDIR/stdout,stderr." EXIT
-  setsid $MINCEXEC "$@" 1> $MINC_TMPDIR/stdout 2> $MINC_TMPDIR/stderr < /dev/null &
+  trap "echo Run container in background. See $MINC_TMPDIR/log for output." EXIT
+  setsid $MINCEXEC "$@" 1> $MINC_TMPDIR/log 2> $MINC_TMPDIR/debug < /dev/null &
 else
   trap '' INT
   trap '' QUIT
