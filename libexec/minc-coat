@@ -33,7 +33,7 @@ if [ "$MINC_DIRECT" ]; then
   mount -o bind $BASEDIR $RD
 else
   :;: 'Mount overlayed root directory';:
-  if grep -v overlayfs /proc/filesystems | grep -q overlay ; then
+  if grep -wq overlay /proc/filesystems ; then
     mount -t overlay -o upperdir=$UD,lowerdir=$BASEDIR,workdir=$WD overlayfs $RD
   else
     :;: 'Workaround for ubuntu 14.10 (out-of-tree overlayfs)';:
