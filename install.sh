@@ -16,7 +16,7 @@ case "$1" in
     exit 0
     ;;
   -u|--uninstall)
-    rmmincbr
+    rmmincbr ||:
     UNINSTALL=yes
     ;;
   --ermine) # install ermine
