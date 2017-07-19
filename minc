@@ -161,7 +161,7 @@ case "$cmd" in
     shift 1
     ;;
   --background|-B)
-    MINC_BACKGROUND=":;: 'Exit.';:"
+    MINC_BACKGROUND=":"
     ;;
   --net|-n) # Use NetNS
     export MINC_NETNS="minc$$"
