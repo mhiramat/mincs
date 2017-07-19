@@ -12,6 +12,8 @@ some tools, it is easy to run it even on busybox ( see [Ermine](#ermine) for bus
 
 * [*ermine*](#ermine) is a micro linux bootimage for qemu. MINCS has *ermine-breeder* to build ermine (vmlinuz and initramfs.)
 
+* [*badger*](#badger) is a wrapper script for [CRIU](https://criu.org/Main_Page) checkpoint-restart functionality for linux.
+
 ## Pre-requisites
 
 - Posix shell (dash, bash, etc)
@@ -309,6 +311,36 @@ This build debian jessie (debian 8) rootfs arm port under ./rootfs/arm directory
 ```
 $ sudo minc -r ./rootfs/arm --arch arm
 ```
+
+## Badger
+
+Badger is a shell script wrapper for CRIU checkpoint-restarting. You can checkpointing (dumping) running minc container and restarting (restoring) it.
+
+### badger usage
+
+` badger [command] <CONTAINER-TEMPDIR>`
+
+### Commands
+
+* sleep  
+	Checkpointing the container runs with given tempdir.
+
+* wake  
+	Restoring the container from given tempdir.
+
+### Checkpoint-able container
+
+Note that we still have some limitations for the container which can be checkpoint-restart.
+
+- The container must use pivot\_root (--pivot)
+- The container must run in background (--background)
+- The container must keep its tempdir after quit (--keep or --tempdir)
+- The container must not run on qemu (No --qemu)
+
+So, you'll need to run container with below option.
+
+`minc --pivot -k -B ...`
+
 
 ### Known issues on major distros
 
