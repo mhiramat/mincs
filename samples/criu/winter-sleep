@@ -1,7 +1,0 @@
-#!/bin/sh
-
-TMPDIR=$1
-PID=`cat $TMPDIR/pid`
-mkdir -p $TMPDIR/criu
-criu dump -t $PID -vvv --external "mnt[]" --ext-mount-map auto -D $TMPDIR/criu
-
