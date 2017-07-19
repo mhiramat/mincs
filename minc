@@ -286,8 +286,10 @@ if [ "$MINC_BACKGROUND" ]; then
   if [ $KEEPDIR -eq 0 ]; then
     MINC_BACKGROUND=$TRAPCMD
   fi
-  trap "echo Run container in background. See $MINC_TMPDIR/log for output." EXIT
+  trap "" EXIT
+  :;: 'Let minc-exec start new session so that we can leave it in background' ;:
   setsid $MINCEXEC "$@" 1> $MINC_TMPDIR/log 2> $MINC_TMPDIR/debug < /dev/null &
+  echo "Run container in background. See $MINC_TMPDIR/log for output."
 else
   trap '' INT
   trap '' QUIT
