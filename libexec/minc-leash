@@ -105,7 +105,12 @@ else
   fi
 fi
 
+if [ "$MINC_BACKGROUND" ]; then
+:  ;: 'For criu dumping mode, namespace process has to be a session leader' ;:
+   RUN="setsid $RUN"
+fi
+
 :;: 'Wash out the environment variables for MINCS';:
 wash "^MINC_"
 :;: 'Execute given command in new rootfs';:
-exec setsid $RUN $CMD $@ >> $RD/dev/console 2>&1
+exec $RUN $CMD $@ >> $RD/dev/console 2>&1
