@@ -41,8 +41,9 @@ $MINCCOAT bind $MINC_TMPDIR $MINC_BASEDIR
 RD=$MINC_TMPDIR/root
 mkdir -p $RD/etc $RD/dev $RD/sys $RD/proc
 
+BINDOPT=
 bindmount() { # dir
-  if test -e $1; then (test -e $RD$1 || touch $RD$1) && mount --bind $1 $RD$1; fi
+  if test -e $1; then (test -e $RD$1 || touch $RD$1) && mount --bind $BINDOPT $1 $RD$1; fi
 }
 
 bindmounts() { # dir(s)
@@ -132,9 +133,10 @@ else
 fi
 
 :;: 'Do not bind procfs, since it shows outside pids';:
-mount -t proc -o ro,nosuid,nodev,noexec proc /proc
 mount -t proc -o rw,nosuid,nodev,noexec,relatime proc $RD/proc
+BINDOPT="-o ro"
 bindmounts /proc/sys /proc/sysrq-trigger /proc/irq /proc/bus
+BINDOPT=
 [ -z "$MINC_NOPRIV" ] && bindmount /sys
 
 :;: '/tmp is used for application working area in container';:
