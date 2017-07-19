@@ -3,7 +3,9 @@
 set -x
 export MINC_TMPDIR=$1
 
-criu restore -vvv --action-script /usr/local/libexec/restore-script -d \
+trap "rm -f $MINC_TMPDIR/pid" EXIT
+
+criu restore -vvv --action-script /usr/local/libexec/restore-script \
 	-r $MINC_TMPDIR/root --external mnt[] \
 	-D $MINC_TMPDIR/criu --pidfile $MINC_TMPDIR/pid
 

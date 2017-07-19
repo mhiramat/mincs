@@ -37,3 +37,4 @@ export MINC_PIVOT
 
 export MINC_DEBUG=1
 /usr/local/libexec/minc-core
+rm -f $MINC_TMPDIR/pid
