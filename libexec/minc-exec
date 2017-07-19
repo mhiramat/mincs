@@ -21,7 +21,7 @@ test "$MINC_BASEDIR"
 test -d "$MINC_TMPDIR"
 
 :;: "Save current setting parameters" ;:
-env | grep ^MINC_ > $MINC_TMPDIR/settings
+env | grep ^MINC_ | xargs -n 1 echo "export " > $MINC_TMPDIR/settings
 
 TRAPCMD=$MINC_BACKGROUND
 if [ "$MINC_BACKGROUND" ]; then

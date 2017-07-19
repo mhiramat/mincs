@@ -11,30 +11,5 @@ fi
 . $MINC_TMPDIR/settings
 
 export MINC_SETUPONLY=yes
-export MINC_DEBUG_PREFIX
-export MINC_RWBIND
-export MINC_OPT_PTY
-export MINC_CPUMASK
-export MINC_NETNS
-export MINC_DEBUG
-export MINC_BASEDIR
-export MINC_USE_DEV
-export MINC_UTSNAME
-export MINC_DIRECT
-export MINC_DROPCAPS
-export MINC_MEM_LIMIT
-export MINC_MEM_SWAP
-export MINC_CPU_SHARES
-export MINC_CPU_QUOTA
-export MINC_PID_MAX
-export MINC_CROSS_QEMU
-export MINC_NOPRIV
-export MINC_QEMU
-export MINC_PORT_MAP
-export MINC_ARCH
-export MINC_BACKGROUND
-export MINC_PIVOT
 
-export MINC_DEBUG=1
 /usr/local/libexec/minc-core
-rm -f $MINC_TMPDIR/pid
