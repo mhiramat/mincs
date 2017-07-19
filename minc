@@ -106,6 +106,7 @@ export MINC_PORT_MAP=
 export MINC_ARCH=`uname -m`
 export MINC_BACKGROUND=
 export MINC_PIVOT=0
+export MINC_CRIU=
 
 minc_set_rootfs() {
     export MINC_BASEDIR=$1

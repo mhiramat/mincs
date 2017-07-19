@@ -115,6 +115,15 @@ trap "rm -f $MINC_TMPDIR/pid;$TRAPCMD" EXIT
 trap "cat $MINC_TMPDIR/pid | xargs kill -INT" INT
 trap "cat $MINC_TMPDIR/pid | xargs kill -QUIT" QUIT
 
+if [ "$MINC_CRIU" ]; then
+  export MINC_SETUPONLY=yes
+  MINCCORE=`(cd $(dirname $MINCCORE); pwd)`/minc-core
+  criu restore -vvv -o $MINC_TMPDIR/criu.log --action-script $MINCCORE \
+	-r $MINC_TMPDIR/root --external mnt[] \
+	-D $MINC_TMPDIR/criu --pidfile $MINC_TMPDIR/pid
+  exit 0
+fi
+
 :;: 'Enter new namespace and execute command';:
 export MINC_SETUPONLY=
 UNSHARE_OPT=

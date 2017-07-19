@@ -13,12 +13,17 @@ MINCMOULT=$LIBEXEC/minc-moult
 set -e
 test "$MINC_DEBUG" && set -x
 
+if [ "$CRTOOLS_SCRIPT_ACTION" -a \
+     "$CRTOOLS_SCRIPT_ACTION" != "setup-namespaces" ] ; then
+  exit 0
+fi
+
+:
+: 'Get the PID in parent namespace from procfs'
+: '(At this point, we still have the procfs in original namespace)'
+:
+export MINC_PID=`cut -f 4 -d" " /proc/self/stat`
 if [ -z "$MINC_SETUPONLY" ]; then
-  :
-  : 'Get the PID in parent namespace from procfs'
-  : '(At this point, we still have the procfs in original namespace)'
-  :
-  export MINC_PID=`cut -f 4 -d" " /proc/self/stat`
   echo $MINC_PID > $MINC_TMPDIR/pid
 fi
 

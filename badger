@@ -1,0 +1,92 @@
+#!/bin/sh
+# badger : Minc Container sleepe/awaken tool
+#
+# Copyright (C) 2017 Masami Hiramatsu <masami.hiramatsu@gmail.com>
+# This program is released under the MIT License, see LICENSE.
+#
+# This requires criu maybe later than 2.12
+
+LIBEXEC=`dirname $0`/libexec
+MINCCORE=$LIBEXEC/minc-core
+MINCEXEC=$LIBEXEC/minc-exec
+
+set -e
+
+usage(){
+  echo "Usage: $0 [sleep|wake] MINC_TEMPDIR"
+  exit 0
+}
+
+winter_sleep() { # container_tempdir
+  if test ! -f $1/pid || ! ps -q `cat $1/pid` > /dev/null ; then
+    echo "$1 is not a running container"
+    exit 1
+  fi
+  export MINC_TMPDIR=$1
+  if [ ! -f $MINC_TMPDIR/settings ]; then
+    echo "$MINC_TMPDIR have no settings file."
+    exit 1
+  fi
+  . $MINC_TMPDIR/settings
+  if [ "$MINC_QEMU" ]; then
+    echo "qemu-based container is not supported. (No --qemu)"
+    exit 1
+  fi
+  if [ -z "$MINC_BACKGROUND" ]; then
+    echo "Only background running containr is supported. (--background)"
+    exit 1
+  fi
+  if [ "$MINC_BACKGROUND" != ":" ]; then
+    echo "Container tempdir must be kept after quit. (--keep)"
+    exit 1
+  fi
+  if [ "$MINC_PIVOT" -eq 0 ]; then
+    echo "Container must use pivot_root. (--pivot)"
+    exit 1
+  fi
+
+  PID=`cat $MINC_TMPDIR/pid`
+  mkdir -p $MINC_TMPDIR/criu
+  criu dump -t $PID --external "mnt[]" --ext-mount-map auto \
+       -D $MINC_TMPDIR/criu -vvv -o $MINC_TMPDIR/criu.log
+}
+
+spring_wake() {
+  if [ -f $1/pid ]; then
+    if ps -q `cat $1/pid` > /dev/null ; then
+      echo "$1 is a running container."
+      exit 1
+    else
+      echo "WARN: aboarted container found. Remove pidfile."
+      rm -f $1/pid
+    fi
+  fi
+  export MINC_TMPDIR=$1
+  if [ ! -d $MINC_TMPDIR/criu ]; then
+    echo "There is no sleeping image."
+    exit 1
+  fi
+  if [ ! -f $MINC_TMPDIR/settings ]; then
+    echo "$MINC_TMPDIR have no settings file."
+    exit 1
+  fi
+  . $MINC_TMPDIR/settings
+  export MINC_CRIU=yes
+
+  :;: 'Let minc-exec start new session so that we can leave it in background' ;:
+  setsid $MINCEXEC "$@" 1> $MINC_TMPDIR/log 2> $MINC_TMPDIR/debug < /dev/null &
+  echo "Restore container in background. See $MINC_TMPDIR/log for output."
+}
+
+
+test -d "$2" || usage
+case $1 in
+  sleep)
+    winter_sleep $2
+  ;;
+  wake)
+    spring_wake $2
+  ;;
+  *)
+  usage
+esac
