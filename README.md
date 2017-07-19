@@ -112,6 +112,10 @@ to specify PREFIX if you gave it when installing.
 * --nocaps *CAPLIST*  
        Drop capabilities (e.g. cap_sys_admin)
 
+* --pivot  
+       Use pivot\_root forcibly instead of chroot. This requires chroot and
+       umount installed on container's rootfs.
+
 ## marten usage
 
 ` marten <command> [arguments...]`
