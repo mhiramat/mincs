@@ -1,0 +1,7 @@
+#!/bin/sh
+
+TMPDIR=$1
+PID=`cat $TMPDIR/pid`
+mkdir $TMPDIR/criu
+criu dump -t $PID -vvv --external mnt[] -D $TMPDIR/criu
+
