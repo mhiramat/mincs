@@ -142,5 +142,7 @@ mount -t tmpfs tmpfs $RD/tmp
 
 user_bindmount
 
+[ "$MINC_SETUPONLY" ] && exit 0
+
 :;: 'Exec leash (chroot/capsh) to run command in new rootfs';:
 exec $MINCLEASH $RD "$@"

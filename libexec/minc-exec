@@ -116,6 +116,7 @@ trap "cat $MINC_TMPDIR/pid | xargs kill -INT" INT
 trap "cat $MINC_TMPDIR/pid | xargs kill -QUIT" QUIT
 
 :;: 'Enter new namespace and execute command';:
+export MINC_SETUPONLY=
 UNSHARE_OPT=
 [ "$MINC_NOPRIV" ] && UNSHARE_OPT=--map-root-user
 $IP_NETNS unshare $UNSHARE_OPT -iumpf $MINCCORE "$@"
