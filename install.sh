@@ -3,7 +3,7 @@
 [ -z "$LIBEXEC" ] && LIBEXEC=$PREFIX/libexec
 BIN=$PREFIX/bin
 
-BINS="minc marten polecat"
+BINS="minc marten polecat badger"
 LIBS="libexec/*"
 TOPDIR=$(cd $(dirname $0); pwd)
 
