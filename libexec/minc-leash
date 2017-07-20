@@ -110,6 +110,8 @@ if [ "$MINC_BACKGROUND" ]; then
    RUN="setsid $RUN"
 fi
 
+:;: 'Record container PID right before executing command';:
+echo $MINC_PID > $MINC_TMPDIR/pid
 :;: 'Wash out the environment variables for MINCS';:
 wash "^MINC_"
 :;: 'Execute given command in new rootfs';:

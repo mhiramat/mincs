@@ -18,9 +18,6 @@ test "$MINC_DEBUG" && set -x
 : '(At this point, we still have the procfs in original namespace)'
 :
 export MINC_PID=`cut -f 4 -d" " /proc/self/stat`
-if [ -z "$MINC_CRIU" ]; then
-  echo $MINC_PID > $MINC_TMPDIR/pid
-fi
 
 if [ "$MINC_UTSNAME" ]; then
   :;: 'Setup utsname for this container';:
