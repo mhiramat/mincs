@@ -51,6 +51,11 @@ winter_sleep() { # container_tempdir
        -D $MINC_TMPDIR/criu -vvv -o $MINC_TMPDIR/criu.log
 }
 
+minc_exec_bg() {
+  :;: 'Let minc-exec start new session so that we can leave it in background' ;:
+  setsid $MINCEXEC "$@" 1> $MINC_TMPDIR/log 2> $MINC_TMPDIR/debug < /dev/null &
+}
+
 spring_wake() {
   if [ -f $1/pid ]; then
     if ps -q `cat $1/pid` > /dev/null ; then
@@ -70,11 +75,14 @@ spring_wake() {
     echo "$MINC_TMPDIR have no settings file."
     exit 1
   fi
+
   . $MINC_TMPDIR/settings
   export MINC_CRIU=yes
 
-  :;: 'Let minc-exec start new session so that we can leave it in background' ;:
-  setsid $MINCEXEC "$@" 1> $MINC_TMPDIR/log 2> $MINC_TMPDIR/debug < /dev/null &
+  minc_exec_bg criu restore -vvv -o $MINC_TMPDIR/criu.log \
+	-r $MINC_TMPDIR/root --external "mnt[]" \
+	-D $MINC_TMPDIR/criu --pidfile $MINC_TMPDIR/pid
+
   echo "Restore container in background. See $MINC_TMPDIR/log for output."
 }
 
