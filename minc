@@ -106,9 +106,35 @@ export MINC_PORT_MAP=
 export MINC_ARCH=`uname -m`
 export MINC_BACKGROUND=
 export MINC_PIVOT=0
+export MINC_SSHFS_HOST=
+
+parse_sshfs() { # sshfs-path
+  :;: "Parse sshfs://[USER@]HOST[:PORT]/[PATH]" ;:
+  MINC_SSHFS_DATA=${1#sshfs://}
+  MINC_SSHFS_HOST=${MINC_SSHFS_DATA%%/*}
+  if [ "$MINC_SSHFS_HOST" != "$MINC_SSHFS_DATA" ]; then
+    MINC_SSHFS_PATH=${MINC_SSHFS_DATA#$MINC_SSHFS_HOST}
+  else
+    MINC_SSHFS_PATH=/
+  fi
+  MINC_SSHFS_PORT=${MINC_SSHFS_HOST##*:}
+  if [ "$MINC_SSHFS_PORT" = "$MINC_SSHFS_HOST" ]; then
+    MINC_SSHFS_PORT=22
+  else
+    MINC_SSHFS_HOST=${MINC_SSHFS_HOST%:$MINC_SSHFS_PORT}
+  fi
+  return 0
+}
 
 minc_set_rootfs() {
     export MINC_BASEDIR=$1
+    case $MINC_BASEDIR in
+      sshfs://*) :;: 'Use sshfs' ;:
+        which sshfs || usage "Error: No sshfs command"
+        parse_sshfs $1 || usage "Error: $1 is not sshfs"
+        return 0
+      ;;
+    esac
     if [ ! -d "$MINC_BASEDIR" ]; then
       # ensure the given id image exists
       $MINCFARM pull $MINC_BASEDIR > /dev/null || \
@@ -264,6 +290,13 @@ if [ -z "$USE_FARM" ]; then
     TRAPCMD="echo To reuse this, run: $0 -r $MINC_BASEDIR -t $MINC_TMPDIR"
   fi
   trap "$TRAPCMD" EXIT
+  if [ "$MINC_SSHFS_HOST" ]; then
+    mkdir -p $MINC_TMPDIR/sshfs
+    export MINC_BASEDIR=$MINC_TMPDIR/sshfs
+    sshfs -p $MINC_SSHFS_PORT $MINC_SSHFS_HOST:$MINC_SSHFS_PATH $MINC_BASEDIR
+    TRAPCMD="umount $MINC_BASEDIR && $TRAPCMD"
+    trap "$TRAPCMD" EXIT
+  fi
 elif [ "$USE_FARM" = "image" ]; then
   :;: 'Use minc-farm to setup new container from image';:
   UUID=`$MINCFARM fork $MINC_BASEDIR`
