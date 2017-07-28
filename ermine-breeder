@@ -242,7 +242,7 @@ build_libcap() { # workdir rootfsdir
   [ -f $2/usr/sbin/capsh ] && return 0
   (cd $1/libcap*/
   make clean
-  make DYNAMIC=no BUILD_CC=gcc CC=${CROSS_COMPILE}gcc
+  make DYNAMIC=no BUILD_CC=gcc CC=${CROSS_COMPILE}gcc BUILD_GPERF=no
   mkdir -p $2/usr/sbin/
   cp progs/capsh $2/usr/sbin/
   ${CROSS_COMPILE}strip $2/usr/sbin/capsh
