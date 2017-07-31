@@ -232,6 +232,11 @@ build_busybox() { # workdir rootfsdir
   kconfigs_y STATIC
   kconfigs_n HUSH FEATURE_BASH_IS_NONE
   kconfigs_y ASH FEATURE_SH_IS_ASH FEATURE_BASH_IS_ASH
+  # This might be x86-64 host only
+  if [ "$ARCH" = i386 ]; then
+    kconfig_string EXTRA_CFLAGS "-m32"
+    kconfig_string EXTRA_LDFLAGS "-m32"
+  fi
   make busybox -j $JOBS
   make install
   cp -R _install $2
@@ -242,7 +247,12 @@ build_libcap() { # workdir rootfsdir
   [ -f $2/usr/sbin/capsh ] && return 0
   (cd $1/libcap*/
   make clean
-  make DYNAMIC=no BUILD_CC=gcc CC=${CROSS_COMPILE}gcc BUILD_GPERF=no
+  CC=${CROSS_COMPILE}gcc
+  # This might be x86-64 host only
+  if [ "$ARCH" = i386 ]; then
+    CC="$CC -m32"
+  fi
+  make DYNAMIC=no BUILD_CC=gcc CC="${CC}" BUILD_GPERF=no
   mkdir -p $2/usr/sbin/
   cp progs/capsh $2/usr/sbin/
   ${CROSS_COMPILE}strip $2/usr/sbin/capsh
