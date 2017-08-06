@@ -10,6 +10,8 @@ test "$MINC_DEBUG" && set -x
 MINC_BR=mincbr0
 MINC_BRTMP=192.168.139.X/24
 MINC_LEASE=/var/run/minc.lease
+MINC_USE_BRCTL=yes
+which brctl &> /dev/null || MINC_USE_BRCTL=
 
 map_port(){ # destip hostport destport proto
   :;: 'Ingress packet to local ip is DNAT to given container';:
@@ -67,13 +69,45 @@ init_minclease(){
   echo -n > $MINC_LEASE
 }
 
+br_show(){
+  if [ $MINC_USE_BRCTL ]; then
+    brctl show
+  else
+    nmcli con show | grep -w bridge
+  fi
+}
+
+br_addbr() { # bridge-name
+  if [ $MINC_USE_BRCTL ]; then
+    brctl addbr $1
+  else
+    nmcli con add type bridge ifname $1
+  fi
+}
+
+br_delbr() { # bridge-name
+  if [ $MINC_USE_BRCTL ]; then
+    brctl delbr $1
+  else
+    nmcli con del $1
+  fi
+}
+
+br_addif() { # bridge-name ifname
+  if [ $MINC_USE_BRCTL ]; then
+    brctl addif $1 $2
+  else
+    nmcli con add type bridge-slave ifname $2 master $1
+  fi
+}
+
 mkmincbr(){
-  if brctl show | grep -qw $MINC_BR ; then
+  if br_show | grep -qw $MINC_BR ; then
     iptables-save | grep -qi minc || setup_nat
   else
     :;: 'Add a bridge for mincs';:
     MINC_BRIP=`echo $MINC_BRTMP | sed s/X/1/g`
-    brctl addbr $MINC_BR
+    br_addbr $MINC_BR
     ip -4 addr add $MINC_BRIP dev $MINC_BR
     ip link set $MINC_BR up
     init_minclease
@@ -84,12 +118,12 @@ mkmincbr(){
 rmmincbr(){
   discard_nat ||:
   ip link set $MINC_BR down
-  brctl delbr $MINC_BR
+  br_delbr $MINC_BR
 }
 
 addmincif(){ # ifname
   ip link set $1 up
-  brctl addif $MINC_BR $1
+  br_addif $MINC_BR $1
 }
 
 _get_unused_ipaddr(){ # ifname
