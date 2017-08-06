@@ -64,6 +64,10 @@ if [ "$MINC_RWBIND" ]; then
 fi
 }
 
+:;: "Setup name resolvers" ;:
+bindmount2 $MINC_TMPDIR/resolv.conf /etc/resolv.conf
+bindmount2 $MINC_TMPDIR/hosts /etc/hosts
+
 if [ -x "$MINC_CROSS_QEMU" ]; then
   :;: 'Bind qemu-user-mode for cross-arch container';:
   mkdir -p $RD/usr/bin/

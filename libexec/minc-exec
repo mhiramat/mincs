@@ -85,6 +85,11 @@ else
   IP_NETNS=
 fi
 
+echo nameserver 8.8.8.8 > $MINC_TMPDIR/resolv.conf
+[ "$MINC_UTSNAME" ] || MINC_UTSNAME=`hostname`
+echo "127.0.0.1	localhost" > $MINC_TMPDIR/hosts
+ip a | grep -w inet | sed 's/.*inet \([0-9.]*\)[^0-9]*.*/\1/' | xargs printf "%s\t$MINC_UTSNAME\n" >> $MINC_TMPDIR/hosts
+
 if [ "$MINC_CPUMASK" ]; then
   :;: "Setup CPU limitations by CPUSET";:
   taskset -ap $MINC_CPUMASK $$ > /dev/null
