@@ -37,6 +37,7 @@ CROSS_COMPILE_arm=arm-linux-gnueabi-
 # Build params
 JOBS=`nproc`
 BUILD_MOD=no
+BUILD_NET=no
 
 # Dummy functions for additional configurations
 user_configure_kernel() {
@@ -151,6 +152,13 @@ kconfigs_n() { # entries
   done
 }
 
+kconfigs_m() { # entries
+  while [ $# -ne 0 ]; do
+    kconfig_set ${1} y
+    shift 1
+  done
+}
+
 configure_kernel() { # outdir
   make defconfig O=$1
   user_configure_kernel $1
@@ -164,6 +172,17 @@ configure_kernel() { # outdir
     CGROUP_PERF CGROUP_SCHED CGROUP_HUGETLB FAIR_GROUP_SCHED \
     CGROUP_PIDS CGROUP_FREEZER CFS_BANDWIDTH RT_GROUP_SCHED \
     BLK_CGROUP EXPORTFS
+
+  if [ "$BUILD_NET" = yes ]; then
+    # config minc-dens configs
+    kconfigs_y VETH BRIDGE BRIDGE_EBT_T_NAT BRIDGE_NF_EBTABLES NETFILTER \
+      NETFILTER_XTABLES IP_NF_NAT IP_NF_IPTABLES IP_NF_TARGET_MASQUERADE \
+      NF_NAT_IPV4 NF_NAT_REDIRECT NF_NAT_MASQUERADE_IPV4 NF_CONNTRACK \
+      NF_CONNTRACK_IPV4 NETFILTER_XT_CONNMARK NETFILTER_XT_NAT \
+      NF_TABLES NFT_NAT NFT_MASQ NFT_REJECT NFT_REJECT_INET NFT_REJECT_IPV4 \
+      NFT_MASQ_IPV4 IP_NF_TARGET_REDIRECT BRIDGE_NETFILTER NETFILTER_ADVANCED \
+      NETFILTER_XT_MATCH_ADDRTYPE
+  fi
 
   if [ $ARCH = um ]; then
     # config user mode linux configs
