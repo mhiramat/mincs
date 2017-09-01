@@ -10,8 +10,13 @@ test "$MINC_DEBUG" && set -x
 MINC_BR=mincbr0
 MINC_BRTMP=192.168.139.X/24
 MINC_LEASE=/var/run/minc.lease
-MINC_USE_BRCTL=yes
-which brctl &> /dev/null || MINC_USE_BRCTL=
+
+BRCTL=$(which brctl)
+if [ -n "$BRCTL" -a -x "$BRCTL" ] ; then
+  MINC_USE_BRCTL=yes
+else
+  MINC_USE_BRCTL=
+fi
 
 map_port(){ # destip hostport destport proto
   :;: 'Ingress packet to local ip is DNAT to given container';:
