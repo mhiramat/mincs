@@ -27,6 +27,7 @@ LINUX_URL=""
 BUSYBOX_URL=http://busybox.net/downloads/busybox-1.26.2.tar.bz2
 LIBCAP_URL=https://github.com/mhiramat/libcap/archive/capsh-exec-v1.zip
 UM_LINUX_URL=https://github.com/mhiramat/linux/archive/um-quiet.zip
+IPTABLES_URL=http://www.netfilter.org/projects/iptables/files/iptables-1.6.1.tar.bz2
 
 # Cross tools
 GCC_arm64_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/aarch64-linux-gnu/gcc-linaro-6.2.1-2016.11-x86_64_aarch64-linux-gnu.tar.xz
@@ -206,8 +207,10 @@ configure_kernel() { # outdir
 
 build_kernel() { # workdir rebuild
   VMLINUZ=$DESTDIR/vmlinuz.$ARCH
-  [ -f $VMLINUZ -a "$2" -eq 0 ] && return 0
   export OUTDIR=$1/build-${ARCH}/
+  export KBUILD_DIR=$OUTDIR
+  export KERNEL_DIR=$1/linux*/
+  [ -f $VMLINUZ -a "$2" -eq 0 ] && return 0
   [ "$2" -ne 0 ] && rm -rf $OUTDIR
   (cd $1/linux*/
   configure_kernel $OUTDIR
@@ -275,6 +278,19 @@ build_libcap() { # workdir rootfsdir
   mkdir -p $2/usr/sbin/
   cp progs/capsh $2/usr/sbin/
   ${CROSS_COMPILE}strip $2/usr/sbin/capsh
+  )
+}
+
+build_iptables() { # workdir rootfsdir
+#  [ -f $2/sbin/iptables ] && return 0
+  (cd $1/iptables*/
+  [ -f Makefile ] && make clean ||:
+  ./configure --disable-nftables --disable-ipv6 --disable-devel \
+    --disable-shared --enable-static --without-pic \
+    --with-kernel=$KERNEL_DIR --with-kbuild=$KBUILD_DIR \
+    --target=${CROSS_COMPILE%*-} --host=${CROSS_COMPILE%*-} --prefix=/
+  make CFLAGS="-static" LDFLAGS="-all-static"
+  make install-strip DESTDIR=$2
   )
 }
 
@@ -494,6 +510,7 @@ fi
 LINUXDIR=$WORKDIR/linux
 BUSYBOXDIR=$WORKDIR/busybox
 LIBCAPDIR=$WORKDIR/libcap
+IPTABLESDIR=$WORKDIR/iptables
 ROOTFSDIR=$WORKDIR/rootfs
 prepare_arch $ARCH
 export ARCH
@@ -538,6 +555,7 @@ fi
 setup_source $LINUX_URL $LINUXDIR
 setup_source $BUSYBOX_URL $BUSYBOXDIR
 setup_source $LIBCAP_URL $LIBCAPDIR
+[ "$BUILD_NET" = yes ] && setup_source $IPTABLES_URL $IPTABLESDIR
 
 echo "Kernel build"
 build_kernel $LINUXDIR $REBUILD_KERNEL
@@ -547,6 +565,10 @@ build_busybox $BUSYBOXDIR $ROOTFSDIR
 
 echo "libcap build"
 build_libcap $LIBCAPDIR $ROOTFSDIR
+
+if [ "$BUILD_NET" = "yes" ]; then
+  build_iptables $IPTABLESDIR $ROOTFSDIR
+fi
 
 if [ "$BUILD_MOD" = "yes" ]; then
   echo "kernel module build"
