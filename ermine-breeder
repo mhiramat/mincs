@@ -403,9 +403,18 @@ test_run() {
      WORKDIR=`abspath $1`
      shift 1
   fi
+  . $LIBEXEC/minc-dens
+  mkmincbr
+  :;: 'Setup ip addr for ermine kernel';:
+  export MINC_NETNSIF="tap-minc$$"
+  TRAPCMD="delmincip $MINC_NETNSIF; $TRAPCMD"
+  trap "$TRAPCMD" EXIT
+  setmincip $MINC_NETNSIF
+  MINC_KERNEL_OPT="ip=$MINC_IP::$MINC_GWIP:$MINC_NETMASK::eth0::8.8.8.8:"
+
   QEMU_OPT="$@"
   prepare_arch "$ARCH" # to get QEMU_TTY
-  minc_moult "$ARCH" $WORKDIR "ro console=${QEMU_TTY}"
+  (minc_moult "$ARCH" $WORKDIR "ro console=${QEMU_TTY} ${MINC_KERNEL_OPT}")
 }
 
 run_selfbuild() {
