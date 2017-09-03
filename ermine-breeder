@@ -28,6 +28,7 @@ BUSYBOX_URL=http://busybox.net/downloads/busybox-1.26.2.tar.bz2
 LIBCAP_URL=https://github.com/mhiramat/libcap/archive/capsh-exec-v1.zip
 UM_LINUX_URL=https://github.com/mhiramat/linux/archive/um-quiet.zip
 IPTABLES_URL=http://www.netfilter.org/projects/iptables/files/iptables-1.6.1.tar.bz2
+IPROUTE2_URL=https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-4.9.0.tar.xz
 
 # Cross tools
 GCC_arm64_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/aarch64-linux-gnu/gcc-linaro-6.2.1-2016.11-x86_64_aarch64-linux-gnu.tar.xz
@@ -254,6 +255,10 @@ build_busybox() { # workdir rootfsdir
   kconfigs_y STATIC
   kconfigs_n HUSH FEATURE_BASH_IS_NONE
   kconfigs_y ASH FEATURE_SH_IS_ASH FEATURE_BASH_IS_ASH
+  if [ "$BUILD_NET" = yes ] ; then
+    # Since we will use iproute2 package
+    kconfigs_n IP IPADDR IPLINK IPROUTE IPTUNNEL IPRULE IPNEIGH
+  fi
   # This might be x86-64 host only
   if [ "$ARCH" = i386 ]; then
     kconfig_string EXTRA_CFLAGS "-m32"
@@ -282,7 +287,7 @@ build_libcap() { # workdir rootfsdir
 }
 
 build_iptables() { # workdir rootfsdir
-#  [ -f $2/sbin/iptables ] && return 0
+  [ -f $2/sbin/iptables ] && return 0
   (cd $1/iptables*/
   [ -f Makefile ] && make clean ||:
   ./configure --disable-nftables --disable-ipv6 --disable-devel \
@@ -291,6 +296,23 @@ build_iptables() { # workdir rootfsdir
     --target=${CROSS_COMPILE%*-} --host=${CROSS_COMPILE%*-} --prefix=/
   make CFLAGS="-static" LDFLAGS="-all-static"
   make install-strip DESTDIR=$2
+  )
+}
+
+build_iproute2() { # workdir rootfsdir
+  [ -L $2/sbin/ip ] && rm $2/sbin/ip
+  [ -f $2/sbin/ip ] && return 0
+  (cd $1/iproute2*/
+  make clean ||:
+  export CC=${CROSS_COMPILE}gcc
+  export AR=${CROSS_COMPILE}ar
+  ./configure
+  export CFLAGS="-static"
+  export LDFLAGS="-static"
+  make SHARED_LIBS=n TC_CONFIG_ELF=n -j $JOBS
+  set -xv
+  cp -f ip/ip $2/sbin/ip
+  ${CROSS_COMPILE}strip $2/sbin/ip
   )
 }
 
@@ -511,7 +533,9 @@ LINUXDIR=$WORKDIR/linux
 BUSYBOXDIR=$WORKDIR/busybox
 LIBCAPDIR=$WORKDIR/libcap
 IPTABLESDIR=$WORKDIR/iptables
+IPROUTE2DIR=$WORKDIR/iproute2
 ROOTFSDIR=$WORKDIR/rootfs
+
 prepare_arch $ARCH
 export ARCH
 case "$ARCH" in
@@ -555,7 +579,10 @@ fi
 setup_source $LINUX_URL $LINUXDIR
 setup_source $BUSYBOX_URL $BUSYBOXDIR
 setup_source $LIBCAP_URL $LIBCAPDIR
-[ "$BUILD_NET" = yes ] && setup_source $IPTABLES_URL $IPTABLESDIR
+if [ "$BUILD_NET" = yes ] ; then
+  setup_source $IPTABLES_URL $IPTABLESDIR
+  setup_source $IPROUTE2_URL $IPROUTE2DIR
+fi
 
 echo "Kernel build"
 build_kernel $LINUXDIR $REBUILD_KERNEL
@@ -568,6 +595,7 @@ build_libcap $LIBCAPDIR $ROOTFSDIR
 
 if [ "$BUILD_NET" = "yes" ]; then
   build_iptables $IPTABLESDIR $ROOTFSDIR
+  build_iproute2 $IPROUTE2DIR $ROOTFSDIR
 fi
 
 if [ "$BUILD_MOD" = "yes" ]; then
