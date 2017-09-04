@@ -303,13 +303,14 @@ build_iproute2() { # workdir rootfsdir
   [ -L $2/sbin/ip ] && rm $2/sbin/ip
   [ -f $2/sbin/ip ] && return 0
   (cd $1/iproute2*/
-  make clean ||:
+  make clean
+  rm -f */static-syms.o */static-syms.h
   export CC=${CROSS_COMPILE}gcc
   export AR=${CROSS_COMPILE}ar
   ./configure
   export CFLAGS="-static"
   export LDFLAGS="-static"
-  make SHARED_LIBS=n TC_CONFIG_ELF=n -j $JOBS
+  make LIBDIR=$GCCLIBDIR SHARED_LIBS=n TC_CONFIG_ELF=n -j $JOBS
   set -xv
   cp -f ip/ip $2/sbin/ip
   ${CROSS_COMPILE}strip $2/sbin/ip
@@ -575,7 +576,11 @@ if [ $HOSTARCH != $ARCH ]; then
   ROOTFSDIR=$WORKDIR/rootfs-$ARCH
   GCCDIR=$WORKDIR/gcc-$ARCH
   setup_source $GCC_URL $GCCDIR
-  export PATH="$PATH:"`ls -d $GCCDIR/*/bin`
+  GCCBINDIR=`ls -d $GCCDIR/*/bin`
+  export GCCLIBDIR="${GCCBINDIR%/bin}/${CROSS_COMPILE%-}/libc/usr/lib"
+  export PATH="$PATH:"$GCCBINDIR
+else
+  export GCCLIBDIR="/usr/lib"
 fi
 #TODO: After the um-quiet patchset merged to stable, this should be removed
 if [ "$ARCH" = "um" ]; then
