@@ -8,7 +8,7 @@ set -e
 test "$MINC_DEBUG" && set -x
 
 MINC_BR=mincbr0
-MINC_BRTMP=192.168.139.X/24
+MINC_BRTMP=${MINC_NETTMP:="192.168.139.X/24"}
 MINC_LEASE=/var/run/minc.lease
 
 BRCTL=$(which brctl)
