@@ -62,12 +62,14 @@ if [ $MINC_QEMU ]; then
 fi
 
 if [ "$MINC_NETNS" ]; then
-  . $MINCDENS
-  mkmincbr
   :;: "Setup Network Namespace";:
   ip netns add $MINC_NETNS
   TRAPCMD="ip netns del $MINC_NETNS; $TRAPCMD"
   trap "$TRAPCMD" EXIT
+  IP_NETNS="ip netns exec $MINC_NETNS "
+  if [ "$MINC_NETMODE" = dens ]; then
+  . $MINCDENS
+  mkmincbr
   :;: 'Make an vether pair';:
   export MINC_NETNSIF=veth0-$MINC_NETNS
   ip link add name $MINC_NETNSIF type veth peer name veth1-$MINC_NETNS
@@ -77,10 +79,10 @@ if [ "$MINC_NETNS" ]; then
   TRAPCMD="delmincip $MINC_NETNSIF; $TRAPCMD"
   trap "$TRAPCMD" EXIT
   MINC_IP=`addmincip $MINC_NETNSIF $MINC_NETNS`
-  IP_NETNS="ip netns exec $MINC_NETNS "
   echo $MINC_IP > $MINC_TMPDIR/ipv4
 
   port_mapping
+  fi
 else
   IP_NETNS=
 fi
