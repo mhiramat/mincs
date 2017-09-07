@@ -82,6 +82,12 @@ if [ "$MINC_NETNS" ]; then
   echo $MINC_IP > $MINC_TMPDIR/ipv4
 
   port_mapping
+  else # raw mode
+    IF=${MINC_NETMODE#raw,}
+    if [ -n "$IF" -a "$IF" != "$MINC_NETMODE" ]; then
+      :;: "Move $IF to $MINC_NETNS namespace" ;:
+      ip link set $IF netns $MINC_NETNS
+    fi
   fi
 else
   IP_NETNS=

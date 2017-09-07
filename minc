@@ -32,7 +32,7 @@ usage() { # [error messages]
   echo "        		or use UUID named container image"
   echo "    -X or --X11		Export local X11 unix socket"
   echo "    -n or --net	[MODE]	Use network namespace and specify mode"
-  echo "                        MODE: raw dens "
+  echo "                        MODE: raw[,interface] dens"
   echo "    -c or --cpu MASK	Set CPU mask"
   echo "    -b or --bind HOSTPATH:PATH"
   echo "        		Bind HOSTPATH to PATH in container"
@@ -194,7 +194,7 @@ case "$cmd" in
     export MINC_NETNS="minc$$"
     case "$1" in
       -*) ;;
-      raw|dens)
+      raw*|dens)
         export MINC_NETMODE=$1
         shift 1;;
     esac
