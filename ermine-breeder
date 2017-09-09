@@ -326,7 +326,7 @@ install_mincs() { # rootfsdir
 
 setup_rootfs() { # rootfsdir
   (cd $1
-  mkdir -p dev sys proc mnt tmp etc
+  mkdir -p dev sys proc mnt tmp etc var/run
   chmod 1777 tmp
 
   cat > etc/rc.local << EOF
