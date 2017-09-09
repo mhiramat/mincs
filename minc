@@ -38,6 +38,7 @@ usage() { # [error messages]
   echo "        		Bind HOSTPATH to PATH in container"
   echo "    -p or --port HOSTPORT:PORT[:udp]"
   echo "        		Bind HOSTPORT to PORT in container"
+  echo "                        This implies using dens mode"
   echo "    -B or --background  Run container in background mode"
   echo "    --name NAME		Set <NAME> as container's name (hostname)"
   echo "    --user UID[:GID]	Specify uid and gid to run command"
@@ -226,6 +227,7 @@ case "$cmd" in
   -p|--port)
     export MINC_PORT_MAP="$1 $MINC_PORT_MAP"
     export MINC_NETNS="minc$$"
+    export MINC_NETMODE="dens"
     shift 1
     ;;
   --name)
