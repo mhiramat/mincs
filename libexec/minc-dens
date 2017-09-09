@@ -168,7 +168,7 @@ __parse_portmap() { # hport [cport [proto]]
 }
 
 _parse_portmap() { # hport[:cport[:proto]]
-  __parse_portmap `echo $1 | tr -t : " "`
+  __parse_portmap `echo $1 | sed "s/:/ /"`
 }
 
 addmincport() { # ipaddr portmap
