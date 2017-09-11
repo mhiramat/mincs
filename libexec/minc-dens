@@ -11,7 +11,7 @@ MINC_BR=mincbr0
 MINC_BRTMP=${MINC_NETTMP:="192.168.139.X/24"}
 MINC_LEASE=/var/run/minc.lease
 
-BRCTL=$(which brctl)
+BRCTL=$(which brctl) ||:
 if [ -n "$BRCTL" -a -x "$BRCTL" ] ; then
   MINC_USE_BRCTL=yes
 else
@@ -106,15 +106,20 @@ br_addif() { # bridge-name ifname
   fi
 }
 
+setup_mincbr() {
+  MINC_BRIP=`echo $MINC_BRTMP | sed s/X/1/g`
+  ip -4 addr add $MINC_BRIP dev $MINC_BR
+  ip link set $MINC_BR up
+}
+
 mkmincbr(){
   if br_show | grep -qw $MINC_BR ; then
+    ip addr show dev $MINC_BR | grep -wq inet || setup_mincbr
     iptables-save | grep -qi minc || setup_nat
   else
     :;: 'Add a bridge for mincs';:
-    MINC_BRIP=`echo $MINC_BRTMP | sed s/X/1/g`
     br_addbr $MINC_BR
-    ip -4 addr add $MINC_BRIP dev $MINC_BR
-    ip link set $MINC_BR up
+    setup_mincbr
     init_minclease
     setup_nat
   fi
