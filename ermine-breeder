@@ -396,6 +396,17 @@ pack_initramfs() { # rootfsdir
 # Include prepare_arch and minc_moult
 . $LIBEXEC/minc-moult
 
+enable_network() {
+  . $LIBEXEC/minc-dens
+  mkmincbr
+  :;: 'Setup ip addr for ermine kernel';:
+  export MINC_NETNSIF="tap-minc$$"
+  TRAPCMD="delmincip $MINC_NETNSIF; $TRAPCMD"
+  trap "$TRAPCMD" EXIT
+  setmincip $MINC_NETNSIF
+  MINC_KERNEL_OPT="ip=$MINC_IP::$MINC_GWIP:$MINC_NETMASK::eth0::8.8.8.8:"
+}
+
 test_run() {
   while [ $# -ge 1 ]; do
   case $1 in
@@ -411,19 +422,14 @@ test_run() {
     WORKDIR=`abspath $2`
     shift 2
     ;;
+    --net)
+    enable_network
+    shift 1
+    ;;
     *)
     break;;
   esac
   done
-
-  . $LIBEXEC/minc-dens
-  mkmincbr
-  :;: 'Setup ip addr for ermine kernel';:
-  export MINC_NETNSIF="tap-minc$$"
-  TRAPCMD="delmincip $MINC_NETNSIF; $TRAPCMD"
-  trap "$TRAPCMD" EXIT
-  setmincip $MINC_NETNSIF
-  MINC_KERNEL_OPT="ip=$MINC_IP::$MINC_GWIP:$MINC_NETMASK::eth0::8.8.8.8:"
 
   QEMU_OPT="$@"
   prepare_arch "$ARCH" # to get QEMU_TTY
