@@ -19,14 +19,18 @@ DESTDIR=$LIBEXEC/ermine
 
 # Get the latest stable tree
 get_latest_kernel_url() {
-  if [ "$LINUX_BRANCH" = longterm ]; then
+  case "$LINUX_BRANCH" in
+    longterm)
     curl -s -L http://www.kernel.org/ | grep -m 1 -A 3 'longterm:' | tail -n 1 | cut -d\" -f 2
-  elif [ "$LINUX_BRANCH" = stable ]
+    ;;
+    stable|master)
     curl -s -L http://www.kernel.org/ | grep -m 1 -A 1 'id="latest_link"' | tail -n 1 | cut -d\" -f 2
-  else
+    ;;
+    *)
     echo "Error: $LINUX_BRANCH is not supported to download"
     exit 1
-  fi
+    ;;
+  esac
 }
 
 # Download sources
@@ -48,8 +52,8 @@ JOBS=`nproc`
 BUILD_MOD=no
 BUILD_NET=no
 FORCE_KCONFIG=
-# stable, longterm for LINUX_URL=""
-LINUX_BRANCH=stable
+# master, stable and longterm for LINUX_URL=""
+LINUX_BRANCH=master
 
 # Dummy functions for additional configurations
 user_configure_kernel() {
@@ -102,10 +106,11 @@ download_source() { # url todir
   )
 }
 
-git_source() { # url todir
+git_source() { # url todir [branch]
   if [ ! -d $2 ]; then
     mkdir $2
-    (cd $2; git clone --depth=1 $1 )
+    OPT= ; [ -n $3 ] && OPT="-b $3"
+    (cd $2; git clone --depth=1 $OPT $1 )
   fi
 }
 
@@ -124,7 +129,7 @@ file_source() { # url todir
   fi
 }
 
-setup_source() { # url todir
+setup_source() { # url todir [branch]
   scheme=${1%%:/*}
   ext=${1##*.}
   [ $ext = "git" ] && scheme=git
@@ -133,7 +138,7 @@ setup_source() { # url todir
     download_source $1 $2
     ;;
   git)
-    git_source $1 $2
+    git_source $1 $2 $3
     ;;
   file)
     file_source $1 $2
@@ -632,7 +637,7 @@ elif [ -z "$LINUX_URL" ]; then
   # Setup the latest kernel url here to avoid accessing kernel.org for testrun
   LINUX_URL=`get_latest_kernel_url`
 fi
-setup_source $LINUX_URL $LINUXDIR
+setup_source $LINUX_URL $LINUXDIR $LINUX_BRANCH
 setup_source $BUSYBOX_URL $BUSYBOXDIR
 setup_source $LIBCAP_URL $LIBCAPDIR
 if [ "$BUILD_NET" = yes ] ; then
