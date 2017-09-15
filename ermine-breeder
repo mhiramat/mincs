@@ -214,7 +214,11 @@ configure_kernel() { # outdir
 
 force_configure_kernel() { # outdir
   mkdir -p $1
-  cp $FORCE_KCONFIG $1/.config
+  if [ "$BUILD_MOD" = no ]; then
+    cat $FORCE_KCONFIG | sed s/=m$/=n/ > $1/.config
+  else
+    cat $FORCE_KCONFIG > $1/.config
+  fi
   make olddefconfig O=$1
 }
 
