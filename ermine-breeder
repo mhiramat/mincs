@@ -19,7 +19,14 @@ DESTDIR=$LIBEXEC/ermine
 
 # Get the latest stable tree
 get_latest_kernel_url() {
-  curl -s -L http://www.kernel.org/ | grep -A1 'id="latest_link"' | tail -n 1 | cut -d\" -f 2
+  if [ "$LINUX_BRANCH" = longterm ]; then
+    curl -s -L http://www.kernel.org/ | grep -m 1 -A 3 'longterm:' | tail -n 1 | cut -d\" -f 2
+  elif [ "$LINUX_BRANCH" = stable ]
+    curl -s -L http://www.kernel.org/ | grep -m 1 -A 1 'id="latest_link"' | tail -n 1 | cut -d\" -f 2
+  else
+    echo "Error: $LINUX_BRANCH is not supported to download"
+    exit 1
+  fi
 }
 
 # Download sources
@@ -41,6 +48,8 @@ JOBS=`nproc`
 BUILD_MOD=no
 BUILD_NET=no
 FORCE_KCONFIG=
+# stable, longterm for LINUX_URL=""
+LINUX_BRANCH=stable
 
 # Dummy functions for additional configurations
 user_configure_kernel() {
