@@ -244,7 +244,7 @@ build_kernel() { # workdir rebuild
   [ -f $VMLINUZ -a "$2" -eq 0 ] && return 0
   [ "$2" -ne 0 ] && rm -rf $OUTDIR
   (cd $1/linux*/
-  if [ -f $FORCE_KCONFIG ]; then
+  if [ -f "$FORCE_KCONFIG" ]; then
     force_configure_kernel $OUTDIR
   else
     configure_kernel $OUTDIR
