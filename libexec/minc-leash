@@ -105,7 +105,13 @@ else
   fi
 fi
 
+BG="$MINC_BACKGROUND"
 :;: 'Wash out the environment variables for MINCS';:
 wash "^MINC_"
-:;: 'Execute given command in new rootfs';:
-exec $RUN $CMD $@ >> $RD/dev/console 2>&1
+if [ -n "$BG" ]; then
+  :;: 'Execute with new tty in new rootfs' ;:
+  exec $RUN $CMD $@ >> $RD/dev/console 2>&1
+else
+  :;: 'Execute given command in new rootfs';:
+  exec $RUN $CMD $@
+fi
