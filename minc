@@ -291,12 +291,11 @@ if [ -z "$USE_FARM" ]; then
   :;: 'Setup temporary working directory for this container';:
   if [ -z "$MINC_TMPDIR" ]; then
     export MINC_TMPDIR=`mktemp -d /tmp/minc$$-XXXXXX`
+    TRAPCMD="echo To reuse this, run: $0 -r $MINC_BASEDIR -t $MINC_TMPDIR"
   fi
   :;: 'Trap the program exit and remove the working directory';:
   if [ $KEEPDIR -eq 0 ]; then
     TRAPCMD="rm -rf $MINC_TMPDIR"
-  else
-    TRAPCMD="echo To reuse this, run: $0 -r $MINC_BASEDIR -t $MINC_TMPDIR"
   fi
   trap "$TRAPCMD" EXIT
   if [ "$MINC_SSHFS_HOST" ]; then
