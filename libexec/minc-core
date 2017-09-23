@@ -51,7 +51,7 @@ bindmounts() { # dir(s)
 
 bindmount2() { # hostpath containerpath
   test -d $1 && mkdir -p $RD$2
-  test -f $1 && mkdir -p `dirname $RD$2` && touch $RD$2
+  if [ -f $1 -a ! -f $RD$2 ]; then mkdir -p `dirname $RD$2`; touch $RD$2; fi
   test -e $1 && mount --bind $1 $RD$2
 }
 
