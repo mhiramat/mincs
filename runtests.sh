@@ -174,6 +174,10 @@ run_test() { # @testfile
   fi
 }
 
+# Shared among tests
+SHARED_DIR=$TOP_DIR/shared
+mkdir -p $SHARED_DIR
+
 log_echo "===== Test Start ====="
 RUNTEST_FAIL=0
 for t in $TEST_FILE; do
