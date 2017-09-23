@@ -1,5 +1,5 @@
 #!/bin/sh
-# description: Test bind option
+# description: Test bind option on another rootfs
 
 ROOTFS=$SHARED_DIR/rootfs
 
