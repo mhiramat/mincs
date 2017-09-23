@@ -42,6 +42,11 @@ export MINC_DEBUG=
 export MINC_BASEDIR=/
 export MINC_USE_DEV=
 export MINC_IGNORE_STATE=0
+export MINC_PORT_MAP=
+export MINC_ARCH=`uname -m`
+export MINC_BACKGROUND=
+export MINC_PIVOT=0
+export MINC_SSHFS_HOST=
 SCRIPT=
 TMPDIR=
 
@@ -95,7 +100,7 @@ fi
 ROOTFS=$1
 shift 1
 
-# Preparing working dir
+:;: Preparing working dir ;:
 if [ -d "$TMPDIR" ] ; then
   export MINC_TMPDIR=$TMPDIR
 else
@@ -163,11 +168,16 @@ else
   RD=$MINC_TMPDIR/storage
 fi
 
+:;: "Adding some required files" ;:
+touch $RD/etc/hosts
+touch $RD/etc/resolv.conf
+
 OUTDIR=`dirname $OUTFILE`
 mkdir -p $OUTDIR
 OUTDIR=`absdir $OUTDIR`
 OUTFILE=`basename $OUTFILE`
 
+:;: "Output files in specified format" ;:
 case $FORMAT in
   tgz)
   cd $RD;
@@ -199,6 +209,7 @@ export MINC_RWBIND=
 export MINC_OPT_PTY=""
 export MINC_CPUMASK=
 export MINC_NETNS=
+export MINC_PIVOT=0
 [ "\$MINC_DEBUG" ] || export MINC_DEBUG=
 export MINC_USE_DEV=
 export MINC_BASEDIR=\$PLCDIR/rootfs
@@ -209,6 +220,7 @@ TRAPCMD="umount \$MINC_BASEDIR;\$TRAPCMD"; trap "\$TRAPCMD" EXIT
 sh \$MINC_BASEDIR/opt/libexec/minc-coat bind \$MINC_TMPDIR \$MINC_BASEDIR
 TRAPCMD="sh \$MINC_BASEDIR/opt/libexec/minc-coat unbind \$MINC_TMPDIR;\$TRAPCMD"; trap "\$TRAPCMD" EXIT
 trap '' INT
+export MINC_DIRECT=1
 sh \$MINC_BASEDIR/opt/libexec/minc-exec $COMMAND
 exit \$?
 EOF
