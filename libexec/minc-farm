@@ -11,7 +11,7 @@ LIBEXEC=`dirname $0`
 MINCCOAT=$LIBEXEC/minc-coat
 
 # Set up parameters
-MINCS_DIR=/var/lib/mincs
+MINCS_DIR=${MINCS_DIR:-/var/lib/mincs}
 CONFIG=/etc/mincs.conf
 if [ -f $CONFIG ]; then
   . $CONFIG
