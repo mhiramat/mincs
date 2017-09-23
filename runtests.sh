@@ -75,6 +75,11 @@ log_echo() { #@message
   echo "$@" | tee -a $LOG_FILE
 }
 
+log_cat() { # @file
+  cat $1 | tee -a $LOG_FILE
+}
+
+
 TEST_RESULT=
 
 # Use realtime signals for sending result
@@ -170,6 +175,7 @@ run_test() { # @testfile
     rm $TEST_LOG
     return 0
   else
+    log_cat $TEST_LOG
     return 1
   fi
 }
