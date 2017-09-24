@@ -621,6 +621,9 @@ prepare_workspaces
 
 if [ $HOSTARCH != $ARCH ]; then
   ROOTFSDIR=$WORKDIR/rootfs-$ARCH
+fi
+
+if [ -n "$CROSS_COMPILE" ]; then
   GCCDIR=$WORKDIR/gcc-$ARCH
   setup_source $GCC_URL $GCCDIR
   GCCBINDIR=`ls -d $GCCDIR/*/bin`
@@ -629,6 +632,7 @@ if [ $HOSTARCH != $ARCH ]; then
 else
   export GCCLIBDIR="/usr/lib"
 fi
+
 #TODO: After the um-quiet patchset merged to stable, this should be removed
 if [ "$ARCH" = "um" ]; then
   LINUX_URL=$UM_LINUX_URL
