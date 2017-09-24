@@ -9,7 +9,7 @@ set -e
 
 usage() {
   cat << EOF
-Usage: runtest [--debug] [TESTDIR] [TESTCASE]
+Usage: runtest [--debug] [-v] [TESTDIR] [TESTCASE]
 EOF
   exit 1
 }
@@ -31,10 +31,17 @@ TEST_DIR=
 TEST_FILE=
 TOP_DIR=$(cd $(dirname $0); pwd)
 LOG_DIR=$TOP_DIR/logs/$(date +%F.%T)/
+VERBOSE=0
 
 :;: "Parsing options" ;:
 while [ -n "$1" ]; do
   case $1 in
+  -v)
+    VERBOSE=$((VERBOSE + 1))
+    shift 1;;
+  -vv)
+    VERBOSE=$((VERBOSE + 2))
+    shift 1;;
   --debug)
     set -x
     shift 1;;
@@ -170,7 +177,14 @@ run_test() { # @testfile
   TEST_LOG=$(mktemp ${LOG_DIR}/${CASE_NO}_${TEST_NAME}.log.XXXXXX)
   log_desc $1
   init_result
-  exec_test $1 >> $TEST_LOG 2>&1
+  case $VERBOSE in
+  0)
+    exec_test $1 >> $TEST_LOG 2>&1 ;;
+  1)
+    (exec_test $1 | tee -a /proc/$$/fd/1) > $TEST_LOG 2>&1 ;;
+  *)
+    exec_test $1 | tee -a $TEST_LOG 2>&1 ;;
+  esac
   if count_result ; then
     rm $TEST_LOG
     return 0
