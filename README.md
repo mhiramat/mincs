@@ -82,8 +82,11 @@ to specify PREFIX if you gave it when installing.
        Export local X11 unix socket. If XAUTHORITY is defined, this
        exports it too. (no need to setup xhost)
 
-* -n or --net  
-       Use network namespace (IP address is assigned)
+* -n or --net *[MODE]*  
+       Use network namespace (IP address is assigned). MODE can be specified
+       as a option. Currently available MODE is *raw[,IF]* and *dens*.
+       In raw mode, minc makes new namespace but do nothing. In dens mode,
+       minc generate bridge and veth pair and masquerade the network.
 
 * -p or --port *PORT1[:PORT2[:PROTO]]*  
        Map host PORT1 to container PORT2 of PROTO (tcp or udp)
