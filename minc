@@ -193,12 +193,14 @@ case "$cmd" in
     ;;
   --net|-n) # Use NetNS
     export MINC_NETNS="minc$$"
-    case "$1" in
-      -*) ;;
-      raw*|dens)
-        export MINC_NETMODE=$1
-        shift 1;;
-    esac
+    if [ $# -ne 0 ]; then
+      case "$1" in
+        -*) ;;
+        raw*|dens)
+          export MINC_NETMODE=$1
+          shift 1;;
+      esac
+    fi
     ;;
   --cpu|-c) # Use CPU mask
     MINC_CPUMASK=$1
