@@ -41,6 +41,8 @@ if [ "$MINC_MEM_LIMIT" ]; then
   echo $MINC_MEM_LIMIT > $MEMCG/memory.limit_in_bytes
   [ "$MINC_MEM_SWAP" ] && \
     echo $MINC_MEM_SWAP > $MEMCG/memory.memsw.limit_in_bytes
+  [ "$MINC_MEM_KMEM" ] &&
+    echo $MINC_MEM_KMEM > $MEMCG/memory.kmem.limit_in_bytes
   echo $$ > $MEMCG/tasks
 fi
 

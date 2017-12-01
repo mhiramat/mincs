@@ -47,6 +47,7 @@ usage() { # [error messages]
   echo "    --pivot             Use pivot_root instead of capsh"
   echo "    --mem-limit SIZE	memory limitation by cgroups"
   echo "    --mem-swap SIZE	memory+swap limitation by cgroups"
+  echo "    --mem-kmem SIZE	kernel memory limitation by cgroups"
   echo "    --cpu-shares SHARE	cpu shares setting by cgroups (default: 1024)"
   echo "    --cpu-quota QUOTA	cpu quota in usec by cgroups (default: 100000)"
   echo "    --pid-max MAX	PID limitation by cgroups"
@@ -98,6 +99,7 @@ export MINC_DIRECT=
 export MINC_DROPCAPS=
 export MINC_MEM_LIMIT=
 export MINC_MEM_SWAP=
+export MINC_MEM_KMEM=
 export MINC_CPU_SHARES=
 export MINC_CPU_QUOTA=
 export MINC_PID_MAX=
@@ -212,6 +214,10 @@ case "$cmd" in
     ;;
   --mem-swap) # memory+swap limitation by cgroups
     MINC_MEM_SWAP=$1
+    shift 1
+    ;;
+  --mem-kmem) # kernel memory limitation by cgroups
+    MINC_MEM_KMEM=$1
     shift 1
     ;;
   --cpu-shares) # cpu shares setting by cgroups (default: 1024)
