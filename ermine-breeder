@@ -228,6 +228,7 @@ configure_kernel() { # outdir
 
 force_configure_kernel() { # outdir
   mkdir -p $1
+  echo "Use $FORCE_KCONFIG as kconfig forcibly"
   if [ "$BUILD_MOD" = no ]; then
     cat $FORCE_KCONFIG | sed s/=m$/=n/ > $1/.config
   else
