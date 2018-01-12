@@ -51,6 +51,16 @@ bindmounts() { # dir(s)
 
 bindmount2() { # hostpath containerpath
   test -d $1 && mkdir -p $RD$2
+  if [ -L $RD$2 ]; then
+    if [ "$MINC_DIRECT" ]; then
+      echo "Error: $2 is a symbolic link in container rootfs."\
+	   " We can not bind mount on it."
+      return -1
+    else
+      rm $RD$2
+      touch $RD$2
+    fi
+  fi
   if [ -f $1 -a ! -f $RD$2 ]; then mkdir -p `dirname $RD$2`; touch $RD$2; fi
   test -e $1 && mount --bind $1 $RD$2
 }
