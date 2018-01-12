@@ -34,7 +34,7 @@ usage() { # [error messages]
   echo "    -n or --net	[MODE]	Use network namespace and specify mode"
   echo "                        MODE: raw[,interface] dens"
   echo "    -c or --cpu MASK	Set CPU mask"
-  echo "    -b or --bind HOSTPATH:PATH"
+  echo "    -b or --bind HOSTPATH[:PATH]"
   echo "        		Bind HOSTPATH to PATH in container"
   echo "    -p or --port HOSTPORT:PORT[:udp]"
   echo "        		Bind HOSTPORT to PORT in container"
@@ -79,8 +79,12 @@ abspath() { # dir
   (cd $1; pwd)
 }
 
-abspath2() { # host_dir container_path
-  echo `abspath $1`:$2
+abspath2() { # host_dir [container_path]
+  if [ $# -eq 2 ]; then
+    echo `abspath $1`:$2
+  else
+    echo `abspath $1`:`abspath $1`
+  fi
 }
 
 KEEPDIR=0
