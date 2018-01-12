@@ -81,6 +81,7 @@ if [ "$MINC_QEMU" ]; then
   :
   . $MINCMOULT
   MINC_GUEST_OPT="-r /mnt/root --name `hostname`"
+  [ "$MINC_USE_DEV" ] && MINC_GUEST_OPT="$MINC_GUEST_OPT --usedev"
 
   :;: 'Since host mounts overlayfs on rootfs, guest skips it.';:
   MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
