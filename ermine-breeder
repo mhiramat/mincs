@@ -377,6 +377,8 @@ mkdir /sys/fs/cgroup/cpu
 mount -t cgroup -o cpu cgroup /sys/fs/cgroup/cpu
 mkdir /sys/fs/cgroup/memory
 mount -t cgroup -o memory cgroup /sys/fs/cgroup/memory
+
+ip link set lo up
 EOF
   chmod a+x etc/rc.local
 
