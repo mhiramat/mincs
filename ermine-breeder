@@ -42,9 +42,9 @@ IPTABLES_URL=http://www.netfilter.org/projects/iptables/files/iptables-1.6.1.tar
 IPROUTE2_URL=https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-4.9.0.tar.xz
 
 # Cross tools
-GCC_arm64_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/aarch64-linux-gnu/gcc-linaro-6.2.1-2016.11-x86_64_aarch64-linux-gnu.tar.xz
+GCC_arm64_URL=http://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz
 CROSS_COMPILE_arm64=aarch64-linux-gnu-
-GCC_arm_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/arm-linux-gnueabi/gcc-linaro-6.2.1-2016.11-x86_64_arm-linux-gnueabi.tar.xz
+GCC_arm_URL=http://releases.linaro.org/components/toolchain/binaries/latest-6/arm-linux-gnueabi/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabi.tar.xz
 CROSS_COMPILE_arm=arm-linux-gnueabi-
 
 # Build params
