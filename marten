@@ -91,16 +91,35 @@ pull_docker() {
   echo "Pulled. Importing image: $NAME"
   LASTID=`cat $TMPDIR/manifest.json | jq -r .layers[].digest | tail -n 1`
   LASTID=${LASTID##*:}
-  cat $TMPDIR/manifest.json | jq -r .layers[].digest | while read d; do
+  if [ "$SQUASH" = "true" ] ; then
     tmproot=`mktemp -d $TMPDIR/layer-root-XXXXXX`
-    ID=${d##*:}
-    tar --force-local -xf $TMPDIR/$d -C $tmproot
-    export MINC_IMPORT_UUID=$ID
-    test "$ID" = "$LASTID" && export MINC_IMPORT_NAME=${NAME##*/}
+    cat $TMPDIR/manifest.json | jq -r .layers[].digest | while read d; do
+      ID=${d##*:}
+      tar --force-local -xf $TMPDIR/$d -C $tmproot
+      cd $tmproot
+      for whiteout in `find . -name '*.wh.*'` ; do
+        deletedFile=`echo $whiteout | sed -e "s|\.wh\.||"`
+        rm -rf $whiteout
+        rm -rf $deletedFile
+      done
+      cd ../..
+      export MINC_IMPORT_UUID=$ID
+    done
+    export MINC_IMPORT_NAME=${NAME##*/}
     $MINCFARM import $tmproot
-    export MINC_BASE_UUID=$ID
-    rm -rf $tmproot
-  done
+  else
+    cat $TMPDIR/manifest.json | jq -r .layers[].digest | while read d; do
+      tmproot=`mktemp -d $TMPDIR/layer-root-XXXXXX`
+      ID=${d##*:}
+      tar --force-local -xf $TMPDIR/$d -C $tmproot
+      export MINC_IMPORT_UUID=$ID
+      test "$ID" = "$LASTID" && export MINC_IMPORT_NAME=${NAME##*/}
+      $MINCFARM import $tmproot
+      export MINC_BASE_UUID=$ID
+      rm -rf $tmproot
+    done
+  fi
+
   rm -rf $TMPDIR
   exit 0
 }
@@ -120,6 +139,7 @@ case $cmd in
   do_list $cmd $*
   ;;
   pull)
+  if [ "$1" = "--squash" ] ; then SQUASH=true ; shift ; else SQUASH=false ; fi
   pull_docker $1
   ;;
   import)
