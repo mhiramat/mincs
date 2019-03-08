@@ -65,13 +65,13 @@ qemuarch() {
 _ARCH=`linuxarch $ARCH`
 HOSTARCH=`linuxarch $HOSTARCH`
 
-INCLUDE=
+OPTS=
 if [ "$INCLUDE_PKG" ]; then
-  INCLUDE="--include $INCLUDE_PKG"
+  OPTS="--include $INCLUDE_PKG"
 fi
 
 if [ -z "$_ARCH" -o "$_ARCH" = "$HOSTARCH" ]; then
-  debootstrap $DEBIAN $ROOTDIR
+  debootstrap $DEBIAN $ROOTDIR $OPTS
 else
   DEBARCH=`debarch $ARCH`
   QEMUARCH=`qemuarch $ARCH`
@@ -82,7 +82,7 @@ else
     exit 0
   fi
   QEMU_BIN=`grep interpreter $BINFMT | cut -f 2 -d " "`
-  debootstrap --foreign --arch $DEBARCH $DEBIAN $ROOTDIR
+  debootstrap --foreign --arch $DEBARCH $DEBIAN $ROOTDIR $OPTS
   cp $QEMU_BIN $ROOTDIR/`dirname $QEMU_BIN`
   export DEBIAN_FRONTEND=noninteractive
   export DEBCONF_NONINTERACTIVE_SEEN=true
