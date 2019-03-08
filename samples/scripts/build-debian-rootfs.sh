@@ -14,7 +14,7 @@ test -z "$1" -o ! -d "$1" && usage
 ROOTDIR=$1
 HOSTARCH=`uname -m`
 ARCH=
-DEBIAN=jessie
+DEBIAN=stretch
 INCLUDE_PKG=
 
 shift 1
