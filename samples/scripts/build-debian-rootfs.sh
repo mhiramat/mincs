@@ -82,6 +82,11 @@ else
     exit 0
   fi
   QEMU_BIN=`grep interpreter $BINFMT | cut -f 2 -d " "`
+  if ldd $QEMU_BIN > /dev/null 2>&1 ; then
+    echo "Error: $QEMU_BIN is not a static-linked binary."
+    echo "Please try to install/setup qemu-user-static"
+    exit 0
+  fi
   debootstrap --foreign --arch $DEBARCH $DEBIAN $ROOTDIR $OPTS
   cp $QEMU_BIN $ROOTDIR/`dirname $QEMU_BIN`
   export DEBIAN_FRONTEND=noninteractive
