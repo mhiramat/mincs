@@ -450,7 +450,7 @@ test_run() {
   while [ $# -ge 1 ]; do
   case $1 in
     --debug)
-    set -x
+    set -vx
     shift 1
     ;;
     --arch)
