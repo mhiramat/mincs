@@ -28,7 +28,7 @@ prepare_arch() { # arch
     QEMU_TTY=ttyAMA0
     QEMU_ARCH=$ARCH
     QEMU_OPT="$QEMU_OPT -M virt"
-    [ $NR_CPUS -gt 3 ] && NR_CPUS=2
+    [ $NR_CPUS -gt 3 ] && NR_CPUS=2 ||:
     ;;
   aarch64|arm64)
     ARCH=arm64
