@@ -465,6 +465,10 @@ test_run() {
     enable_network
     shift 1
     ;;
+    --cmdline)
+    OPT_CMDLINE=$2
+    shift 2
+    ;;
     *)
     break;;
   esac
@@ -472,7 +476,8 @@ test_run() {
 
   QEMU_OPT="$@"
   prepare_arch "$ARCH" # to get QEMU_TTY
-  (minc_moult "$ARCH" $WORKDIR "ro console=${QEMU_TTY} ${MINC_KERNEL_OPT}")
+  (minc_moult "$ARCH" $WORKDIR \
+	  "ro console=${QEMU_TTY} ${MINC_KERNEL_OPT} ${OPT_CMDLINE}")
 }
 
 run_selfbuild() {
@@ -535,7 +540,7 @@ EOF
   ;;
   testrun)
   shift 1
-  test_run $*
+  test_run "$@"
   exit 0
   ;;
   build|-*)
