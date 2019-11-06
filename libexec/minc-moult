@@ -53,7 +53,7 @@ prepare_arch() { # arch
 minc_moult() { # arch virtdir kernel_opt
   ERMINEDIR=$LIBEXEC/ermine
   prepare_arch $1
-  [ $ARCH = "um" ] && exec $ERMINEDIR/vmlinuz.$ARCH mem=512M \
+  [ $ARCH = "um" ] && exec $ERMINEDIR/vmlinuz.$ARCH mem=2G \
 	  initrd=$ERMINEDIR/initramfs.$ARCH hostfs=$2 con0=fd:0,fd:1 con1=null con=pts $3 console=ttyS0
   if [ "$MINC_IP" ]; then
     :;: 'Setup qemu network option with scripts';:
@@ -62,7 +62,7 @@ minc_moult() { # arch virtdir kernel_opt
 	    -netdev type=tap,script=$LIBEXEC/ermine-ifup,downscript=no,id=net0 \
 	    -device virtio-net-pci,netdev=net0"
   fi
-  exec qemu-system-${QEMU_ARCH} $QEMU_OPT -m 512M \
+  exec qemu-system-${QEMU_ARCH} $QEMU_OPT -m 2G \
     -kernel $ERMINEDIR/vmlinuz.$ARCH -initrd $ERMINEDIR/initramfs.$ARCH \
     -smp $NR_CPUS -nographic -append "$3 console=tty0" \
     -virtfs local,id=minc,path=$2,security_model=none,mount_tag=minc
