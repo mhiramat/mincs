@@ -221,7 +221,8 @@ configure_kernel() { # outdir
       PCI_HOST_GENERIC PCI_HOST_GENERIC
   fi
   if [ $ARCH = arm -o $ARCH = arm64 ]; then
-    kconfigs_y ARM_AMBA SERIAL_AMBA_PL011 SERIAL_AMBA_PL011_CONSOLE
+    kconfigs_y ARM_AMBA SERIAL_AMBA_PL011 SERIAL_AMBA_PL011_CONSOLE \
+	    RTC_DRV_PL031 RTC_HCTOSYS
   elif [ $ARCH = x86_64 -o $ARCH = i386 ]; then
     kconfigs_y SERIAL_8250 SERIAL_8250_CONSOLE
   fi
