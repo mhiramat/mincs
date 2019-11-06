@@ -474,8 +474,9 @@ test_run() {
   esac
   done
 
-  QEMU_OPT="$@"
   prepare_arch "$ARCH" # to get QEMU_TTY
+
+  QEMU_OPT="$@"	# minc_moult calls prepare_arch to setup QEMU_OPT again.
   (minc_moult "$ARCH" $WORKDIR \
 	  "ro console=${QEMU_TTY} ${MINC_KERNEL_OPT} ${OPT_CMDLINE}")
 }
