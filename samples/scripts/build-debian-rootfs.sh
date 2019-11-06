@@ -67,11 +67,11 @@ HOSTARCH=`linuxarch $HOSTARCH`
 
 OPTS=
 if [ "$INCLUDE_PKG" ]; then
-  OPTS="--include $INCLUDE_PKG"
+  OPTS="--include=$INCLUDE_PKG"
 fi
 
 if [ -z "$_ARCH" -o "$_ARCH" = "$HOSTARCH" ]; then
-  debootstrap $DEBIAN $ROOTDIR $OPTS
+  debootstrap $OPTS $DEBIAN $ROOTDIR
 else
   DEBARCH=`debarch $ARCH`
   QEMUARCH=`qemuarch $ARCH`
@@ -87,7 +87,7 @@ else
     echo "Please try to install/setup qemu-user-static"
     exit 0
   fi
-  debootstrap --foreign --arch $DEBARCH $DEBIAN $ROOTDIR $OPTS
+  debootstrap --foreign --arch=$DEBARCH $OPTS $DEBIAN $ROOTDIR ||:
   cp $QEMU_BIN $ROOTDIR/`dirname $QEMU_BIN`
   export DEBIAN_FRONTEND=noninteractive
   export DEBCONF_NONINTERACTIVE_SEEN=true
