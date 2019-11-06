@@ -34,7 +34,7 @@ prepare_arch() { # arch
     ARCH=arm64
     QEMU_TTY=ttyAMA0
     QEMU_ARCH=aarch64
-    QEMU_OPT="$QEMU_OPT -M virt -cpu cortex-a57"
+    QEMU_OPT="$QEMU_OPT -M virt -M gic-version=3 -cpu cortex-a57"
     ;;
   um|uml)
     ARCH=um
