@@ -172,7 +172,7 @@ kconfigs_n() { # entries
 
 kconfigs_m() { # entries
   while [ $# -ne 0 ]; do
-    kconfig_set ${1} y
+    kconfig_set ${1} m
     shift 1
   done
 }
