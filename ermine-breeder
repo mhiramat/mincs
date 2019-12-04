@@ -404,6 +404,11 @@ if mount_host; then
   fi
 fi
 }
+
+# Linewrap setup
+resize
+printf %b '\033[?7h'
+
 mount | grep -q /mnt || run_minc
 echo "=== Ermine operating console ==="
 echo "To exit the ermine OS, please run 'poweroff' command"
@@ -481,6 +486,7 @@ test_run() {
   QEMU_OPT="$@"	# minc_moult calls prepare_arch to setup QEMU_OPT again.
   (minc_moult "$ARCH" $WORKDIR \
 	  "ro console=${QEMU_TTY} ${MINC_KERNEL_OPT} ${OPT_CMDLINE}")
+  setterm --linewrap on
 }
 
 run_selfbuild() {
