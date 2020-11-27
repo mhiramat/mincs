@@ -87,6 +87,8 @@ abspath2() { # host_dir [container_path]
   fi
 }
 
+TMPDIR=${XDG_RUNTIME_DIR:-/var/run}
+
 KEEPDIR=0
 USE_FARM=
 MINC_TMPDIR=
@@ -302,7 +304,7 @@ TRAPCMD=
 if [ -z "$USE_FARM" ]; then
   :;: 'Setup temporary working directory for this container';:
   if [ -z "$MINC_TMPDIR" ]; then
-    export MINC_TMPDIR=`mktemp -d /tmp/minc$$-XXXXXX`
+    export MINC_TMPDIR=`mktemp -d $TMPDIR/minc$$-XXXXXX`
     TRAPCMD="echo To reuse this, run: $0 -r $MINC_BASEDIR -t $MINC_TMPDIR"
   fi
   :;: 'Trap the program exit and remove the working directory';:
