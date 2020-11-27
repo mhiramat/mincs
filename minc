@@ -43,6 +43,7 @@ usage() { # [error messages]
   echo "    --name NAME		Set <NAME> as container's name (hostname)"
   echo "    --user UID[:GID]	Specify uid and gid to run command"
   echo "    --usedev		Use devtmpfs for /dev (for loopback etc.)"
+  echo "    --debugfs		Mount debugfs (for ftrace etc.)"
   echo "    --nocaps [CAPS]	Drop given capabilities (same as capsh)"
   echo "    --pivot             Use pivot_root instead of capsh"
   echo "    --mem-limit SIZE	memory limitation by cgroups"
@@ -100,6 +101,7 @@ export MINC_NETNS=
 export MINC_DEBUG=
 export MINC_BASEDIR=/
 export MINC_USE_DEV=
+export MINC_MNT_DEBUGFS=
 export MINC_UTSNAME=
 export MINC_DIRECT=
 export MINC_DROPCAPS=
@@ -254,6 +256,9 @@ case "$cmd" in
     ;;
   --usedev)
     export MINC_USE_DEV=1
+    ;;
+  --debugfs)
+    export MINC_MNT_DEBUGFS=1
     ;;
   --nocaps)
     export MINC_DROPCAPS="$1"

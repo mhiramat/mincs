@@ -92,6 +92,7 @@ if [ "$MINC_QEMU" ]; then
   . $MINCMOULT
   MINC_GUEST_OPT="-r /mnt/root --name `hostname`"
   [ "$MINC_USE_DEV" ] && MINC_GUEST_OPT="$MINC_GUEST_OPT --usedev"
+  [ "$MINC_MNT_DEBUGFS" ] && MINC_GUEST_OPT="$MINC_GUEST_OPT --debugfs"
 
   :;: 'Since host mounts overlayfs on rootfs, guest skips it.';:
   MINC_GUEST_OPT="$MINC_GUEST_OPT -D"
@@ -151,6 +152,11 @@ mount -t proc -o ro,nosuid,nodev,noexec proc /proc
 mount -t proc -o rw,nosuid,nodev,noexec,relatime proc $RD/proc
 bindmounts /proc/sys /proc/sysrq-trigger /proc/irq /proc/bus
 [ -z "$MINC_NOPRIV" ] && bindmount /sys
+
+if [ -z "$MINC_NOPRIV" -a "$MINC_MNT_DEBUGFS" ]; then
+  :;: 'Mount debugfs';:
+  mount -t debugfs debugfs $RD/sys/kernel/debug
+fi
 
 :;: '/tmp is used for application working area in container';:
 mount -t tmpfs tmpfs $RD/tmp
