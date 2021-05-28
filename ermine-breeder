@@ -110,7 +110,7 @@ download_source() { # url todir
 git_source() { # url todir [branch]
   if [ ! -d $2 ]; then
     mkdir $2
-    OPT= ; [ -n $3 ] && OPT="-b $3"
+    OPT= ; [ "$3" ] && OPT="-b $3"
     (cd $2; git clone --depth=1 $OPT $1 )
   fi
 }
