@@ -35,7 +35,7 @@ get_latest_kernel_url() {
 
 # Download sources
 LINUX_URL=""
-BUSYBOX_URL=http://busybox.net/downloads/busybox-1.26.2.tar.bz2
+BUSYBOX_URL=git://git.busybox.net/busybox.git
 LIBCAP_URL=https://github.com/mhiramat/libcap/archive/capsh-exec-v1.zip
 UM_LINUX_URL=https://github.com/mhiramat/linux/archive/um-quiet.zip
 IPTABLES_URL=http://www.netfilter.org/projects/iptables/files/iptables-1.6.1.tar.bz2
@@ -292,8 +292,8 @@ build_busybox() { # workdir rootfsdir
   make defconfig
   user_configure_busybox
   kconfigs_y STATIC
-  kconfigs_n HUSH FEATURE_BASH_IS_NONE
-  kconfigs_y ASH FEATURE_SH_IS_ASH FEATURE_BASH_IS_ASH
+  kconfigs_n HUSH CONFIG_BASH_IS_NONE
+  kconfigs_y ASH CONFIG_SH_IS_ASH CONFIG_BASH_IS_ASH
   if [ "$BUILD_NET" = yes ] ; then
     # Since we will use iproute2 package
     kconfigs_n IP IPADDR IPLINK IPROUTE IPTUNNEL IPRULE IPNEIGH
