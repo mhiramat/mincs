@@ -64,7 +64,7 @@ minc_moult() { # arch virtdir kernel_opt
   fi
   exec qemu-system-${QEMU_ARCH} $QEMU_OPT -m 2G \
     -kernel $ERMINEDIR/vmlinuz.$ARCH -initrd $ERMINEDIR/initramfs.$ARCH \
-    -smp $NR_CPUS -nographic -append "$3 console=tty0" \
+    -smp $NR_CPUS -nographic -append "$3 console=tty0" -device virtio-rng-pci \
     -virtfs local,id=minc,path=$2,security_model=none,mount_tag=minc
 }
 
