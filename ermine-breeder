@@ -406,7 +406,7 @@ fi
 }
 
 # Linewrap setup
-resize
+resize > /dev/null 2>&1
 printf %b '\033[?7h'
 
 mount | grep -q /mnt || run_minc
