@@ -43,9 +43,13 @@ IPROUTE2_URL=https://www.kernel.org/pub/linux/utils/net/iproute2/iproute2-4.9.0.
 
 # Cross tools
 GCC_arm64_URL=https://developer.arm.com/-/media/Files/downloads/gnu-a/8.2-2019.01/gcc-arm-8.2-2019.01-x86_64-aarch64-linux-gnu.tar.xz
+#GCC_arm64_URL=https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu.tar.xz
 CROSS_COMPILE_arm64=aarch64-linux-gnu-
-GCC_arm_URL=https://developer.arm.com/-/media/Files/downloads/gnu-a/8.2-2019.01/gcc-arm-8.2-2019.01-x86_64-arm-linux-gnueabi.tar.xz
-CROSS_COMPILE_arm=arm-linux-gnueabi-
+GCC_arm_URL=https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
+CROSS_COMPILE_arm=arm-none-eabi-
+#GCC_arm_URL=https://download.01.org/0day-ci/cross-package/gcc-11.2.0-nolibc/x86_64-gcc-11.2.0-nolibc_arm-linux-gnueabi.tar.xz
+GCC_ppc64le_URL=arm-linux-gnueabi-
+CROSS_COMPILE_ppc64le=powerpc64le-linux-gnu-
 
 # Build params
 JOBS=`nproc`
@@ -55,6 +59,7 @@ INCREMENTAL=no
 FORCE_KCONFIG=
 # master, stable and longterm for LINUX_URL=""
 LINUX_BRANCH=master
+LLVM_OPT=
 
 # Dummy functions for additional configurations
 user_configure_kernel() {
@@ -178,7 +183,7 @@ kconfigs_m() { # entries
 }
 
 configure_kernel() { # outdir
-  make defconfig O=$1
+  make defconfig O=$1 $LLVM_OPT
   user_configure_kernel $1
   kconfig_string DEFAULT_HOSTNAME "ermine"
   # fundamental features
@@ -226,7 +231,7 @@ configure_kernel() { # outdir
   elif [ $ARCH = x86_64 -o $ARCH = i386 ]; then
     kconfigs_y SERIAL_8250 SERIAL_8250_CONSOLE
   fi
-  make olddefconfig O=$1
+  make olddefconfig O=$1 $LLVM_OPT
 }
 
 force_configure_kernel() { # outdir
@@ -237,7 +242,7 @@ force_configure_kernel() { # outdir
   else
     cat $FORCE_KCONFIG > $1/.config
   fi
-  make olddefconfig O=$1
+  make olddefconfig O=$1 $LLVM_OPT
 }
 
 build_kernel() { # workdir rebuild
@@ -255,21 +260,25 @@ build_kernel() { # workdir rebuild
   fi
   case $ARCH in
     x86_64|i386)
-    make bzImage -j $JOBS O=$OUTDIR
+    make bzImage -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/x86/boot/bzImage $VMLINUZ
     ;;
     arm)
-    make zImage -j $JOBS O=$OUTDIR
+    make zImage -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/arm/boot/zImage $VMLINUZ
     ;;
     arm64)
-    make Image.gz -j $JOBS O=$OUTDIR
+    make Image.gz -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/arm64/boot/Image.gz $VMLINUZ
     ;;
     um)
-    make vmlinux -j $JOBS O=$OUTDIR
+    make vmlinux -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/vmlinux $VMLINUZ
     strip $VMLINUZ
+    ;;
+    powerpc)
+    make -j $JOBS O=$OUTDIR $LLVM_OPT
+    cp -f $OUTDIR/arch/powerpc/boot/zImage.pseries $VMLINUZ
     ;;
   esac
   )
@@ -375,6 +384,8 @@ mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -t tmpfs tmpfs /tmp
 mount -t tmpfs tmpfs /sys/fs/cgroup/
+mount -t debugfs debugfs /sys/kernel/debug ||:
+mount -t tracefs tracefs /sys/kernel/tracing ||:
 
 mkdir /sys/fs/cgroup/cpu
 mount -t cgroup -o cpu cgroup /sys/fs/cgroup/cpu
@@ -639,6 +650,10 @@ case "$ARCH" in
   export CROSS_COMPILE=$CROSS_COMPILE_arm64
   GCC_URL=$GCC_arm64_URL
   ;;
+  powerpc)
+  export CROSS_COMPILE=$CROSS_COMPILE_ppc64le
+  GCC_URL=
+  ;;
 esac
 
 prepare_workspaces
@@ -647,10 +662,10 @@ if [ $HOSTARCH != $ARCH ]; then
   ROOTFSDIR=$WORKDIR/rootfs-$ARCH
 fi
 
-if [ -n "$CROSS_COMPILE" ]; then
+if [ -n "$GCC_URL" ]; then
   GCCDIR=$WORKDIR/gcc-$ARCH
   setup_source $GCC_URL $GCCDIR
-  GCCBINDIR=`ls -d $GCCDIR/*/bin`
+  GCCBINDIR=`ls -d $GCCDIR/*/bin` || GCCBINDIR=`ls -d $GCCDIR/*/*/bin`
   export GCCLIBDIR="${GCCBINDIR%/bin}/${CROSS_COMPILE%-}/libc/usr/lib"
   export PATH="$PATH:"$GCCBINDIR
 else

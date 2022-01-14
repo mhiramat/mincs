@@ -41,6 +41,13 @@ prepare_arch() { # arch
     QEMU_TTY=tty0
     UM_OPT=""
     ;;
+  # we only support ppc64le
+  powerpc64|ppc64|ppc64le|powerpc64le|powerpc|ppc)
+    ARCH=powerpc
+    QEMU_TTY=ttyS0
+    QEMU_ARCH=ppc64le
+    QEMU_OPT="$QEMU_OPT -M pseries -cpu POWER7"
+    ;;
   *)
     echo "Sorry, $ARCH is not supported yet."
     exit 1
