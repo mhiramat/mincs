@@ -258,26 +258,32 @@ build_kernel() { # workdir rebuild
   else
     configure_kernel $OUTDIR
   fi
+  if [ "$BUILD_MOD" = no ]; then
+    MOD_OPT=""
+  else
+    MOD_OPT="modules"
+  fi
+
   case $ARCH in
     x86_64|i386)
-    make bzImage -j $JOBS O=$OUTDIR $LLVM_OPT
+    make bzImage $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/x86/boot/bzImage $VMLINUZ
     ;;
     arm)
-    make zImage -j $JOBS O=$OUTDIR $LLVM_OPT
+    make zImage $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/arm/boot/zImage $VMLINUZ
     ;;
     arm64)
-    make Image.gz -j $JOBS O=$OUTDIR $LLVM_OPT
+    make Image.gz $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/arm64/boot/Image.gz $VMLINUZ
     ;;
     um)
-    make vmlinux -j $JOBS O=$OUTDIR $LLVM_OPT
+    make vmlinux $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/vmlinux $VMLINUZ
     strip $VMLINUZ
     ;;
     powerpc)
-    make -j $JOBS O=$OUTDIR $LLVM_OPT
+    make all -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/powerpc/boot/zImage.pseries $VMLINUZ
     ;;
   esac
@@ -289,7 +295,6 @@ build_module() { # workdir rootfsdir
   mkdir -p $2/lib/modules
   rm -rf $2/lib/modules/*
   (cd $1/linux*/
-  make modules -j $JOBS O=$OUTDIR
   INSTALL_MOD_PATH=$2 make modules_install -j $JOBS O=$OUTDIR
   )
 }
@@ -703,7 +708,7 @@ if [ "$BUILD_NET" = "yes" ]; then
 fi
 
 if [ "$BUILD_MOD" = "yes" ]; then
-  echo "kernel module build"
+  echo "kernel module install"
   build_module $LINUXDIR $ROOTFSDIR
 fi
 
