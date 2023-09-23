@@ -50,6 +50,8 @@ CROSS_COMPILE_arm=arm-none-eabi-
 #GCC_arm_URL=https://download.01.org/0day-ci/cross-package/gcc-11.2.0-nolibc/x86_64-gcc-11.2.0-nolibc_arm-linux-gnueabi.tar.xz
 GCC_ppc64le_URL=arm-linux-gnueabi-
 CROSS_COMPILE_ppc64le=powerpc64le-linux-gnu-
+GCC_riscv_URL=riscv64-linux-gnu-
+CROSS_COMPILE_riscv=riscv64-linux-gnu-
 
 # Build params
 JOBS=`nproc`
@@ -285,6 +287,10 @@ build_kernel() { # workdir rebuild
     powerpc)
     make all -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/powerpc/boot/zImage.pseries $VMLINUZ
+    ;;
+    riscv)
+    make all -j $JOBS O=$OUTDIR $LLVM_OPT
+    cp -f $OUTDIR/arch/riscv/boot/Image $VMLINUZ
     ;;
   esac
   )
@@ -657,6 +663,10 @@ case "$ARCH" in
   ;;
   powerpc)
   export CROSS_COMPILE=$CROSS_COMPILE_ppc64le
+  GCC_URL=
+  ;;
+  riscv|riscv64) # riscv means riscv64 for linux
+  export CROSS_COMPILE=$CROSS_COMPILE_riscv
   GCC_URL=
   ;;
 esac

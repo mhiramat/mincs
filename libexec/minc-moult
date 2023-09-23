@@ -48,6 +48,13 @@ prepare_arch() { # arch
     QEMU_ARCH=ppc64le
     QEMU_OPT="$QEMU_OPT -M pseries -cpu POWER7"
     ;;
+  # we only support riscv64
+  riscv64|riscv)
+    ARCH=riscv
+    QEMU_TTY=ttyS0
+    QEMU_ARCH=riscv64
+    QEMU_OPT="$QEMU_OPT -M virt -cpu rv64"
+    ;;
   *)
     echo "Sorry, $ARCH is not supported yet."
     exit 1
