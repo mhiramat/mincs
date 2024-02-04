@@ -55,6 +55,7 @@ CROSS_COMPILE_riscv=riscv64-linux-gnu-
 
 # Build params
 JOBS=`nproc`
+JOBS=`expr $JOBS \* 2`
 BUILD_MOD=no
 BUILD_NET=no
 INCREMENTAL=no
