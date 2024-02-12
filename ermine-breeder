@@ -52,6 +52,8 @@ GCC_ppc64le_URL=arm-linux-gnueabi-
 CROSS_COMPILE_ppc64le=powerpc64le-linux-gnu-
 GCC_riscv_URL=riscv64-linux-gnu-
 CROSS_COMPILE_riscv=riscv64-linux-gnu-
+GCC_s390x_URL=s390x-linux-gnu-
+CROSS_COMPILE_s390x=s390x-linux-gnu-
 
 # Build params
 JOBS=`nproc`
@@ -292,6 +294,10 @@ build_kernel() { # workdir rebuild
     riscv)
     make all -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/riscv/boot/Image $VMLINUZ
+    ;;
+    s390)
+    make all -j $JOBS O=$OUTDIR $LLVM_OPT
+    cp -f $OUTDIR/arch/s390/boot/bzImage $VMLINUZ
     ;;
   esac
   )

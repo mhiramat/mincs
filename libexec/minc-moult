@@ -55,6 +55,12 @@ prepare_arch() { # arch
     QEMU_ARCH=riscv64
     QEMU_OPT="$QEMU_OPT -M virt -cpu rv64"
     ;;
+  s390|s390x)
+    ARCH=s390
+    QEMU_TTY=ttyS0
+    QEMU_ARCH=s390x
+    QEMU_OPT="$QEMU_OPT -M s390-ccw-virtio -cpu max,zpci=on"
+    ;;
   *)
     echo "Sorry, $ARCH is not supported yet."
     exit 1
