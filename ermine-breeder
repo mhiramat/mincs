@@ -52,6 +52,8 @@ GCC_ppc64le_URL=arm-linux-gnueabi-
 CROSS_COMPILE_ppc64le=powerpc64le-linux-gnu-
 GCC_riscv_URL=riscv64-linux-gnu-
 CROSS_COMPILE_riscv=riscv64-linux-gnu-
+GCC_loongarch_URL=https://github.com/loongson/build-tools/releases/download/2022.08.11/loongarch64-clfs-5.1-cross-tools-gcc-glibc.tar.xz
+CROSS_COMPILE_loongarch=loongarch64-unknown-linux-gnu-
 GCC_s390x_URL=s390x-linux-gnu-
 CROSS_COMPILE_s390x=s390x-linux-gnu-
 
@@ -294,6 +296,10 @@ build_kernel() { # workdir rebuild
     riscv)
     make all -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/riscv/boot/Image $VMLINUZ
+    ;;
+    loongarch)
+    make all -j $JOBS O=$OUTDIR $LLVM_OPT
+    cp -f $OUTDIR/arch/loongarch/boot/Image $VMLINUZ
     ;;
     s390)
     make all -j $JOBS O=$OUTDIR $LLVM_OPT
@@ -675,6 +681,10 @@ case "$ARCH" in
   riscv|riscv64) # riscv means riscv64 for linux
   export CROSS_COMPILE=$CROSS_COMPILE_riscv
   GCC_URL=
+  ;;
+  loongarch|loongarch64)
+  export CROSS_COMPILE=$CROSS_COMPILE_loongarch
+  GCC_URL=$GCC_loongarch_URL
   ;;
 esac
 
