@@ -64,6 +64,7 @@ BUILD_MOD=no
 BUILD_NET=no
 INCREMENTAL=no
 FORCE_KCONFIG=
+CHECK_WARN=no
 # master, stable and longterm for LINUX_URL=""
 LINUX_BRANCH=master
 LLVM_OPT=
@@ -252,6 +253,14 @@ force_configure_kernel() { # outdir
   make olddefconfig O=$1 $LLVM_OPT
 }
 
+make_cmd() {
+  if [ $CHECK_WARN = yes ]; then
+    make $* W=1	2>&1 | tee build.log
+  else
+    make $*
+  fi 
+}
+
 build_kernel() { # workdir rebuild
   VMLINUZ=$DESTDIR/vmlinuz.$ARCH
   export OUTDIR=$1/build-${ARCH}/
@@ -273,36 +282,36 @@ build_kernel() { # workdir rebuild
 
   case $ARCH in
     x86_64|i386)
-    make bzImage $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
+    make_cmd bzImage $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/x86/boot/bzImage $VMLINUZ
     ;;
     arm)
-    make zImage $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
+    make_cmd zImage $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/arm/boot/zImage $VMLINUZ
     ;;
     arm64)
-    make Image.gz $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
+    make_cmd Image.gz $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/arm64/boot/Image.gz $VMLINUZ
     ;;
     um)
-    make vmlinux $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
+    make_cmd vmlinux $MOD_OPT -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/vmlinux $VMLINUZ
     strip $VMLINUZ
     ;;
     powerpc)
-    make all -j $JOBS O=$OUTDIR $LLVM_OPT
+    make_cmd all -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/powerpc/boot/zImage.pseries $VMLINUZ
     ;;
     riscv)
-    make all -j $JOBS O=$OUTDIR $LLVM_OPT
+    make_cmd all -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/riscv/boot/Image $VMLINUZ
     ;;
     loongarch)
-    make all -j $JOBS O=$OUTDIR $LLVM_OPT
+    make_cmd all -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/loongarch/boot/Image $VMLINUZ
     ;;
     s390)
-    make all -j $JOBS O=$OUTDIR $LLVM_OPT
+    make_cmd all -j $JOBS O=$OUTDIR $LLVM_OPT
     cp -f $OUTDIR/arch/s390/boot/bzImage $VMLINUZ
     ;;
   esac
