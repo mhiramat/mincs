@@ -190,6 +190,13 @@ kconfigs_m() { # entries
   done
 }
 
+merge_config() { # configfile
+  cat $1 | while read cfg; do
+    _cfg=${cfg#CONFIG_}
+    kconfig_set ${_cfg%%=*} ${_cfg#*=}
+  done
+}
+
 configure_kernel() { # outdir
   make defconfig O=$1 $LLVM_OPT
   user_configure_kernel $1
