@@ -262,7 +262,7 @@ force_configure_kernel() { # outdir
 
 make_cmd() {
   if [ $CHECK_WARN = yes ]; then
-    make $* W=1	2>&1 | tee build.log
+    make $* W=1
   else
     make $*
   fi 
