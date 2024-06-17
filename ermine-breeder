@@ -315,7 +315,7 @@ build_kernel() { # workdir rebuild
     ;;
     loongarch)
     make_cmd all -j $JOBS O=$OUTDIR $LLVM_OPT
-    cp -f $OUTDIR/arch/loongarch/boot/Image $VMLINUZ
+    cp -f $OUTDIR/arch/loongarch/boot/vmlinuz $VMLINUZ
     ;;
     s390)
     make_cmd all -j $JOBS O=$OUTDIR $LLVM_OPT
