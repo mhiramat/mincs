@@ -76,6 +76,9 @@ user_configure_kernel() {
 user_configure_busybox() {
   return
 }
+user_post_build_kernel() {
+  return
+}
 
 cleanup_workdir() {
   rm -rf $WORKDIR
@@ -322,6 +325,7 @@ build_kernel() { # workdir rebuild
     cp -f $OUTDIR/arch/s390/boot/bzImage $VMLINUZ
     ;;
   esac
+  user_post_build_kernel $OUTDIR $LLVM_OPT
   )
 }
 
