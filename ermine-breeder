@@ -79,6 +79,12 @@ user_configure_busybox() {
 user_post_build_kernel() {
   return
 }
+user_post_build_module() {
+  return
+}
+user_post_install_module() { #
+  return
+}
 
 cleanup_workdir() {
   rm -rf $WORKDIR
@@ -335,6 +341,7 @@ build_module() { # workdir rootfsdir
   rm -rf $2/lib/modules/*
   (cd $1/linux*/
   INSTALL_MOD_PATH=$2 make modules_install -j $JOBS O=$OUTDIR
+  user_post_build_module $OUTDIR $2
   )
 }
 
@@ -347,6 +354,7 @@ build_busybox() { # workdir rootfsdir
   kconfigs_y STATIC
   kconfigs_n HUSH CONFIG_BASH_IS_NONE
   kconfigs_y ASH CONFIG_SH_IS_ASH CONFIG_BASH_IS_ASH
+  kconfigs_n TC
   if [ "$BUILD_NET" = yes ] ; then
     # Since we will use iproute2 package
     kconfigs_n IP IPADDR IPLINK IPROUTE IPTUNNEL IPRULE IPNEIGH
